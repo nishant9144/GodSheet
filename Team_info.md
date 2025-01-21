@@ -5,8 +5,8 @@
 | Name          |GitHub Username     | Email               |
 |---------------|--------------------|---------------------|
 | Nishant Kumar | @nishant9144       | cs1230522@iitd.ac.in|
-| Alice Smith   | @aayushyaSahay     | cs1230543@iitd.ac.in|
-| Bob Johnson   | @tanishk147        | cs1230438@iitd.ac.in|
+| Aayushya Sahay   | @aayushyaSahay     | cs1230543@iitd.ac.in|
+| Tanish Kumar   | @tanishk147        | cs1230438@iitd.ac.in|
 
 ---
 
