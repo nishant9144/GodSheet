@@ -1,8 +1,0 @@
-# Ignore specific files
-dump.c
-has_to_check.txt
-screen.o
-screen
-
-# Ignore folders
-.vscode/
