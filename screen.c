@@ -564,14 +564,14 @@ int main(int argc, char *argv[])
         }
     }
 
-    // restoreTerminal();
+    restoreTerminal();
 
-    // for (int i = 0; i < sheet->totalRows; i++)
-    // {
-    //     free(sheet->cells[i]);
-    // }
-    // free(sheet->cells);
-    // free(sheet);
+    for (int i = 0; i < sheet->totalRows; i++)
+    {
+        free(sheet->cells[i]);
+    }
+    free(sheet->cells);
+    free(sheet);
 
-    // return 0;
+    return 0;
 }
