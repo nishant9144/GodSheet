@@ -10,7 +10,7 @@
 #define CELL_WIDTH 12  // Configurable cell width
 #define CELL_PADDING 1 // Space between cells
 #define MAX_ROWS 999
-#define MAX_COLS 17576 // ZZZ = 26^3
+#define MAX_COLS 18278 // ZZZ999 = 26^3 + 26^2 + 26
 #define MAX_CELL_LENGTH 50
 #define VIEW_MODE 0
 #define EDIT_MODE 1
@@ -113,7 +113,7 @@ int parseCellRef(const char *ref, int *row, int *col)
 int evaluateFormula(Spreadsheet *sheet, int row, int col, char *formula, int *error)
 {
     *error = 0;
-    char *token = strtok(formula, "+=");
+    char *token = strtok(formula, "+="); // Splits a string into pieces using delimiters '+' or '='
     int result = 0;
     int first = 1;
 
@@ -197,9 +197,7 @@ void processCellCommand(Spreadsheet *sheet, char *command)
         value++;
 
     int row, col;
-    if (!parseCellRef(cellRef, &row, &col) ||
-        row >= sheet->totalRows ||
-        col >= sheet->totalCols)
+    if (!parseCellRef(cellRef, &row, &col) || row >= sheet->totalRows || col >= sheet->totalCols)
     {
         printf("Invalid cell reference\n");
         return;
@@ -208,14 +206,16 @@ void processCellCommand(Spreadsheet *sheet, char *command)
     if (value[0] == '=')
     {
         // Formula
+        int content_of_cell = sheet->cells[row][col].content;
         sheet->cells[row][col].isFormula = 1;
         strncpy(sheet->cells[row][col].formula, value + 1, MAX_CELL_LENGTH - 1);
         int error;
         sheet->cells[row][col].content = evaluateFormula(sheet, row, col, value + 1, &error);
         if (error)
         {
+            sheet->cells[row][col].isFormula = 0;
             printf("Formula error\n");
-            sheet->cells[row][col].content = 0;
+            sheet->cells[row][col].content = content_of_cell;
         }
     }
     else
@@ -266,7 +266,7 @@ void setColor(int highlight)
 // Function to initialize the spreadsheet
 Spreadsheet *initSpreadsheet(int rows, int cols)
 {
-    Spreadsheet *sheet = (Spreadsheet *)malloc(sizeof(Spreadsheet));
+    Spreadsheet *sheet = (Spreadsheet *)malloc(sizeof(Spreadsheet)); // Created a pointer of the sheet
     sheet->totalRows = rows;
     sheet->totalCols = cols;
     sheet->currentTopRow = 0;
@@ -325,22 +325,11 @@ void displaySheet(Spreadsheet *sheet)
     char currentColRef[4];
     numToColRef(sheet->cursorCol, currentColRef);
 
-
     // Display mode and navigation info
     printf("Mode: %s    Page: Row %d-%d, Col %c-%c\n",
            sheet->mode == VIEW_MODE ? "VIEW" : "EDIT",
            sheet->currentTopRow + 1, endRow,
            'A' + sheet->currentLeftCol, 'A' + endCol - 1);
-
-
-    // // Display mode, navigation info and current cell
-    // printf("Mode: %-4s    Page: Row %d-%d, Col %s-%s    Current Cell: %s%d\n",
-    //        sheet->mode == VIEW_MODE ? "VIEW" : "EDIT",
-    //        sheet->currentTopRow + 1, endRow,
-    //        numToColRef(sheet->currentLeftCol, currentColRef),
-    //        numToColRef(endCol - 1, currentColRef),
-    //        numToColRef(sheet->cursorCol, currentColRef),
-    //        sheet->cursorRow + 1);
 
     // Display column headers
     displayColumnHeaders(sheet->currentLeftCol, endCol);
@@ -412,6 +401,8 @@ void editCell(Spreadsheet *sheet)
     char input[MAX_CELL_LENGTH];
     fgets(input, MAX_CELL_LENGTH, stdin);
     input[strcspn(input, "\n")] = 0;
+    // the code uses the strcspn function to find the
+    // position of the newline character (\n) within the input string.
 
     if (strlen(input) > 0)
     {
@@ -551,6 +542,7 @@ int main(int argc, char *argv[])
     char input;
     while (1)
     {
+        system("clear"); // Clear the terminal screen
         displaySheet(sheet);
         input = readArrowKeys();
 
