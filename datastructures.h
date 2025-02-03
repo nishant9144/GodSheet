@@ -1,3 +1,7 @@
+#ifndef BACKEND_H
+#define BACKEND_H
+
+
 #include <stdbool.h>
 
 //cordinate of cell (row,column)
@@ -10,7 +14,7 @@ typedef struct
 // formula AST node type
 
 typedef enum{
-    VAl_CONST,
+    VAL_CONST,
     VAL_CELL,
     OP_ADD,
     OP_SUB,
@@ -51,5 +55,4 @@ typedef struct {
     bool **dependency_graph;    // Adjacency matrix of dependencies
 } Spreadsheet;
 
-
-
+#endif

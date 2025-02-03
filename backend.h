@@ -1,3 +1,5 @@
+#ifndef DATASTRUCTURES_H
+#define DATASTRUCTURES_H
 
 #include "datastructures.h"
 
@@ -36,3 +38,5 @@ void sheet_recalculate(Spreadsheet *sheet, int row, int col);
 
 // dependency management
 bool sheet_check_circular(Spreadsheet *sheet, CellRef start);
+
+#endif
