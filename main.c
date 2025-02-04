@@ -29,14 +29,13 @@ int main(int argc, char *argv[])
     configure_terminal();
 
     char input;
-    // char input_line[256];
     while (1)
     {
         system("clear");
         struct timeval start_time;
         gettimeofday(&start_time, NULL);
 
-        // Display the current view of the spreadsheet.
+        // Here checker should be created to display the screen or not
         display_viewport(sheet);
 
         input = readArrowKeys();
@@ -61,8 +60,6 @@ int main(int argc, char *argv[])
         struct timeval end_time;
         gettimeofday(&end_time, NULL);
         sheet->last_cmd_time = end_time;
-        // double elapsed = (end_time.tv_sec - start_time.tv_sec) +
-        //                  (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
 
         // (Status display is handled in display_viewport via display_status_bar.)
     }

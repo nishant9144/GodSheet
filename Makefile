@@ -43,6 +43,10 @@ test: directories $(TEST_EXEC)
 $(TEST_EXEC): $(filter-out $(BUILD_DIR)/main.o, $(MAIN_OBJS)) $(TEST_OBJS)
 	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
+.PHONY: valgrind
+
+valgrind: $(EXEC)
+	@valgrind --leak-check=full --track-origins=yes $(EXEC)
 # Generate the report
 report:
 	@pdflatex report.tex

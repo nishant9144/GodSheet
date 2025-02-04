@@ -138,7 +138,7 @@ void display_viewport(Spreadsheet *sheet)
                 printf("\x1b[47m\x1b[30m"); // Highlight
             }
 
-            if (cell->isFormula)
+            if (cell->formula != NULL)
             {
                 printf("=%-*s", CELL_WIDTH, cell->formula);
             }
@@ -174,9 +174,6 @@ void display_viewport(Spreadsheet *sheet)
     {
         printf("Enter: Edit cell    Esc: Cancel edit\n");
     }
-    /*
-        I don't think that I need to display status here, I want it to display in the edit mode only
-    */
 
     display_status_bar(sheet);
 }
@@ -189,7 +186,7 @@ char readArrowKeys()
         c = getchar(); // Skip '['
         if (c == '[')
         {
-            return getchar(); 
+            return getchar();
         }
         return c;
     }
