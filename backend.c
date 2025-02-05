@@ -8,7 +8,7 @@
 #include <ctype.h>
 
 // Helper: Convert column string (e.g., "AA") to 0-based index
-static int col_to_index(const char *col_str) {
+int col_to_index(const char *col_str) {
     int index = 0;
     while (*col_str) {
         index = index * 26 + (toupper(*col_str) - 'A' + 1);
@@ -18,7 +18,7 @@ static int col_to_index(const char *col_str) {
 }
 
 // Helper: Parse cell reference like "A1"
-static bool parse_cell_ref(const char *str, CellRef *ref) {
+bool parse_cell_ref(const char *str, CellRef *ref) {
     char col_str[4] = {0};
     int i = 0;
     
@@ -79,23 +79,45 @@ void sheet_destroy(Spreadsheet *sheet) {
 }
 
 // Set cell value (triggers recalc)
-CalcError sheet_set_value(Spreadsheet *sheet, int row, int col, int value) {
+CalcError sheet_set_formula(Spreadsheet *sheet, int row, int col, const char *formula_str) {
     if (row < 0 || row >= sheet->rows || col < 0 || col >= sheet->cols) {
         return ERR_INVALID_REF;
     }
-    
+
     Cell *cell = &sheet->cells[row][col];
     
-    // Clear existing formula
+    // Free existing formula if any
     if (cell->formula) {
-        free(cell->formula);
+        free_ast(cell->formula);  // Assume you have a function to free AST nodes
         cell->formula = NULL;
     }
-    
-    cell->value = value;
+
+    // Parse formula into AST (implement this parser)
+    cell->formula = parse_formula(formula_str);
+    if (!cell->formula) {
+        return ERR_INVALID_FORMULA;
+    }
+
+    // Check for circular dependencies
+    if (sheet_check_circular(sheet, (CellRef){row, col})) {
+        free_ast(cell->formula);
+        cell->formula = NULL;
+        return ERR_CIRCULAR_REF;
+    }
+
+    // Trigger recalculation
     sheet_recalculate(sheet);
     return OK;
 }
+
+void free_ast(ASTNode *node) {
+    if (!node) return;
+    free_ast(node->left);
+    free_ast(node->right);
+    free(node);
+}
+
+
 
 // Recursive formula evaluation
 static int evaluate_ast(Spreadsheet *sheet, ASTNode *node, CalcError *err) {
@@ -134,8 +156,8 @@ static int evaluate_ast(Spreadsheet *sheet, ASTNode *node, CalcError *err) {
 
 // Trigger recalculation of dependent cells
 void sheet_recalculate(Spreadsheet *sheet) {
-    // Implement topological sort using dependency graph
-    // For simplicity, this is a placeholder
+    // Implement recalculation logic here
+    // For now, just a placeholder
     for (int i = 0; i < sheet->rows; i++) {
         for (int j = 0; j < sheet->cols; j++) {
             Cell *cell = &sheet->cells[i][j];
@@ -146,4 +168,165 @@ void sheet_recalculate(Spreadsheet *sheet) {
             }
         }
     }
+}
+
+static Token current_token;
+static const char *formula_ptr;
+
+// Helper: Get next token
+static void next_token() {
+    while (isspace(*formula_ptr)) formula_ptr++;
+    
+    current_token.start = formula_ptr;
+    current_token.length = 1;
+
+    if (*formula_ptr == '\0') {
+        current_token.type = TOK_EOF;
+        return;
+    }
+
+    if (isdigit(*formula_ptr)) {
+        current_token.type = TOK_NUMBER;
+        current_token.num_value = strtol(formula_ptr, (char**)&formula_ptr, 10);
+        current_token.length = formula_ptr - current_token.start;
+        return;
+    }
+
+    if (isalpha(*formula_ptr)) {
+        // Check for cell reference
+        char col_str[4] = {0};
+        int i = 0;
+        
+        while (isalpha(*formula_ptr) && i < 3) {
+            col_str[i++] = *formula_ptr++;
+        }
+        
+        if (isdigit(*formula_ptr)) {
+            current_token.type = TOK_CELL;
+            parse_cell_ref(current_token.start, &current_token.cell_value);
+            current_token.length = formula_ptr - current_token.start;
+            return;
+        }
+        
+        // Handle functions later
+    }
+
+    switch (*formula_ptr) {
+        case '+': current_token.type = TOK_PLUS; break;
+        case '-': current_token.type = TOK_MINUS; break;
+        case '*': current_token.type = TOK_MUL; break;
+        case '/': current_token.type = TOK_DIV; break;
+        case '(': current_token.type = TOK_LPAREN; break;
+        case ')': current_token.type = TOK_RPAREN; break;
+        default: current_token.type = TOK_INVALID; break;
+    }
+
+    formula_ptr++;
+}
+
+// Recursive descent parser functions
+static ASTNode *parse_expression();
+static ASTNode *parse_term();
+static ASTNode *parse_factor();
+
+ASTNode *parse_formula(const char *formula_str) {
+    formula_ptr = formula_str;
+    next_token(); // Initialize first token
+    
+    ASTNode *node = parse_expression();
+    if (current_token.type != TOK_EOF) {
+        free_ast(node);
+        return NULL;
+    }
+    return node;
+}
+
+static ASTNode *parse_expression() {
+    ASTNode *node = parse_term();
+    
+    while (current_token.type == TOK_PLUS || current_token.type == TOK_MINUS) {
+        TokenType op = current_token.type;
+        next_token();
+        ASTNode *right = parse_term();
+        node = create_binary_op(op, node, right);
+    }
+    
+    return node;
+}
+
+static ASTNode *parse_term() {
+    ASTNode *node = parse_factor();
+    
+    while (current_token.type == TOK_MUL || current_token.type == TOK_DIV) {
+        TokenType op = current_token.type;
+        next_token();
+        ASTNode *right = parse_factor();
+        node = create_binary_op(op, node, right);
+    }
+    
+    return node;
+}
+
+static ASTNode *parse_factor() {
+    ASTNode *node = NULL;
+    
+    switch (current_token.type) {
+        case TOK_NUMBER:
+            node = create_number_node(current_token.num_value);
+            next_token();
+            break;
+            
+        case TOK_CELL:
+            node = create_cell_node(current_token.cell_value);
+            next_token();
+            break;
+            
+        case TOK_LPAREN:
+            next_token();
+            node = parse_expression();
+            if (current_token.type != TOK_RPAREN) {
+                free_ast(node);
+                return NULL;
+            }
+            next_token();
+            break;
+            
+        default:
+            return NULL;
+    }
+    
+    return node;
+}
+
+// AST node creation helpers
+static ASTNode *create_number_node(int value) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = VAL_CONST;
+    node->value = value;
+    node->left = node->right = NULL;
+    return node;
+}
+
+static ASTNode *create_cell_node(CellRef cellref) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = VAL_CELL;
+    node->cellref = cellref;
+    node->left = node->right = NULL;
+    return node;
+}
+
+static ASTNode *create_binary_op(TokenType op_type, ASTNode *left, ASTNode *right) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    
+    switch (op_type) {
+        case TOK_PLUS: node->type = OP_ADD; break;
+        case TOK_MINUS: node->type = OP_SUB; break;
+        case TOK_MUL: node->type = OP_MUL; break;
+        case TOK_DIV: node->type = OP_DIV; break;
+        default: free(node); return NULL;
+    }
+    
+    node->left = left;
+    node->right = right;
+    return node;
 }

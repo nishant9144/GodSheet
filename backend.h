@@ -34,9 +34,11 @@ CalcError sheet_set_value(Spreadsheet *sheet, int row, int col, int value);
 CalcError sheet_set_formula(Spreadsheet *sheet, int row, int col, const char *formula);
 
 //Recalculate the value of the cell and all dependent cells
-void sheet_recalculate(Spreadsheet *sheet, int row, int col);
-
+void sheet_recalculate(Spreadsheet *sheet);
 // dependency management
 bool sheet_check_circular(Spreadsheet *sheet, CellRef start);
+
+// Add missing declarations
+bool parse_cell_ref(const char *str, CellRef *ref);
 
 #endif

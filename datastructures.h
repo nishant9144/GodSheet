@@ -3,6 +3,8 @@
 
 
 #include <stdbool.h>
+int col_to_index(const char *col_str);
+
 
 //cordinate of cell (row,column)
 typedef struct
@@ -27,6 +29,28 @@ typedef enum{
     FINC_SLEEP,
     FUNC_STDEV,
 } NodeType;
+
+
+typedef enum {
+    TOK_NUMBER,
+    TOK_CELL,
+    TOK_PLUS,
+    TOK_MINUS,
+    TOK_MUL,
+    TOK_DIV,
+    TOK_LPAREN,
+    TOK_RPAREN,
+    TOK_EOF,
+    TOK_INVALID
+} TokenType;
+
+typedef struct {
+    TokenType type;
+    int num_value;
+    CellRef cell_value;
+    const char *start;
+    size_t length;
+} Token;
 
 // Abstract Syntax Tree (AST) node
 typedef struct ASTNode {
