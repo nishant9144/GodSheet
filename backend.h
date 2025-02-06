@@ -3,12 +3,9 @@
 
 #include "spreadsheet.h"
 
-void destroy_spreadsheet(Spreadsheet *sheet);
+Spreadsheet *create_spreadsheet(int rows, int cols);
 void recalculate(Spreadsheet *sheet);
-int evaluate_expression(Spreadsheet *sheet, int row, int col, CalcStatus *status);
 void editCell(Spreadsheet *sheet);
-void collect_dependencies(ExprNode *node, Spreadsheet *sheet, int dest_row, int dest_col);
-bool detect_cycle(Spreadsheet *sheet, int row, int col);
-void mark_dependents_for_recalc(Spreadsheet *sheet, int row, int col);
+void destroy_spreadsheet(Spreadsheet *sheet);
 
-#endif // BACKEND_H
+#endif

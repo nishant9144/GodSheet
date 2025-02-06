@@ -1,7 +1,6 @@
 #include "spreadsheet.h"
 #include "frontend.h"
 #include "backend.h"
-#include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,7 +60,6 @@ int main(int argc, char *argv[])
         gettimeofday(&end_time, NULL);
         sheet->last_cmd_time = end_time;
 
-        // (Status display is handled in display_viewport via display_status_bar.)
     }
 
     restore_terminal();

@@ -4,29 +4,6 @@
 #include <sys/time.h>
 #include <stdbool.h>
 
-#define VIEWPORT_ROWS 10
-#define VIEWPORT_COLS 10
-#define CELL_WIDTH 12
-#define MAX_CELL_LENGTH 50
-#define CELL_PADDING 1
-#define MAX_FORMULA_LEN 100
-#define MAX_DEPS 100
-#define SLEEP_TIME_MULTIPLIER 1000000
-#define MAX_ROWS 999
-#define MAX_COLS 18278
-#define VIEW_MODE 0
-#define EDIT_MODE 1
-#define ARROW_UP 'A'
-#define ARROW_DOWN 'B'
-#define ARROW_RIGHT 'C'
-#define ARROW_LEFT 'D'
-#define ESC '\x1b'
-
-// Terminal control sequences
-#define CLEAR_SCREEN "\x1b[2J\x1b[H"
-#define HIDE_CURSOR "\x1b[?25l"
-#define SHOW_CURSOR "\x1b[?25h"
-
 typedef enum
 {
     STATUS_OK,
@@ -36,75 +13,65 @@ typedef enum
     ERR_DIV_ZERO,
     ERR_INVALID_RANGE,
     ERR_SYNTAX,
-    ERR_OVERFLOW
+    ERR_OVERFLOW,
+    ERR_CIRCULAR_REFERENCE
 } CalcStatus;
 
-typedef struct DependencyNode
-{
-    int row;
-    int col;
-    struct DependencyNode *next;
-} DependencyNode;
+typedef enum {
+    TYPE_EMPTY,
+    TYPE_CONSTANT,
+    TYPE_REFERENCE,    // References another cell (e.g., =A1)
+    TYPE_ARITHMETIC,   // Simple arithmetic (e.g., =A1+1)
+    TYPE_FUNCTION,      // Functions like MIN, MAX, etc.
+} CellType;
+typedef enum {
+    OP_NONE,
+    OP_ADD,
+    OP_SUB,
+    OP_MUL,
+    OP_DIV
+} Operation;
 
-typedef enum
-{
-    NODE_CONSTANT,
-    NODE_REFERENCE,
-    NODE_OPERATOR,
-    NODE_FUNCTION,
-    NODE_RANGE
-} ExprNodeType;
+typedef struct Cell Cell;
+typedef struct {
+    Cell** cells;
+    int count;
+    int capacity;
+} CellSet;
 
-typedef struct ExprNode
-{
-    ExprNodeType type;
-    union
-    {
-        // For constants (NODE_CONSTANT)
-        int constant;
+struct Cell {
+    int value;          
+    char* formula;      
+    CellType type;      
 
-        // For cell references (NODE_REFERENCE)
-        struct
-        {
-            int row; // 0-based row index
-            int col; // 0-based column index
-        } reference;
+    union {
+        struct {  
+            Operation op;       
+            Cell* operand1;     
+            Cell* operand2;
+            int constant;      
+        } arithmetic;
 
-        // For operators (NODE_OPERATOR)
-        struct
-        {
-            char op; // '+', '-', '*', '/'
-            struct ExprNode *left;
-            struct ExprNode *right;
-        } operation;
-
-        // For functions (NODE_FUNCTION)
-        struct
-        {
-            char *name;             // Function name ("SUM", "AVG", etc.)
-            struct ExprNode **args; // Array of arguments (only ranges supported)
-            int args_count;
+        struct {  
+            char* func_name;    
+            Cell** range;      
+            int range_size;     
         } function;
-
-        // For ranges (NODE_RANGE)
-        struct
-        {
-            struct ExprNode *start; // Start cell (NODE_REFERENCE)
-            struct ExprNode *end;   // End cell (NODE_REFERENCE)
-        } range;
-    };
-} ExprNode;
-typedef struct
-{
-    int content;
-    char *formula;                // Will have to use malloc for formula
-    ExprNode *expr_tree;          // Parsed expression tree
-    DependencyNode *dependents;   // Cells that depend on this one
-    DependencyNode *dependencies; // Cells this cell depends on
-    bool needs_recalc;
-    bool has_error;
-    char error_msg[64];
-} Cell;
+    } op_data;
+    
+    // Dependency management
+    CellSet* dependents;  
+    CellSet* dependencies; 
+    
+    // For error handling
+    bool has_error;     
+    char* error_msg;    
+    
+    // For topological sort
+    bool visited;       // For cycle detection
+    bool in_stack;      // For cycle detection
+    int topo_order;     // Topological order
+};
 
 typedef struct
 {
@@ -116,20 +83,9 @@ typedef struct
     int mode;
     int cursorRow;
     int cursorCol;
+    bool output_enabled;
     struct timeval last_cmd_time;
     CalcStatus last_status;
 } Spreadsheet;
-
-// Function prototypes
-void add_dependency(Spreadsheet *sheet, int src_row, int src_col, int target_row, int target_col);
-bool detect_cycle(Spreadsheet *sheet, int row, int col);
-void clear_dependencies(Spreadsheet *sheet, int row, int col);
-void recalculate(Spreadsheet *sheet);
-Spreadsheet *create_spreadsheet(int rows, int cols);
-void destroy_spreadsheet(Spreadsheet *sheet);
-
-ExprNode *parse_expression(const char **input);
-void free_expr_tree(ExprNode *node);
-int eval_expression(Spreadsheet *sheet, int row, int col, CalcStatus *status);
 
 #endif

@@ -1,4 +1,5 @@
 #include "spreadsheet.h"
+#include "frontend.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -144,7 +145,7 @@ void display_viewport(Spreadsheet *sheet)
             }
             else
             {
-                printf("%-*d", CELL_WIDTH, cell->content);
+                printf("%-*d", CELL_WIDTH, cell->value);
             }
 
             if (i == sheet->cursorRow && j == sheet->cursorCol)

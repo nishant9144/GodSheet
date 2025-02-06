@@ -7,381 +7,476 @@
 #include <string.h>
 #include <ctype.h>
 
-static ExprNode *parse_expression(const char **input);
-static ExprNode *parse_term(const char **input);
-static ExprNode *parse_factor(const char **input);
-static ExprNode *parse_primary(const char **input);
-
-static void skip_whitespace(const char **input)
+static int col_label_to_index(const char *label)
 {
-    while (isspace(**input))
-        (*input)++;
+    int result = 0;
+    char c;
+    for (int i = 0; label[i] != '\0'; i++)
+    {
+        if (!isalpha(label[i]) || islower(c = label[i]))
+        {
+            return -1;
+        }
+        result = result * 26 + (c - 'A' + 1);
+    }
+    return result - 1;
 }
 
-static int parse_cell_reference(const char **input, int *row, int *col)
+static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, int *col)
 {
     char col_part[4] = {0};
     int i = 0;
 
-    // Parse column letters
     while (isalpha(**input) && i < 3)
     {
         col_part[i++] = **input;
         (*input)++;
     }
     if (i == 0)
-        return 0; // No column letters
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    } // No column letters
 
     // Convert column to index
     *col = col_label_to_index(col_part);
-    if (*col < 0)
-        return 0;
+    if (*col <= 0 || *col > MAX_COLS)
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
 
-    // Parse row numbers
     *row = 0;
     while (isdigit(**input))
     {
         *row = *row * 10 + (**input - '0');
         (*input)++;
     }
-    if (*row == 0)
-        return 0; // No row numbers
+    if (*row <= 0 || *row > MAX_ROWS)
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
+    *row -= 1;
+    return 0;
+}
 
-    *row -= 1; // Convert to 0-based index
+// Returns true if the string represents a valid function name
+static bool is_function(const char *str)
+{
+    static const char *functions[] = {"MIN", "MAX", "AVG", "SUM", "STDEV", "SLEEP"};
+    for (int i = 0; i < 6; i++)
+    {
+        if (strncmp(str, functions[i], strlen(functions[i])) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Returns true if the character is an arithmetic operator
+static bool is_operator(char c)
+{
+    return c == '+' || c == '-' || c == '*' || c == '/';
+}
+
+// Convert operator character to Operation enum
+static Operation char_to_operation(char c)
+{
+    switch (c)
+    {
+    case '+':
+        return OP_ADD;
+    case '-':
+        return OP_SUB;
+    case '*':
+        return OP_MUL;
+    case '/':
+        return OP_DIV;
+    default:
+        return OP_NONE;
+    }
+}
+
+// Parse a range (e.g., "A1:B2") and store cells in the range array
+static int parse_range(Spreadsheet *sheet, const char *range_str, Cell ***range_cells, int *range_size)
+{
+    char *colon = strchr(range_str, ':');
+    if (!colon)
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
+
+    // Split the range into start and end
+    int len = strlen(range_str);
+    char *range_copy = malloc(len + 1);
+    strcpy(range_copy, range_str);
+    range_copy[colon - range_str] = '\0';
+
+    // Parse start and end cells
+    int start_row, start_col, end_row, end_col;
+    const char *start_ptr = range_copy;
+    const char *end_ptr = colon + 1;
+
+    if (parse_cell_address(sheet, &start_ptr, &start_row, &start_col) != 0 ||
+        parse_cell_address(sheet, &end_ptr, &end_row, &end_col) != 0)
+    {
+        free(range_copy);
+        return -1;
+    }
+
+    // Validate range order
+    if (start_row > end_row || start_col > end_col)
+    {
+        sheet->last_status = ERR_INVALID_RANGE;
+        free(range_copy);
+        return -1;
+    }
+
+    // Calculate range size and allocate memory
+    int rows = end_row - start_row + 1;
+    int cols = end_col - start_col + 1;
+    *range_size = rows * cols;
+    *range_cells = malloc(sizeof(Cell *) * (*range_size));
+
+    // Fill the range array
+    int idx = 0;
+    for (int r = start_row; r <= end_row; r++)
+    {
+        for (int c = start_col; c <= end_col; c++)
+        {
+            (*range_cells)[idx++] = &sheet->cells[r][c];
+        }
+    }
+
+    free(range_copy);
+    return 0;
+}
+
+// Parse arithmetic expression (e.g., "A1+2" or "B2*C3")
+static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *formula)
+{
+    // Find the operator
+    const char *op_pos = NULL;
+    for (const char *p = formula; *p; p++)
+    {
+        if (is_operator(*p))
+        {
+            if (op_pos)
+            { // Multiple operators found
+                sheet->last_status = ERR_SYNTAX;
+                return -1;
+            }
+            op_pos = p;
+        }
+    }
+
+    if (!op_pos)
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
+
+    // Split formula into operands
+    int len = strlen(formula);
+    char *formula_copy = malloc(len + 1);
+    strcpy(formula_copy, formula);
+    formula_copy[op_pos - formula] = '\0';
+
+    target_cell->type = TYPE_ARITHMETIC;
+    target_cell->op_data.arithmetic.op = char_to_operation(*op_pos);
+
+    // Parse first operand
+    if (isalpha(formula_copy[0]))
+    {
+        int row, col;
+        const char *ptr = formula_copy;
+        if (parse_cell_address(sheet, &ptr, &row, &col) != 0)
+        {
+            free(formula_copy);
+            return -1;
+        }
+        target_cell->op_data.arithmetic.operand1 = &sheet->cells[row][col];
+        target_cell->op_data.arithmetic.constant = 0;
+    }
+    else
+    {
+        target_cell->op_data.arithmetic.operand1 = NULL;
+        target_cell->op_data.arithmetic.constant = atoi(formula_copy);
+    }
+
+    // Parse second operand
+    const char *second_operand = op_pos + 1;
+    if (isalpha(second_operand[0]))
+    {
+        int row, col;
+        const char *ptr = second_operand;
+        if (parse_cell_address(sheet, &ptr, &row, &col) != 0)
+        {
+            free(formula_copy);
+            return -1;
+        }
+        target_cell->op_data.arithmetic.operand2 = &sheet->cells[row][col];
+    }
+    else
+    {
+        target_cell->op_data.arithmetic.operand2 = NULL;
+        target_cell->op_data.arithmetic.constant = atoi(second_operand);
+    }
+
+    free(formula_copy);
+    return 0;
+}
+
+// Parse function call (e.g., "SUM(A1:B2)")
+static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *formula)
+{
+    // Extract function name
+    char func_name[10] = {0};
+    const char *p = formula;
+    int i = 0;
+    while (*p && *p != '(' && i < 9)
+    {
+        func_name[i++] = *p++;
+    }
+
+    if (*p != '(' || !is_function(func_name))
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
+
+    // Find closing parenthesis
+    const char *close_paren = strchr(p, ')');
+    if (!close_paren || *(close_paren + 1) != '\0')
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
+
+    // Extract range/value
+    int range_len = close_paren - p - 1;
+    char *range_str = malloc(range_len + 1);
+    strncpy(range_str, p + 1, range_len);
+    range_str[range_len] = '\0';
+
+    target_cell->type = TYPE_FUNCTION;
+    target_cell->op_data.function.func_name = strdup(func_name);
+
+    // Parse range or single value
+    if (strchr(range_str, ':'))
+    {
+        if (parse_range(sheet, range_str, &target_cell->op_data.function.range,
+                        &target_cell->op_data.function.range_size) != 0)
+        {
+            free(range_str);
+            return -1;
+        }
+    }
+    else
+    {
+        // Single cell or value
+        if (isalpha(range_str[0]))
+        {
+            int row, col;
+            const char *ptr = range_str;
+            if (parse_cell_address(sheet, &ptr, &row, &col) != 0)
+            {
+                free(range_str);
+                return -1;
+            }
+            target_cell->op_data.function.range = malloc(sizeof(Cell *));
+            target_cell->op_data.function.range[0] = &sheet->cells[row][col];
+            target_cell->op_data.function.range_size = 1;
+        }
+        else
+        {
+            // It's a constant value (e.g., SLEEP(2))
+            target_cell->type = TYPE_CONSTANT;
+            target_cell->value = atoi(range_str);
+        }
+    }
+
+    free(range_str);
+    return 0;
+}
+
+// Check for cyclic dependencies
+static bool check_cycle(Spreadsheet *sheet, Cell *start_cell, Cell *current_cell)
+{
+    if (current_cell->in_stack)
+    {
+        return true; // Cycle detected
+    }
+
+    if (current_cell->visited)
+    {
+        return false; // Already checked this path
+    }
+
+    current_cell->visited = true;
+    current_cell->in_stack = true;
+
+    // Check dependencies based on cell type
+    if (current_cell->type == TYPE_ARITHMETIC)
+    {
+        if (current_cell->op_data.arithmetic.operand1 &&
+            check_cycle(sheet, start_cell, current_cell->op_data.arithmetic.operand1))
+        {
+            return true;
+        }
+        if (current_cell->op_data.arithmetic.operand2 &&
+            check_cycle(sheet, start_cell, current_cell->op_data.arithmetic.operand2))
+        {
+            return true;
+        }
+    }
+    else if (current_cell->type == TYPE_FUNCTION)
+    {
+        for (int i = 0; i < current_cell->op_data.function.range_size; i++)
+        {
+            if (check_cycle(sheet, start_cell, current_cell->op_data.function.range[i]))
+            {
+                return true;
+            }
+        }
+    }
+
+    current_cell->in_stack = false;
+    return false;
+}
+int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col)
+{
+    // Remove leading/trailing whitespace if needed. For simplicity, assume str is trimmed.
+
+    // First, try to parse a constant.
+    char *endptr;
+    long num = strtol(str, &endptr, 10);
+    if (*endptr == '\0')
+    {
+        // Entire string was consumed => valid constant.
+        *constant_value = (int)num;
+        return 0;
+    }
+
+    // Otherwise, check if the string is a valid cell address.
+    // Expected format: one or more letters followed by one or more digits.
+    int i = 0;
+    while (str[i] && isalpha((unsigned char)str[i]))
+    {
+        i++;
+    }
+    if (i == 0)
+    {
+        // No alphabetic part, invalid cell address.
+        return -1;
+    }
+
+    int j = i;
+    while (str[j] && isdigit((unsigned char)str[j]))
+    {
+        j++;
+    }
+    if (str[j] != '\0')
+    {
+        // Extra characters detected.
+        return -1;
+    }
+
+    // Convert letter(s) to a column index (A => 0, B => 1, etc.).
+    int col_num = 0;
+    for (int k = 0; k < i; k++)
+    {
+        col_num = col_num * 26 + (toupper(str[k]) - 'A' + 1);
+    }
+    // Adjust for 0-indexing.
+    *col = col_num - 1;
+
+    // Convert the numeric part to a row index (1-based to 0-based).
+    int row_num = atoi(str + i);
+    if (row_num <= 0)
+    {
+        // Invalid row number.
+        return -1;
+    }
+    *row = row_num - 1;
+
     return 1;
 }
 
-static ExprNode *create_constant(int value)
+// Main formula parsing function
+int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
 {
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_CONSTANT;
-    node->constant = value;
-    return node;
-}
+    // Reset cell's current state
+    cell->has_error = false;
+    free(cell->error_msg);
+    cell->error_msg = NULL;
 
-static ExprNode *create_reference(int row, int col)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_REFERENCE;
-    node->reference.row = row;
-    node->reference.col = col;
-    return node;
-}
+    // Check if it's a constant
 
-static ExprNode *create_operator(char op, ExprNode *left, ExprNode *right)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_OPERATOR;
-    node->operation.op = op;
-    node->operation.left = left;
-    node->operation.right = right;
-    return node;
-}
-
-static ExprNode *create_function(const char *name, ExprNode *range)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_FUNCTION;
-    node->function.name = strdup(name);
-    node->function.args = malloc(sizeof(ExprNode *));
-    node->function.args[0] = range;
-    node->function.args_count = 1;
-    return node;
-}
-
-static ExprNode *create_range(ExprNode *start, ExprNode *end)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_RANGE;
-    node->range.start = start;
-    node->range.end = end;
-    return node;
-}
-
-static int validate_range(ExprNode *start, ExprNode *end)
-{
-    if (start->type != NODE_REFERENCE || end->type != NODE_REFERENCE)
+    // This needs to be checked. There could be value like (2+3) but we are not considering them
+    if (isdigit(formula[0]) || (formula[0] == '-' && isdigit(formula[1])))
+    {
+        cell->type = TYPE_CONSTANT;
+        cell->value = atoi(formula);
         return 0;
-    return (start->reference.row <= end->reference.row) &&
-           (start->reference.col <= end->reference.col);
-}
-
-ExprNode *parse_expression(const char **input)
-{
-    ExprNode *left = parse_term(input);
-    while (1)
-    {
-        skip_whitespace(input);
-        if (**input == '+' || **input == '-')
-        {
-            char op = **input;
-            (*input)++;
-            ExprNode *right = parse_term(input);
-            left = create_operator(op, left, right);
-        }
-        else
-        {
-            break;
-        }
-    }
-    return left;
-}
-
-ExprNode *parse_term(const char **input)
-{
-    ExprNode *left = parse_factor(input);
-    while (1)
-    {
-        skip_whitespace(input);
-        if (**input == '*' || **input == '/')
-        {
-            char op = **input;
-            (*input)++;
-            ExprNode *right = parse_factor(input);
-            left = create_operator(op, left, right);
-        }
-        else
-        {
-            break;
-        }
-    }
-    return left;
-}
-
-ExprNode *parse_factor(const char **input)
-{
-    skip_whitespace(input);
-    if (**input == '(')
-    {
-        (*input)++;
-        ExprNode *expr = parse_expression(input);
-        skip_whitespace(input);
-        if (**input != ')')
-        {
-            free_expr_tree(expr);
-            return NULL;
-        }
-        (*input)++;
-        return expr;
-    }
-    return parse_primary(input);
-}
-
-ExprNode *parse_primary(const char **input)
-{
-    skip_whitespace(input);
-
-    // Number constant
-    if (isdigit(**input))
-    {
-        int value = 0;
-        while (isdigit(**input))
-        {
-            value = value * 10 + (**input - '0');
-            (*input)++;
-        }
-        return create_constant(value);
     }
 
-    // Cell reference or function
-    if (isalpha(**input))
+    // Check if it's a function
+    if (isupper(formula[0]) && !isalpha(formula[1]))
     {
-        const char *start = *input;
-        while (isalnum(**input))
-            (*input)++;
-        size_t length = *input - start;
-
-        // Check if it's a function
-        if (**input == '(')
+        if (parse_function(sheet, cell, formula) != 0)
         {
-            char func_name[10] = {0};
-            strncpy(func_name, start, length);
-            (*input)++; // Skip '('
-
-            ExprNode *arg = parse_primary(input);
-            if (arg == NULL)
-                return NULL;
-
-            // Validate it's a range
-            if (arg->type != NODE_RANGE || !validate_range(arg->range.start, arg->range.end))
-            {
-                free_expr_tree(arg);
-                return NULL;
-            }
-
-            skip_whitespace(input);
-            if (**input != ')')
-            {
-                free_expr_tree(arg);
-                return NULL;
-            }
-            (*input)++; // Skip ')'
-
-            return create_function(func_name, arg);
+            return -1;
         }
-
-        // Parse as cell reference or range
-        *input = start; // Reset to start of reference
-        int row1, col1, row2, col2;
-        if (!parse_cell_reference(input, &row1, &col1))
-            return NULL;
-
-        // Check for range
-        if (**input == ':')
+    }
+    // Check if it's an arithmetic expression
+    else if (strchr(formula, '+') || strchr(formula, '-') ||
+             strchr(formula, '*') || strchr(formula, '/'))
+    {
+        if (parse_arithmetic(sheet, cell, formula) != 0)
         {
-            (*input)++; // Skip ':'
-            if (!parse_cell_reference(input, &row2, &col2))
-                return NULL;
-            ExprNode *start = create_reference(row1, col1);
-            ExprNode *end = create_reference(row2, col2);
-            if (!validate_range(start, end))
-            {
-                free_expr_tree(start);
-                free_expr_tree(end);
-                return NULL;
-            }
-            return create_range(start, end);
+            return -1;
         }
-
-        return create_reference(row1, col1);
     }
-
-    return NULL; // Invalid syntax
-}
-
-ExprNode *parse_formula(const char *formula, CalcStatus *status)
-{
-    const char *input = formula;
-    ExprNode *result = parse_expression(&input);
-
-    if (result == NULL)
+    // Must be a cell reference
+    else if (isalpha(formula[0]))
     {
-        *status = ERR_SYNTAX;
-        return NULL;
-    }
-
-    skip_whitespace(&input);
-    if (*input != '\0')
-    {
-        free_expr_tree(result);
-        *status = ERR_SYNTAX;
-        return NULL;
-    }
-
-    *status = STATUS_OK;
-    return result;
-}
-
-void free_expr_tree(ExprNode *node)
-{
-    if (!node)
-        return;
-
-    switch (node->type)
-    {
-    case NODE_OPERATOR:
-        free_expr_tree(node->operation.left);
-        free_expr_tree(node->operation.right);
-        break;
-    case NODE_FUNCTION:
-        free(node->function.name);
-        free_expr_tree(node->function.args[0]);
-        free(node->function.args);
-        break;
-    case NODE_RANGE:
-        free_expr_tree(node->range.start);
-        free_expr_tree(node->range.end);
-        break;
-    default:
-        break;
-    }
-
-    free(node);
-}
-
-ExprNode *create_constant_node(int value)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_CONSTANT;
-    node->constant = value;
-    return node;
-}
-
-// Create a cell reference node
-ExprNode *create_reference_node(int row, int col)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_REFERENCE;
-    node->reference.row = row;
-    node->reference.col = col;
-    return node;
-}
-
-// Create an operator node
-ExprNode *create_operator_node(char op, ExprNode *left, ExprNode *right)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_OPERATOR;
-    node->operation.op = op;
-    node->operation.left = left;
-    node->operation.right = right;
-    return node;
-}
-
-// Create a function node
-ExprNode *create_function_node(const char *name, ExprNode *range_arg)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_FUNCTION;
-    node->function.name = strdup(name);
-    node->function.args = malloc(sizeof(ExprNode *));
-    node->function.args[0] = range_arg;
-    node->function.args_count = 1;
-    return node;
-}
-
-// Create a range node
-ExprNode *create_range_node(ExprNode *start, ExprNode *end)
-{
-    ExprNode *node = malloc(sizeof(ExprNode));
-    node->type = NODE_RANGE;
-    node->range.start = start;
-    node->range.end = end;
-    return node;
-}
-
-// Free the entire expression tree
-void free_expr_tree(ExprNode *node)
-{
-    if (!node)
-        return;
-
-    switch (node->type)
-    {
-    case NODE_OPERATOR:
-        free_expr_tree(node->operation.left);
-        free_expr_tree(node->operation.right);
-        break;
-
-    case NODE_FUNCTION:
-        free(node->function.name);
-        for (int i = 0; i < node->function.args_count; i++)
+        int row, col;
+        const char *ptr = formula;
+        if (parse_cell_address(sheet, &ptr, &row, &col) != 0)
         {
-            free_expr_tree(node->function.args[i]);
+            return -1;
         }
-        free(node->function.args);
-        break;
-
-    case NODE_RANGE:
-        free_expr_tree(node->range.start);
-        free_expr_tree(node->range.end);
-        break;
-
-    default:
-        break;
+        cell->type = TYPE_REFERENCE;
+        cell->op_data.arithmetic.operand1 = &sheet->cells[row][col];
+    }
+    else
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
     }
 
-    free(node);
+    // Check for cyclic dependencies
+    // Reset visited flags first
+    for (int r = 0; r < sheet->totalRows; r++)
+    {
+        for (int c = 0; c < sheet->totalCols; c++)
+        {
+            sheet->cells[r][c].visited = false;
+            sheet->cells[r][c].in_stack = false;
+        }
+    }
+
+    if (check_cycle(sheet, cell, cell))
+    {
+        sheet->last_status = ERR_CIRCULAR_REFERENCE;
+        return -1;
+    }
+
+    return 0;
 }
 
 void process_command(Spreadsheet *sheet, char *input)
@@ -414,52 +509,61 @@ void process_command(Spreadsheet *sheet, char *input)
     int row, col;
     if (parse_cell_address(sheet, cellRef, &row, &col) != 0)
     {
+        // raise error as the syntax maybe incorrect
         return;
     }
+
+    // THis maybe not needed as we checked while parsing the cell
     if (row >= sheet->totalRows || col >= sheet->totalCols)
     {
         sheet->last_status = ERR_INVALID_CELL;
         return;
     }
+    /*              Cell is successfully parsed, now we go to the RHS                      */
 
-    // Clear existing dependencies
-    clear_dependencies(sheet, row, col);
+    end = formula + strlen(formula) - 1;
+    while (end > formula && *end == ' ')
+        *end-- = '/0';
 
-    CalcStatus parse_status;
-    ExprNode *expr = parse_formula(formula, &parse_status);
-
-    if (parse_status != STATUS_OK)
+    if (strlen(formula) == 0)
     {
-        sheet->last_status = parse_status;
-        free_expr_tree(expr);
+        sheet->last_status = ERR_SYNTAX;
         return;
     }
 
-    // Store parsed expression tree
-    // free_expr_tree(sheet->cells[row][col].expr_tree);
-    ExprNode *old_expr = sheet->cells[row][col].expr_tree;
-    sheet->cells[row][col].expr_tree = expr;
+    Cell *target_cell = &sheet->cells[row][col];
 
-    // Collect dependencies
-    clear_dependencies(sheet, row, col);
-    collect_dependencies(expr, sheet, row, col);
+    // Backup the current state of the cell
+    char *old_formula = target_cell->formula ? strdup(target_cell->formula) : NULL;
+    int old_value = target_cell->value;
+    CellType old_type = target_cell->type;
 
-    // Check for cycles
-    if (detect_cycle(sheet, row, col))
+    // Tentatively set the new formula
+    char *new_formula = strdup(formula);
+    target_cell->formula = new_formula;
+
+    // Attempt to parse and validate the new formula, which also checks for cycles
+    if (parse_formula(sheet, target_cell, formula) != 0)
     {
-        sheet->last_status = ERR_CIRCULAR_REF;
+        // An error occurred (syntax or circular dependency)
+        free(target_cell->formula);
+        // Restore previous state
+        target_cell->formula = old_formula;
+        target_cell->value = old_value;
+        target_cell->type = old_type;
         return;
     }
-
-    // Evaluate and update
-    CalcStatus eval_status;
-    int value = evaluate_expression(sheet, row, col, &eval_status);
-
-    if (eval_status == STATUS_OK)
+    else
     {
-        sheet->cells[row][col].content = value;
-        mark_dependents_for_recalc(sheet, row, col);
+        // Parsing succeeded; free the old formula if any
+        free(old_formula);
     }
 
-    sheet->last_status = eval_status;
+    // Mark cell and its dependents for recalculation
+    mark_for_recalculation(sheet, target_cell);
+
+    // Perform the recalculation
+    recalculate_sheet(sheet);
+
+    sheet->last_status = STATUS_OK;
 }
