@@ -46,6 +46,54 @@ typedef struct DependencyNode
     struct DependencyNode *next;
 } DependencyNode;
 
+typedef enum
+{
+    NODE_CONSTANT,
+    NODE_REFERENCE,
+    NODE_OPERATOR,
+    NODE_FUNCTION,
+    NODE_RANGE
+} ExprNodeType;
+
+typedef struct ExprNode
+{
+    ExprNodeType type;
+    union
+    {
+        // For constants (NODE_CONSTANT)
+        int constant;
+
+        // For cell references (NODE_REFERENCE)
+        struct
+        {
+            int row; // 0-based row index
+            int col; // 0-based column index
+        } reference;
+
+        // For operators (NODE_OPERATOR)
+        struct
+        {
+            char op; // '+', '-', '*', '/'
+            struct ExprNode *left;
+            struct ExprNode *right;
+        } operation;
+
+        // For functions (NODE_FUNCTION)
+        struct
+        {
+            char *name;             // Function name ("SUM", "AVG", etc.)
+            struct ExprNode **args; // Array of arguments (only ranges supported)
+            int args_count;
+        } function;
+
+        // For ranges (NODE_RANGE)
+        struct
+        {
+            struct ExprNode *start; // Start cell (NODE_REFERENCE)
+            struct ExprNode *end;   // End cell (NODE_REFERENCE)
+        } range;
+    };
+} ExprNode;
 typedef struct
 {
     int content;
@@ -71,64 +119,6 @@ typedef struct
     struct timeval last_cmd_time;
     CalcStatus last_status;
 } Spreadsheet;
-
-typedef enum
-{
-    NODE_CONSTANT,
-    NODE_REFERENCE,
-    NODE_OPERATOR,
-    NODE_FUNCTION,
-    NODE_RANGE
-} ExprNodeType;
-
-// typedef struct ExprNode {
-//     ExprNodeType type;
-//     union {
-//         int constant;
-//         struct { int row; int col; } reference;  // Converted cell ref (e.g., A1 → 0,0)
-//         struct { char op; struct ExprNode *left, *right; } operation;
-//         struct {
-//             char *name;
-//             struct ExprNode **args;
-//             int args_count;
-//         } function;
-//         struct { struct ExprNode *start; struct ExprNode *end; } range;
-//     };
-// } ExprNode;
-
-typedef struct ExprNode {
-    ExprNodeType type;
-    union {
-        // For constants (NODE_CONSTANT)
-        int constant;
-        
-        // For cell references (NODE_REFERENCE)
-        struct {
-            int row;  // 0-based row index
-            int col;  // 0-based column index
-        } reference;
-        
-        // For operators (NODE_OPERATOR)
-        struct {
-            char op;             // '+', '-', '*', '/'
-            struct ExprNode *left;
-            struct ExprNode *right;
-        } operation;
-        
-        // For functions (NODE_FUNCTION)
-        struct {
-            char *name;          // Function name ("SUM", "AVG", etc.)
-            struct ExprNode **args; // Array of arguments (only ranges supported)
-            int args_count;
-        } function;
-        
-        // For ranges (NODE_RANGE)
-        struct {
-            struct ExprNode *start; // Start cell (NODE_REFERENCE)
-            struct ExprNode *end;   // End cell (NODE_REFERENCE)
-        } range;
-    };
-} ExprNode;
 
 // Function prototypes
 void add_dependency(Spreadsheet *sheet, int src_row, int src_col, int target_row, int target_col);
