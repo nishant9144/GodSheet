@@ -1,0 +1,8 @@
+I have a project of creating a spreadsheet program. I will need to handle formula. The cell associated with a formula will be dependent on other cells.
+So, the cell will have a dependency graph/tree. Also, when a dependent cell's value changes, all the cell that dependent on that cell will have to be 
+recalculated. There might be a case where the cell's formula changes so the old dependent graph/tree should be deleted and new should be created.
+Efficient recalculation is crucial. Only recalculate cells affected by changes. When a cell changes, I need to propagate this change through the 
+dependency graph. Use a topological sort to determine the order of recalculation. 
+Each time a formula is updated, the dependencies might change. So the dependency graph is dynamic.
+
+How can I implement it?
