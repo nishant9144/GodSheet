@@ -12,14 +12,14 @@ static int height(AVLNode *node) {
     return (node == NULL) ? 0 : node->height;
 }
 
-/* Allocates and returns a new AVL tree node with the given key. */
-static AVLNode* newNode(int key) {
+/* Allocates and returns a new AVL tree node with the given cell. */
+static AVLNode* newNode(Cell *cell) {
     AVLNode *node = (AVLNode*)malloc(sizeof(AVLNode));
     if (!node) {
         perror("malloc failed");
         exit(EXIT_FAILURE);
     }
-    node->key = key;
+    node->cell = cell;
     node->left = node->right = NULL;
     node->height = 1;  // New node is initially a leaf.
     return node;
@@ -62,16 +62,16 @@ static int getBalance(AVLNode* N) {
     return (N == NULL) ? 0 : height(N->left) - height(N->right);
 }
 
-AVLNode* avlInsert(AVLNode* node, int key) {
+AVLNode* avlInsert(AVLNode* node, Cell *cell) {
     /* 1. Perform the normal BST insertion. */
     if (node == NULL)
-        return newNode(key);
+        return newNode(cell);
 
-    if (key < node->key)
-        node->left  = avlInsert(node->left, key);
-    else if (key > node->key)
-        node->right = avlInsert(node->right, key);
-    else  // Duplicate keys are not allowed in the set.
+    if (cell < node->cell)
+        node->left  = avlInsert(node->left, cell);
+    else if (cell > node->cell)
+        node->right = avlInsert(node->right, cell);
+    else  // Duplicate cells are not allowed in the set.
         return node;
 
     /* 2. Update height of the ancestor node. */
@@ -81,21 +81,21 @@ AVLNode* avlInsert(AVLNode* node, int key) {
     int balance = getBalance(node);
 
     // Left Left Case.
-    if (balance > 1 && key < node->left->key)
+    if (balance > 1 && cell < node->left->cell)
         return rightRotate(node);
 
     // Right Right Case.
-    if (balance < -1 && key > node->right->key)
+    if (balance < -1 && cell > node->right->cell)
         return leftRotate(node);
 
     // Left Right Case.
-    if (balance > 1 && key > node->left->key) {
+    if (balance > 1 && cell > node->left->cell) {
         node->left = leftRotate(node->left);
         return rightRotate(node);
     }
 
     // Right Left Case.
-    if (balance < -1 && key < node->right->key) {
+    if (balance < -1 && cell < node->right->cell) {
         node->right = rightRotate(node->right);
         return leftRotate(node);
     }
@@ -104,7 +104,7 @@ AVLNode* avlInsert(AVLNode* node, int key) {
     return node;
 }
 
-/* Utility function: returns the node with the smallest key value found in the tree. */
+/* Utility function: returns the node with the smallest cell value found in the tree. */
 static AVLNode* minValueNode(AVLNode* node) {
     AVLNode* current = node;
     while (current->left != NULL)
@@ -112,15 +112,15 @@ static AVLNode* minValueNode(AVLNode* node) {
     return current;
 }
 
-AVLNode* avlDelete(AVLNode* root, int key) {
+AVLNode* avlDelete(AVLNode* root, Cell *cell) {
     if (root == NULL)
         return root;
 
     /* 1. Perform standard BST delete. */
-    if (key < root->key)
-        root->left = avlDelete(root->left, key);
-    else if (key > root->key)
-        root->right = avlDelete(root->right, key);
+    if (cell < root->cell)
+        root->left = avlDelete(root->left, cell);
+    else if (cell > root->cell)
+        root->right = avlDelete(root->right, cell);
     else {
         // Node with one child or no child.
         if ((root->left == NULL) || (root->right == NULL)) {
@@ -138,8 +138,8 @@ AVLNode* avlDelete(AVLNode* root, int key) {
         } else {
             // Node with two children: Get the inorder successor (smallest in the right subtree).
             AVLNode* temp = minValueNode(root->right);
-            root->key = temp->key;
-            root->right = avlDelete(root->right, temp->key);
+            root->cell = temp->cell;
+            root->right = avlDelete(root->right, temp->cell);
         }
     }
 
@@ -176,21 +176,21 @@ AVLNode* avlDelete(AVLNode* root, int key) {
     return root;
 }
 
-int avlSearch(AVLNode* root, int key) {
+int avlSearch(AVLNode* root, Cell *cell) {
     if (root == NULL)
         return 0;
-    if (key < root->key)
-        return avlSearch(root->left, key);
-    else if (key > root->key)
-        return avlSearch(root->right, key);
+    if (cell < root->cell)
+        return avlSearch(root->left, cell);
+    else if (cell > root->cell)
+        return avlSearch(root->right, cell);
     else
-        return 1;  // Key found.
+        return 1;  // Cell found.
 }
 
 void avlInorder(AVLNode* root) {
     if (root) {
         avlInorder(root->left);
-        printf("%d ", root->key);
+        printf("%p ", root->cell);
         avlInorder(root->right);
     }
 }

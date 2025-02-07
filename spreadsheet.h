@@ -3,6 +3,7 @@
 
 #include <sys/time.h>
 #include <stdbool.h>
+#include "datastructures.h"
 
 typedef enum
 {
@@ -88,4 +89,7 @@ typedef struct
     CalcStatus last_status;
 } Spreadsheet;
 
+typedef struct {
+    AVLNode *root;
+} CellSet;
 #endif
