@@ -407,6 +407,7 @@ int check_constant_or_cell_address(const char *str, int *constant_value, int *ro
 }
 
 // Main formula parsing function
+int evaluate_expression(const char *expr, int *result);
 int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
 {
     // Reset cell's current state
@@ -417,12 +418,26 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
     // Check if it's a constant
 
     // This needs to be checked. There could be value like (2+3) but we are not considering them
-    if (isdigit(formula[0]) || (formula[0] == '-' && isdigit(formula[1])))
+    if (isdigit(formula[0]) || (formula[0] == '-' && isdigit(formula[1])) ||
+        (formula[0] == '(' && formula[strlen(formula) - 1] == ')'))
     {
+        int value;
+        if (formula[0] == '(')
+        {
+            //Evaluate the expression with parenthesis
+            if (evaluate_expression(formula, &value) != 0)
+            {
+                sheet -> last_status = ERR_SYNTAX;
+                return -1;
+            }
+        }
+        else {
+            value = atoi(formula);
+        }
         cell->type = TYPE_CONSTANT;
-        cell->value = atoi(formula);
-        return 0;
-    }
+            cell->value = value;
+            return 0;
+     }
 
     // Check if it's a function
     if (isupper(formula[0]) && !isalpha(formula[1]))
@@ -476,6 +491,14 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
         return -1;
     }
 
+    return 0;
+}
+int evaluate_expression(const char *expr, int *result)
+{
+    // Implement a simple expression evaluator here
+    // For now, let's assume it returns 0 on success and sets *result
+    // You can use a library or write your own parser for this
+    // Example: *result = some_evaluation_function(expr);
     return 0;
 }
 
