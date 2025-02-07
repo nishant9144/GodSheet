@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <regex.h>
 
 static int col_label_to_index(const char *label)
 {
@@ -75,6 +76,21 @@ static bool is_function(const char *str)
     return false;
 }
 
+int is_valid_formula(const char *formula) {
+    // Regex pattern that matches one of the fixed formula names,
+    // followed by '(' with any characters inside and a closing ')'
+    const char *pattern = "^(MIN|MAX|AVG|SUM|STDEV|SLEEP)\\(.*\\)$";
+    regex_t regex;
+    int ret = regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB);
+    if (ret) {
+        // Handle error in regex compilation as needed
+        return 0;
+    }
+    ret = regexec(&regex, formula, 0, NULL, 0);
+    regfree(&regex);
+    return ret == 0;
+}
+
 // Returns true if the character is an arithmetic operator
 static bool is_operator(char c)
 {
@@ -103,11 +119,11 @@ static Operation char_to_operation(char c)
 static int parse_range(Spreadsheet *sheet, const char *range_str, Cell ***range_cells, int *range_size)
 {
     char *colon = strchr(range_str, ':');
-    if (!colon)
-    {
-        sheet->last_status = ERR_SYNTAX;
-        return -1;
-    }
+    // if (!colon)
+    // {
+    //     sheet->last_status = ERR_SYNTAX;
+    //     return -1;
+    // }
 
     // Split the range into start and end
     int len = strlen(range_str);
@@ -139,6 +155,8 @@ static int parse_range(Spreadsheet *sheet, const char *range_str, Cell ***range_
     int rows = end_row - start_row + 1;
     int cols = end_col - start_col + 1;
     *range_size = rows * cols;
+
+// Maybe make changes here so as to add the cells into dependencies and not as a matrix
     *range_cells = malloc(sizeof(Cell *) * (*range_size));
 
     // Fill the range array
@@ -158,75 +176,121 @@ static int parse_range(Spreadsheet *sheet, const char *range_str, Cell ***range_
 // Parse arithmetic expression (e.g., "A1+2" or "B2*C3")
 static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *formula)
 {
-    // Find the operator
-    const char *op_pos = NULL;
-    for (const char *p = formula; *p; p++)
-    {
-        if (is_operator(*p))
-        {
-            if (op_pos)
-            { // Multiple operators found
-                sheet->last_status = ERR_SYNTAX;
-                return -1;
-            }
-            op_pos = p;
-        }
-    }
-
-    if (!op_pos)
+    regex_t regex;
+    // Pattern explanation:
+    //   ^\s*                         : start of string, optional whitespace
+    //   ([-+]?[0-9]+|[A-Z]+[0-9]+)    : operand1 (a constant with optional sign or a cell reference)
+    //   \s*                          : optional whitespace
+    //   ([+\-*/])                   : operator: one of +, -, *, or /
+    //   \s*                          : optional whitespace
+    //   ([-+]?[0-9]+|[A-Z]+[0-9]+)    : operand2 (again, a constant or a cell reference)
+    //   \s*$                         : optional whitespace until end of string
+    const char *pattern = "^\\s*([-+]?[0-9]+|[A-Z]+[0-9]+)\\s*([+\\-*/])\\s*([-+]?[0-9]+|[A-Z]+[0-9]+)\\s*$";
+    if (regcomp(&regex, pattern, REG_EXTENDED) != 0)
     {
         sheet->last_status = ERR_SYNTAX;
         return -1;
     }
 
-    // Split formula into operands
-    int len = strlen(formula);
-    char *formula_copy = malloc(len + 1);
-    strcpy(formula_copy, formula);
-    formula_copy[op_pos - formula] = '\0';
+    regmatch_t matches[4]; // matches[0]: full match, [1]: operand1, [2]: operator, [3]: operand2
+    int ret = regexec(&regex, formula, 4, matches, 0);
+    regfree(&regex);
+    if (ret != 0)
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
+
+    // Extract operand1
+    int len = matches[1].rm_eo - matches[1].rm_so;
+    char operand1[64] = {0};
+    strncpy(operand1, formula + matches[1].rm_so, len);
+    operand1[len] = '\0';
+
+    // Extract operator
+    len = matches[2].rm_eo - matches[2].rm_so;
+    char op_str[4] = {0};
+    strncpy(op_str, formula + matches[2].rm_so, len);
+    op_str[len] = '\0';
+
+    // Extract operand2
+    len = matches[3].rm_eo - matches[3].rm_so;
+    char operand2[64] = {0};
+    strncpy(operand2, formula + matches[3].rm_so, len);
+    operand2[len] = '\0';
 
     target_cell->type = TYPE_ARITHMETIC;
-    target_cell->op_data.arithmetic.op = char_to_operation(*op_pos);
+    target_cell->op_data.arithmetic.op = char_to_operation(op_str[0]);
+    target_cell->op_data.arithmetic.constant = 0;
 
-    // Parse first operand
-    if (isalpha(formula_copy[0]))
+    // Process operand1
+    int type1, value1, row1, col1;
+    type1 = check_constant_or_cell_address(operand1, &value1, &row1, &col1);
+    if (type1 == 0)
     {
-        int row, col;
-        const char *ptr = formula_copy;
-        if (parse_cell_address(sheet, &ptr, &row, &col) != 0)
-        {
-            free(formula_copy);
-            return -1;
-        }
-        target_cell->op_data.arithmetic.operand1 = &sheet->cells[row][col];
-        target_cell->op_data.arithmetic.constant = 0;
-    }
-    else
-    {
+        // Operand is a numeric constant.
         target_cell->op_data.arithmetic.operand1 = NULL;
-        target_cell->op_data.arithmetic.constant = atoi(formula_copy);
+        target_cell->op_data.arithmetic.constant += value1;
     }
-
-    // Parse second operand
-    const char *second_operand = op_pos + 1;
-    if (isalpha(second_operand[0]))
+    else if (type1 == 1)
     {
-        int row, col;
-        const char *ptr = second_operand;
-        if (parse_cell_address(sheet, &ptr, &row, &col) != 0)
-        {
-            free(formula_copy);
-            return -1;
-        }
-        target_cell->op_data.arithmetic.operand2 = &sheet->cells[row][col];
+        // Operand is a cell reference.
+        target_cell->op_data.arithmetic.operand1 = &sheet->cells[row1][col1];
     }
     else
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
+
+    // Process operand2
+    int type2, value2, row2, col2;
+    type2 = check_constant_or_cell_address(operand2, &value2, &row2, &col2);
+    if (type2 == 0)
     {
         target_cell->op_data.arithmetic.operand2 = NULL;
-        target_cell->op_data.arithmetic.constant = atoi(second_operand);
+        // Note: If both operands are constants, you'll need to decide how to
+        // store the two constants. In this implementation we simply let the
+        // second constant override the first. Alternatively, you could compute
+        // the result immediately.
+        target_cell->op_data.arithmetic.constant += value2;
+    }
+    else if (type2 == 1)
+    {
+        target_cell->op_data.arithmetic.operand2 = &sheet->cells[row2][col2];
+    }
+    else
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
     }
 
-    free(formula_copy);
+    if (type1 == 0 && type2 == 0) {
+        int evaluated;
+        switch (target_cell->op_data.arithmetic.op) {
+        case OP_ADD:
+            evaluated = value1 + value2;
+            break;
+        case OP_SUB:
+            evaluated = value1 - value2;
+            break;
+        case OP_MUL:
+            evaluated = value1 * value2;
+            break;
+        case OP_DIV:
+            if (value2 == 0) {
+                sheet->last_status = ERR_DIV_ZERO;
+                return -1;
+            }
+            evaluated = value1 / value2;
+            break;
+        default:
+            sheet->last_status = ERR_SYNTAX;
+            return -1;
+        }
+        target_cell->type = TYPE_CONSTANT;
+        target_cell->value = evaluated;
+    }
     return 0;
 }
 
@@ -241,21 +305,8 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     {
         func_name[i++] = *p++;
     }
-
-    if (*p != '(' || !is_function(func_name))
-    {
-        sheet->last_status = ERR_SYNTAX;
-        return -1;
-    }
-
     // Find closing parenthesis
     const char *close_paren = strchr(p, ')');
-    if (!close_paren || *(close_paren + 1) != '\0')
-    {
-        sheet->last_status = ERR_SYNTAX;
-        return -1;
-    }
-
     // Extract range/value
     int range_len = close_paren - p - 1;
     char *range_str = malloc(range_len + 1);
@@ -266,6 +317,9 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     target_cell->op_data.function.func_name = strdup(func_name);
 
     // Parse range or single value
+
+// Maybe handle sleep differently
+
     if (strchr(range_str, ':'))
     {
         if (parse_range(sheet, range_str, &target_cell->op_data.function.range,
@@ -349,8 +403,6 @@ static bool check_cycle(Spreadsheet *sheet, Cell *start_cell, Cell *current_cell
 }
 int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col)
 {
-    // Remove leading/trailing whitespace if needed. For simplicity, assume str is trimmed.
-
     // First, try to parse a constant.
     char *endptr;
     long num = strtol(str, &endptr, 10);
@@ -415,39 +467,38 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
     free(cell->error_msg);
     cell->error_msg = NULL;
 
-    // Check if it's a constant
-
-    // This needs to be checked. There could be value like (2+3) but we are not considering them
-    if (isdigit(formula[0]) || (formula[0] == '-' && isdigit(formula[1])) ||
-        (formula[0] == '(' && formula[strlen(formula) - 1] == ')'))
+    /*                                      Check if the value is a single constant                                        */
+    bool is_numeric = true;
+    int i = 0;
+    // Allow a leading '-' for negative numbers
+    if (formula[0] == '-')
+        i = 1;
+    for (; formula[i] != '\0'; i++)
     {
-        int value;
-        if (formula[0] == '(')
+        if (!isdigit((unsigned char)formula[i]))
         {
-            //Evaluate the expression with parenthesis
-            if (evaluate_expression(formula, &value) != 0)
-            {
-                sheet -> last_status = ERR_SYNTAX;
-                return -1;
-            }
+            is_numeric = false;
+            break;
         }
-        else {
-            value = atoi(formula);
-        }
-        cell->type = TYPE_CONSTANT;
-            cell->value = value;
-            return 0;
-     }
+    }
 
-    // Check if it's a function
-    if (isupper(formula[0]) && !isalpha(formula[1]))
+    if (is_numeric)
+    {
+        int value = atoi(formula);
+        cell->type = TYPE_CONSTANT;
+        cell->value = value;
+        return 0;
+    }
+
+    /*                                      Check if the input is a formula                                                      */
+    if (is_valid_formula(formula))
     {
         if (parse_function(sheet, cell, formula) != 0)
         {
             return -1;
         }
     }
-    // Check if it's an arithmetic expression
+    /*                                      Check if it's an arithmetic expression                                                */
     else if (strchr(formula, '+') || strchr(formula, '-') ||
              strchr(formula, '*') || strchr(formula, '/'))
     {
@@ -524,8 +575,7 @@ void process_command(Spreadsheet *sheet, char *input)
         return;
     }
 
-    // Split into cell reference (left) and formula/value (right)
-    *eq_pos = '\0'; // Terminate cell reference string
+    *eq_pos = '\0'; 
     char *cellRef = input;
     char *formula = eq_pos + 1;
 
@@ -556,6 +606,8 @@ void process_command(Spreadsheet *sheet, char *input)
 
     Cell *target_cell = &sheet->cells[row][col];
 
+    // Here some update is needed to also store the dependents and dependencies
+
     // Backup the current state of the cell
     char *old_formula = target_cell->formula ? strdup(target_cell->formula) : NULL;
     int old_value = target_cell->value;
@@ -570,17 +622,18 @@ void process_command(Spreadsheet *sheet, char *input)
     {
         // An error occurred (syntax or circular dependency)
         free(target_cell->formula);
-        // Restore previous state
         target_cell->formula = old_formula;
         target_cell->value = old_value;
         target_cell->type = old_type;
+        // will update the previous dependents and dependencies
         return;
     }
     else
     {
-        // Parsing succeeded; free the old formula if any
         free(old_formula);
     }
+
+// Check here
 
     // Mark cell and its dependents for recalculation
     mark_for_recalculation(sheet, target_cell);

@@ -2,35 +2,53 @@
 #include <stdlib.h>
 #include "datastructures.h"
 
-/* Utility function: returns the maximum of two integers. */
-static int max(int a, int b) {
+// Node structure for AVL tree
+typedef struct AVLNode {
+    void *data;
+    struct AVLNode *left;
+    struct AVLNode *right;
+    int height;
+} AVLNode;
+
+// The Set structure holds the root of the AVL tree and a comparator.
+typedef struct Set {
+    AVLNode *root;
+    // Comparator should return:
+    //   negative value if a < b,
+    //   zero if a == b,
+    //   positive value if a > b.
+    int (*cmp)(const void *, const void *);
+} Set;
+
+// Helper: return maximum of two integers.
+int max(int a, int b) {
     return (a > b) ? a : b;
 }
 
-/* Returns the height of the node (0 if node is NULL). */
-static int height(AVLNode *node) {
-    return (node == NULL) ? 0 : node->height;
+// Get the height of a node (0 if node is NULL)
+int height(AVLNode *node) {
+    return node ? node->height : 0;
 }
 
-/* Allocates and returns a new AVL tree node with the given cell. */
-static AVLNode* newNode(Cell *cell) {
-    AVLNode *node = (AVLNode*)malloc(sizeof(AVLNode));
+// Create a new AVL node with the given data pointer.
+AVLNode *create_node(void *data) {
+    AVLNode *node = malloc(sizeof(AVLNode));
     if (!node) {
-        perror("malloc failed");
+        perror("malloc");
         exit(EXIT_FAILURE);
     }
-    node->cell = cell;
+    node->data = data;
     node->left = node->right = NULL;
-    node->height = 1;  // New node is initially a leaf.
+    node->height = 1;  // New node is a leaf.
     return node;
 }
 
-/* Right-rotates the subtree rooted with y and returns the new root. */
-static AVLNode* rightRotate(AVLNode* y) {
+// Right rotation for AVL balancing.
+AVLNode *right_rotate(AVLNode *y) {
     AVLNode *x = y->left;
     AVLNode *T2 = x->right;
 
-    // Perform rotation.
+    // Rotate
     x->right = y;
     y->left = T2;
 
@@ -38,15 +56,15 @@ static AVLNode* rightRotate(AVLNode* y) {
     y->height = max(height(y->left), height(y->right)) + 1;
     x->height = max(height(x->left), height(x->right)) + 1;
 
-    return x;
+    return x; // New root.
 }
 
-/* Left-rotates the subtree rooted with x and returns the new root. */
-static AVLNode* leftRotate(AVLNode* x) {
+// Left rotation for AVL balancing.
+AVLNode *left_rotate(AVLNode *x) {
     AVLNode *y = x->right;
     AVLNode *T2 = y->left;
 
-    // Perform rotation.
+    // Rotate.
     y->left = x;
     x->right = T2;
 
@@ -54,153 +72,202 @@ static AVLNode* leftRotate(AVLNode* x) {
     x->height = max(height(x->left), height(x->right)) + 1;
     y->height = max(height(y->left), height(y->right)) + 1;
 
-    return y;
+    return y; // New root.
 }
 
-/* Returns the balance factor of the node (difference between left and right heights). */
-static int getBalance(AVLNode* N) {
-    return (N == NULL) ? 0 : height(N->left) - height(N->right);
+// Get the balance factor of a node.
+int get_balance(AVLNode *node) {
+    return node ? height(node->left) - height(node->right) : 0;
 }
 
-AVLNode* avlInsert(AVLNode* node, Cell *cell) {
-    /* 1. Perform the normal BST insertion. */
+// Recursive insertion into the AVL tree.
+// If the data already exists (cmp returns 0), it is not inserted.
+AVLNode *avl_insert(AVLNode *node, void *data, int (*cmp)(const void *, const void *)) {
     if (node == NULL)
-        return newNode(cell);
+        return create_node(data);
 
-    if (cell < node->cell)
-        node->left  = avlInsert(node->left, cell);
-    else if (cell > node->cell)
-        node->right = avlInsert(node->right, cell);
-    else  // Duplicate cells are not allowed in the set.
+    int comparison = cmp(data, node->data);
+    if (comparison < 0)
+        node->left = avl_insert(node->left, data, cmp);
+    else if (comparison > 0)
+        node->right = avl_insert(node->right, data, cmp);
+    else
+        // Duplicate data: do not insert.
         return node;
 
-    /* 2. Update height of the ancestor node. */
+    // Update the height of the ancestor node.
     node->height = 1 + max(height(node->left), height(node->right));
 
-    /* 3. Get the balance factor to check whether this node became unbalanced. */
-    int balance = getBalance(node);
+    // Check balance factor.
+    int balance = get_balance(node);
 
     // Left Left Case.
-    if (balance > 1 && cell < node->left->cell)
-        return rightRotate(node);
+    if (balance > 1 && cmp(data, node->left->data) < 0)
+        return right_rotate(node);
 
     // Right Right Case.
-    if (balance < -1 && cell > node->right->cell)
-        return leftRotate(node);
+    if (balance < -1 && cmp(data, node->right->data) > 0)
+        return left_rotate(node);
 
     // Left Right Case.
-    if (balance > 1 && cell > node->left->cell) {
-        node->left = leftRotate(node->left);
-        return rightRotate(node);
+    if (balance > 1 && cmp(data, node->left->data) > 0) {
+        node->left = left_rotate(node->left);
+        return right_rotate(node);
     }
 
     // Right Left Case.
-    if (balance < -1 && cell < node->right->cell) {
-        node->right = rightRotate(node->right);
-        return leftRotate(node);
+    if (balance < -1 && cmp(data, node->right->data) < 0) {
+        node->right = right_rotate(node->right);
+        return left_rotate(node);
     }
 
-    /* Return the (unchanged) node pointer. */
     return node;
 }
 
-/* Utility function: returns the node with the smallest cell value found in the tree. */
-static AVLNode* minValueNode(AVLNode* node) {
-    AVLNode* current = node;
+// Find the node with the minimum value (used in deletion).
+AVLNode *min_value_node(AVLNode *node) {
+    AVLNode *current = node;
     while (current->left != NULL)
         current = current->left;
     return current;
 }
 
-AVLNode* avlDelete(AVLNode* root, Cell *cell) {
+// Recursive deletion from the AVL tree.
+AVLNode *avl_delete(AVLNode *root, void *data, int (*cmp)(const void *, const void *)) {
     if (root == NULL)
         return root;
 
-    /* 1. Perform standard BST delete. */
-    if (cell < root->cell)
-        root->left = avlDelete(root->left, cell);
-    else if (cell > root->cell)
-        root->right = avlDelete(root->right, cell);
+    int comparison = cmp(data, root->data);
+    if (comparison < 0)
+        root->left = avl_delete(root->left, data, cmp);
+    else if (comparison > 0)
+        root->right = avl_delete(root->right, data, cmp);
     else {
-        // Node with one child or no child.
+        // Node to be deleted found.
         if ((root->left == NULL) || (root->right == NULL)) {
             AVLNode *temp = root->left ? root->left : root->right;
-
-            // No child case.
             if (temp == NULL) {
+                // No child.
                 temp = root;
                 root = NULL;
             } else {
-                // One child: Copy the contents of the non-null child.
+                // One child: copy the child.
                 *root = *temp;
             }
             free(temp);
         } else {
-            // Node with two children: Get the inorder successor (smallest in the right subtree).
-            AVLNode* temp = minValueNode(root->right);
-            root->cell = temp->cell;
-            root->right = avlDelete(root->right, temp->cell);
+            // Node with two children: get the inorder successor.
+            AVLNode *temp = min_value_node(root->right);
+            // Copy the inorder successor's data (shallow copy).
+            root->data = temp->data;
+            // Delete the inorder successor.
+            root->right = avl_delete(root->right, temp->data, cmp);
         }
     }
 
-    // If the tree had only one node then return.
     if (root == NULL)
         return root;
 
-    /* 2. Update the height of the current node. */
+    // Update height.
     root->height = 1 + max(height(root->left), height(root->right));
 
-    /* 3. Check the balance factor. */
-    int balance = getBalance(root);
+    int balance = get_balance(root);
 
-    // Left Left Case.
-    if (balance > 1 && getBalance(root->left) >= 0)
-        return rightRotate(root);
+    // Balance the tree.
+    if (balance > 1 && get_balance(root->left) >= 0)
+        return right_rotate(root);
 
-    // Left Right Case.
-    if (balance > 1 && getBalance(root->left) < 0) {
-        root->left = leftRotate(root->left);
-        return rightRotate(root);
+    if (balance > 1 && get_balance(root->left) < 0) {
+        root->left = left_rotate(root->left);
+        return right_rotate(root);
     }
 
-    // Right Right Case.
-    if (balance < -1 && getBalance(root->right) <= 0)
-        return leftRotate(root);
+    if (balance < -1 && get_balance(root->right) <= 0)
+        return left_rotate(root);
 
-    // Right Left Case.
-    if (balance < -1 && getBalance(root->right) > 0) {
-        root->right = rightRotate(root->right);
-        return leftRotate(root);
+    if (balance < -1 && get_balance(root->right) > 0) {
+        root->right = right_rotate(root->right);
+        return left_rotate(root);
     }
 
     return root;
 }
 
-int avlSearch(AVLNode* root, Cell *cell) {
+// Recursive search in the AVL tree.
+bool avl_search(AVLNode *root, void *data, int (*cmp)(const void *, const void *)) {
     if (root == NULL)
-        return 0;
-    if (cell < root->cell)
-        return avlSearch(root->left, cell);
-    else if (cell > root->cell)
-        return avlSearch(root->right, cell);
+        return false;
+    int comparison = cmp(data, root->data);
+    if (comparison == 0)
+        return true;
+    else if (comparison < 0)
+        return avl_search(root->left, data, cmp);
     else
-        return 1;  // Cell found.
+        return avl_search(root->right, data, cmp);
 }
 
-void avlInorder(AVLNode* root) {
-    if (root) {
-        avlInorder(root->left);
-        printf("%p ", root->cell);
-        avlInorder(root->right);
-    }
+// In-order traversal to print the data in sorted order.
+// The print_data function is provided by the user.
+void inorder_traversal(AVLNode *root, void (*print_data)(void *)) {
+    if (root == NULL)
+        return;
+    inorder_traversal(root->left, print_data);
+    print_data(root->data);
+    printf(" ");
+    inorder_traversal(root->right, print_data);
 }
 
-void freeAVL(AVLNode* root) {
-    if (root) {
-        freeAVL(root->left);
-        freeAVL(root->right);
-        free(root);
+// Recursively free the AVL tree.
+// If free_data is not NULL, it is used to free the data stored in each node.
+void free_tree(AVLNode *root, void (*free_data)(void *)) {
+    if (root == NULL)
+        return;
+    free_tree(root->left, free_data);
+    free_tree(root->right, free_data);
+    if (free_data)
+        free_data(root->data);
+    free(root);
+}
+
+/* ===== Set Interface Functions ===== */
+
+// Create a new set with the specified comparator.
+Set *create_set(int (*cmp)(const void *, const void *)) {
+    Set *set = malloc(sizeof(Set));
+    if (!set) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
     }
+    set->root = NULL;
+    set->cmp = cmp;
+    return set;
+}
+
+// Insert data into the set.
+void set_insert(Set *set, void *data) {
+    set->root = avl_insert(set->root, data, set->cmp);
+}
+
+// Delete data from the set.
+void set_delete(Set *set, void *data) {
+    set->root = avl_delete(set->root, data, set->cmp);
+}
+
+// Search for data in the set; returns true if found.
+bool set_search(Set *set, void *data) {
+    return avl_search(set->root, data, set->cmp);
+}
+
+// Print the set in sorted order.
+void set_inorder(Set *set, void (*print_data)(void *)) {
+    inorder_traversal(set->root, print_data);
+    printf("\n");
+}
+
+// Free the set; if free_data is provided, it is used to free each element.
+void free_set(Set *set, void (*free_data)(void *)) {
+    free_tree(set->root, free_data);
+    free(set);
 }
 
 /* 
