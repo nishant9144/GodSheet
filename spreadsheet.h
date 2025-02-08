@@ -18,14 +18,16 @@ typedef enum
     ERR_CIRCULAR_REFERENCE
 } CalcStatus;
 
-typedef enum {
+typedef enum
+{
     TYPE_EMPTY,
     TYPE_CONSTANT,
-    TYPE_REFERENCE,    // References another cell (e.g., =A1)
-    TYPE_ARITHMETIC,   // Simple arithmetic (e.g., =A1+1)
-    TYPE_FUNCTION,      // Functions like MIN, MAX, etc.
+    TYPE_REFERENCE,  // References another cell (e.g., =A1)
+    TYPE_ARITHMETIC, // Simple arithmetic (e.g., =A1+1)
+    TYPE_FUNCTION,   // Functions like MIN, MAX, etc.
 } CellType;
-typedef enum {
+typedef enum
+{
     OP_NONE,
     OP_ADD,
     OP_SUB,
@@ -34,44 +36,45 @@ typedef enum {
 } Operation;
 
 typedef struct Cell Cell;
-typedef struct {
-    Cell** cells;
-    int count;
-    int capacity;
-} CellSet;
 
-struct Cell {
-    int value;          
-    char* formula;      
-    CellType type;      
+struct Cell
+{
+    // int row;         // 0-indexed row
+    // int col;         // 0-indexed column
+    int value;
+    char *formula;
+    CellType type;
 
-    union {
-        struct {  
-            Operation op;       
-            Cell* operand1;     
-            Cell* operand2;
-            int constant;      
+    union
+    {
+        struct
+        {
+            Operation op;
+            Cell *operand1;
+            Cell *operand2;
+            int constant;
         } arithmetic;
 
-        struct {  
-            char* func_name;    
-            Cell** range;      
-            int range_size;     
+        struct
+        {
+            char *func_name;
+            Cell **range;
+            int range_size;
         } function;
     } op_data;
-    
+
     // Dependency management
-    CellSet* dependents;  
-    CellSet* dependencies; 
-    
+    Set *dependents;
+    Set *dependencies;
+
     // For error handling
-    bool has_error;     
-    char* error_msg;    
-    
+    bool has_error;
+    char *error_msg;
+
     // For topological sort
-    bool visited;       // For cycle detection
-    bool in_stack;      // For cycle detection
-    int topo_order;     // Topological order
+    bool visited;   // For cycle detection
+    bool in_stack;  // For cycle detection
+    int topo_order; // Topological order
 };
 
 typedef struct
@@ -89,7 +92,4 @@ typedef struct
     CalcStatus last_status;
 } Spreadsheet;
 
-typedef struct {
-    AVLNode *root;
-} CellSet;
 #endif

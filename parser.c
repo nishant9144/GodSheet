@@ -119,12 +119,6 @@ static Operation char_to_operation(char c)
 static int parse_range(Spreadsheet *sheet, const char *range_str, Cell ***range_cells, int *range_size)
 {
     char *colon = strchr(range_str, ':');
-    // if (!colon)
-    // {
-    //     sheet->last_status = ERR_SYNTAX;
-    //     return -1;
-    // }
-
     // Split the range into start and end
     int len = strlen(range_str);
     char *range_copy = malloc(len + 1);
@@ -236,6 +230,16 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     {
         // Operand is a cell reference.
         target_cell->op_data.arithmetic.operand1 = &sheet->cells[row1][col1];
+
+        // Update dependency: target_cell depends on the referenced cell.
+        if (target_cell->dependencies == NULL)
+            target_cell->dependencies = create_cellset();
+        cellset_insert(target_cell->dependencies, target_cell->op_data.arithmetic.operand1);
+
+        // Update the referenced cell’s dependents: add target_cell.
+        if (target_cell->op_data.arithmetic.operand1->dependents == NULL)
+            target_cell->op_data.arithmetic.operand1->dependents = create_cellset();
+        cellset_insert(target_cell->op_data.arithmetic.operand1->dependents, target_cell);
     }
     else
     {
@@ -249,15 +253,21 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     if (type2 == 0)
     {
         target_cell->op_data.arithmetic.operand2 = NULL;
-        // Note: If both operands are constants, you'll need to decide how to
-        // store the two constants. In this implementation we simply let the
-        // second constant override the first. Alternatively, you could compute
-        // the result immediately.
         target_cell->op_data.arithmetic.constant += value2;
     }
     else if (type2 == 1)
     {
         target_cell->op_data.arithmetic.operand2 = &sheet->cells[row2][col2];
+
+        // Update dependency: target_cell depends on this referenced cell.
+        if (target_cell->dependencies == NULL)
+            target_cell->dependencies = create_cellset();
+        cellset_insert(target_cell->dependencies, target_cell->op_data.arithmetic.operand2);
+
+        // And update the referenced cell's dependents.
+        if (target_cell->op_data.arithmetic.operand2->dependents == NULL)
+            target_cell->op_data.arithmetic.operand2->dependents = create_cellset();
+        cellset_insert(target_cell->op_data.arithmetic.operand2->dependents, target_cell);
     }
     else
     {
@@ -307,6 +317,13 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     }
     // Find closing parenthesis
     const char *close_paren = strchr(p, ')');
+    if (!close_paren)
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
+
+
     // Extract range/value
     int range_len = close_paren - p - 1;
     char *range_str = malloc(range_len + 1);
@@ -350,10 +367,26 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
             // It's a constant value (e.g., SLEEP(2))
             target_cell->type = TYPE_CONSTANT;
             target_cell->value = atoi(range_str);
+            free(range_str);
+            return 0;
         }
     }
 
     free(range_str);
+    // --- Update dependency sets for each cell in the function range ---
+    for (int i = 0; i < target_cell->op_data.function.range_size; i++)
+    {
+        Cell *refCell = target_cell->op_data.function.range[i];
+        // Insert refCell into target_cell's dependencies.
+        if (target_cell->dependencies == NULL)
+            target_cell->dependencies = create_cellset();
+        cellset_insert(target_cell->dependencies, refCell);
+
+        // Also, add target_cell as a dependent of refCell.
+        if (refCell->dependents == NULL)
+            refCell->dependents = create_cellset();
+        cellset_insert(refCell->dependents, target_cell);
+    }
     return 0;
 }
 
@@ -518,6 +551,14 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
         }
         cell->type = TYPE_REFERENCE;
         cell->op_data.arithmetic.operand1 = &sheet->cells[row][col];
+
+        // --- Update dependency: the current cell depends on the referenced cell ---
+        if (cell->dependencies == NULL)
+            cell->dependencies = create_cellset();
+        cellset_insert(cell->dependencies, &sheet->cells[row][col]);
+        if (sheet->cells[row][col].dependents == NULL)
+            sheet->cells[row][col].dependents = create_cellset();
+        cellset_insert(sheet->cells[row][col].dependents, cell);
     }
     else
     {
