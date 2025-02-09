@@ -5,6 +5,12 @@
 #include <stdbool.h>
 #include "datastructures.h"
 
+typedef struct {
+    int row;  // 0-based row index
+    int col;  // 0-based column index
+} CellRef;
+
+
 typedef enum
 {
     STATUS_OK,
@@ -37,36 +43,32 @@ typedef enum
 
 typedef struct Cell Cell;
 
-struct Cell
-{
-    // int row;         // 0-indexed row
-    // int col;         // 0-indexed column
+
+struct Cell{
     int value;
     char *formula;
     CellType type;
 
-    union
-    {
-        struct
-        {
+    union{
+        struct{
             Operation op;
             Cell *operand1;  // For arithmetic expressions only.
             Cell *operand2;
             int constant;
         } arithmetic;
 
-        struct
-        {
+        struct{
             char *func_name;
             Cell **range;
             int range_size;
         } function;
         Cell *ref; // NEW: For direct cell reference (TYPE_REFERENCE)
     } op_data;
+    
 
     // Dependency management
-    Set *dependents;
-    Set *dependencies;
+    CellRefSet *dependents;   // Cells that depend on this one
+    CellRefSet *dependencies; // Cells this cell depends on
 
     // For error handling
     bool has_error;
@@ -92,5 +94,8 @@ typedef struct
     struct timeval last_cmd_time;
     CalcStatus last_status;
 } Spreadsheet;
+
+// Utility Functions
+int cellref_compare(const CellRef *a, const CellRef *b);
 
 #endif

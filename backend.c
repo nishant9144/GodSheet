@@ -70,3 +70,22 @@ void destroy_spreadsheet(Spreadsheet *sheet)
     free(sheet->cells);
     free(sheet);
 }
+
+void clear_dependencies(Spreadsheet *sheet, int row, int col) {
+    CellRef target = {row, col};
+    
+    // Clear from dependents' dependency lists
+    CellRefIterator *it = cellref_iterator(sheet->cells[row][col].dependents);
+    while (cellref_iterator_has_next(it)) {
+        CellRef dep = cellref_iterator_next(it);
+        cellref_set_remove(sheet->cells[dep.row][dep.col].dependencies, target);
+    }
+    cellref_iterator_free(it);
+
+    // Clear local sets
+    cellref_set_destroy(sheet->cells[row][col].dependents);
+    cellref_set_destroy(sheet->cells[row][col].dependencies);
+    sheet->cells[row][col].dependents = cellref_set_create(cellref_compare);
+    sheet->cells[row][col].dependencies = cellref_set_create(cellref_compare);
+}
+
