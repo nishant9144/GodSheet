@@ -1,7 +1,9 @@
 #ifndef DATASTRUCTURES_H
 #define DATASTRUCTURES_H
 
-#include "spreadsheet.h"
+// #include "spreadsheet.h"
+#include <stdbool.h>
+#include <sys/time.h>
 typedef struct AVLNode
 {
    void *data;

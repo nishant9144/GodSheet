@@ -53,7 +53,7 @@ void editCell(Spreadsheet *sheet)
     {
         process_command(sheet, input_line);
     }
-    recalculate(sheet);
+    // recalculate(sheet);
     configure_terminal();
 }
 
@@ -63,7 +63,7 @@ void destroy_spreadsheet(Spreadsheet *sheet)
     {
         for (int j = 0; j < sheet->totalCols; j++)
         {
-            clear_dependencies(sheet, i, j);
+            // clear_dependencies(sheet, i, j);
         }
         free(sheet->cells[i]);
     }

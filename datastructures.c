@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include "datastructures.h"
 
-static int default_ptr_cmp(const void *a, const void *b)
-{
-    if (a == b)
-        return 0;
-    return (a < b) ? -1 : 1;
-}
+// static int default_ptr_cmp(const void *a, const void *b)
+// {
+//     if (a == b)
+//         return 0;
+//     return (a < b) ? -1 : 1;
+// }
 
 // Helper: return maximum of two integers.
 static int max(int a, int b)
