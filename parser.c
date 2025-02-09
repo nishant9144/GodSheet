@@ -566,9 +566,9 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
             return -1;
         }
         cell->type = TYPE_REFERENCE;
-        cell->op_data.arithmetic.operand1 = &sheet->cells[row][col];
+        cell->op_data.ref = &sheet->cells[row][col];
 
-        // --- Update dependency: the current cell depends on the referenced cell ---
+        // Update dependency: the current cell depends on the referenced cell. 
         if (cell->dependencies == NULL)
             cell->dependencies = create_set(default_ptr_cmp);
         set_insert(cell->dependencies, &sheet->cells[row][col]);

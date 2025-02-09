@@ -50,7 +50,7 @@ struct Cell
         struct
         {
             Operation op;
-            Cell *operand1;
+            Cell *operand1;  // For arithmetic expressions only.
             Cell *operand2;
             int constant;
         } arithmetic;
@@ -61,6 +61,7 @@ struct Cell
             Cell **range;
             int range_size;
         } function;
+        Cell *ref; // NEW: For direct cell reference (TYPE_REFERENCE)
     } op_data;
 
     // Dependency management
