@@ -231,6 +231,7 @@ void handleNavigation(Spreadsheet *sheet, char key)
             }
         }
         break;
+
     case ARROW_RIGHT:
         if (sheet->cursorCol < sheet->totalCols - 1)
         {

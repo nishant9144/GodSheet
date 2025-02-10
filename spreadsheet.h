@@ -52,8 +52,8 @@ struct Cell{
     union{
         struct{
             Operation op;
-            Cell *operand1;  // For arithmetic expressions only.
-            Cell *operand2;
+            // Cell *operand1;  // For arithmetic expressions only.
+            // Cell *operand2;
             int constant;
         } arithmetic;
 
@@ -65,10 +65,11 @@ struct Cell{
         Cell *ref; // NEW: For direct cell reference (TYPE_REFERENCE)
     } op_data;
     
-
     // Dependency management
     CellRefSet *dependents;   // Cells that depend on this one
+    int dep_count;
     CellRefSet *dependencies; // Cells this cell depends on
+    int depd_count;
 
     // For error handling
     bool has_error;

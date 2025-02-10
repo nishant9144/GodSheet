@@ -29,11 +29,13 @@ Spreadsheet *create_spreadsheet(int rows, int cols)
                 .formula = NULL,
                 .type = TYPE_EMPTY,
                 .dependents = NULL,
+                .dep_count = 0,
                 .dependencies = NULL,
+                .depd_count = 0,
                 .has_error = false,
-                .error_msg=NULL,
+                .error_msg = NULL,
                 .visited = false,
-                .in_stack=false,
+                .in_stack = false,
                 .topo_order = -1};
         }
     }
@@ -71,12 +73,14 @@ void destroy_spreadsheet(Spreadsheet *sheet)
     free(sheet);
 }
 
-void clear_dependencies(Spreadsheet *sheet, int row, int col) {
+void clear_dependencies(Spreadsheet *sheet, int row, int col)
+{
     CellRef target = {row, col};
-    
+
     // Clear from dependents' dependency lists
     CellRefIterator *it = cellref_iterator(sheet->cells[row][col].dependents);
-    while (cellref_iterator_has_next(it)) {
+    while (cellref_iterator_has_next(it))
+    {
         CellRef dep = cellref_iterator_next(it);
         cellref_set_remove(sheet->cells[dep.row][dep.col].dependencies, target);
     }
@@ -88,4 +92,3 @@ void clear_dependencies(Spreadsheet *sheet, int row, int col) {
     sheet->cells[row][col].dependents = cellref_set_create(cellref_compare);
     sheet->cells[row][col].dependencies = cellref_set_create(cellref_compare);
 }
-

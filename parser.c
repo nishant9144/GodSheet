@@ -76,20 +76,6 @@ static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, 
     return 0;
 }
 
-// Returns true if the string represents a valid function name
-// static bool is_function(const char *str)
-// {
-//     static const char *functions[] = {"MIN", "MAX", "AVG", "SUM", "STDEV", "SLEEP"};
-//     for (int i = 0; i < 6; i++)
-//     {
-//         if (strncmp(str, functions[i], strlen(functions[i])) == 0)
-//         {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-
 static int is_valid_formula(const char *formula)
 {
     // Regex pattern that matches one of the fixed formula names,
@@ -106,12 +92,6 @@ static int is_valid_formula(const char *formula)
     regfree(&regex);
     return ret == 0;
 }
-
-// Returns true if the character is an arithmetic operator
-// static bool is_operator(char c)
-// {
-//     return c == '+' || c == '-' || c == '*' || c == '/';
-// }
 
 // Convert operator character to Operation enum
 static Operation char_to_operation(char c)
@@ -149,6 +129,9 @@ static int parse_range(Spreadsheet *sheet, const char *range_str, Cell ***range_
     if (parse_cell_address(sheet, &start_ptr, &start_row, &start_col) != 0 ||
         parse_cell_address(sheet, &end_ptr, &end_row, &end_col) != 0)
     {
+        /*
+        Here check if SYNTAX ERROR should be raised or not
+        */
         free(range_copy);
         return -1;
     }
@@ -178,6 +161,21 @@ static int parse_range(Spreadsheet *sheet, const char *range_str, Cell ***range_
             (*range_cells)[idx++] = &sheet->cells[r][c];
         }
     }
+
+    /*
+        Here, the cells should be added to the dependencies
+        Check if the dependencies is empty or needed to be cleared
+    */
+
+
+    // for (int r = start_row; r <= end_row; r++) {
+    //     for (int c = start_col; c <= end_col; c++) {
+    //         if (target_cell->dependencies == NULL)
+    //             target_cell->dependencies = create_set(default_ptr_cmp);
+    //         set_insert(target_cell->dependencies, &sheet->cells[r][c]);
+    //         target_cell->depd_count++;
+    //     }
+    // }
 
     free(range_copy);
     return 0;
@@ -239,23 +237,26 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     if (type1 == 0)
     {
         // Operand is a numeric constant.
-        target_cell->op_data.arithmetic.operand1 = NULL;
+        //target_cell->op_data.arithmetic.operand1 = NULL;
         target_cell->op_data.arithmetic.constant += value1;
     }
     else if (type1 == 1)
     {
         // Operand is a cell reference.
-        target_cell->op_data.arithmetic.operand1 = &sheet->cells[row1][col1];
+        //target_cell->op_data.arithmetic.operand1 = &sheet->cells[row1][col1];
+        Cell *temp1 = &sheet->cells[row1][col1];
 
         // Update dependency: target_cell depends on the referenced cell.
         if (target_cell->dependencies == NULL)
             target_cell->dependencies = create_set(default_ptr_cmp);
-        set_insert(target_cell->dependencies, target_cell->op_data.arithmetic.operand1);
+        set_insert(target_cell->dependencies, temp1);
+        target_cell->depd_count++;
+
 
         // Update the referenced cell’s dependents: add target_cell.
-        if (target_cell->op_data.arithmetic.operand1->dependents == NULL)
-            target_cell->op_data.arithmetic.operand1->dependents = create_set(default_ptr_cmp);
-        set_insert(target_cell->op_data.arithmetic.operand1->dependents, target_cell);
+        if (temp1->dependents == NULL)
+            temp1->dependents = create_set(default_ptr_cmp);
+        set_insert(temp1->dependents, target_cell);
     }
     else
     {
@@ -268,22 +269,23 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     type2 = check_constant_or_cell_address(operand2, &value2, &row2, &col2);
     if (type2 == 0)
     {
-        target_cell->op_data.arithmetic.operand2 = NULL;
+        //target_cell->op_data.arithmetic.operand2 = NULL;
         target_cell->op_data.arithmetic.constant += value2;
     }
     else if (type2 == 1)
     {
-        target_cell->op_data.arithmetic.operand2 = &sheet->cells[row2][col2];
+        //target_cell->op_data.arithmetic.operand2 = &sheet->cells[row2][col2];
+        Cell *temp2 = &sheet->cells[row2][col2];
 
         // Update dependency: target_cell depends on this referenced cell.
         if (target_cell->dependencies == NULL)
             target_cell->dependencies = create_set(default_ptr_cmp);
-        set_insert(target_cell->dependencies, target_cell->op_data.arithmetic.operand2);
+        set_insert(target_cell->dependencies, temp2);
 
         // And update the referenced cell's dependents.
-        if (target_cell->op_data.arithmetic.operand2->dependents == NULL)
-            target_cell->op_data.arithmetic.operand2->dependents = create_set(default_ptr_cmp);
-        set_insert(target_cell->op_data.arithmetic.operand2->dependents, target_cell);
+        if (temp2->dependents == NULL)
+            temp2->dependents = create_set(default_ptr_cmp);
+        set_insert(temp2->dependents, target_cell);
     }
     else
     {
@@ -404,51 +406,54 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
             refCell->dependents = create_set(default_ptr_cmp);
         set_insert(refCell->dependents, target_cell);
     }
+
+    free(target_cell->op_data.function.range);
+    target_cell->op_data.function.range = NULL;
     return 0;
 }
 
 // Check for cyclic dependencies
 static bool check_cycle(Spreadsheet *sheet, Cell *start_cell, Cell *current_cell)
 {
-    if (current_cell->in_stack)
-    {
-        return true; // Cycle detected
-    }
+    // if (current_cell->in_stack)
+    // {
+    //     return true; // Cycle detected
+    // }
 
-    if (current_cell->visited)
-    {
-        return false; // Already checked this path
-    }
+    // if (current_cell->visited)
+    // {
+    //     return false; // Already checked this path
+    // }
 
-    current_cell->visited = true;
-    current_cell->in_stack = true;
+    // current_cell->visited = true;
+    // current_cell->in_stack = true;
 
-    // Check dependencies based on cell type
-    if (current_cell->type == TYPE_ARITHMETIC)
-    {
-        if (current_cell->op_data.arithmetic.operand1 &&
-            check_cycle(sheet, start_cell, current_cell->op_data.arithmetic.operand1))
-        {
-            return true;
-        }
-        if (current_cell->op_data.arithmetic.operand2 &&
-            check_cycle(sheet, start_cell, current_cell->op_data.arithmetic.operand2))
-        {
-            return true;
-        }
-    }
-    else if (current_cell->type == TYPE_FUNCTION)
-    {
-        for (int i = 0; i < current_cell->op_data.function.range_size; i++)
-        {
-            if (check_cycle(sheet, start_cell, current_cell->op_data.function.range[i]))
-            {
-                return true;
-            }
-        }
-    }
+    // // Check dependencies based on cell type
+    // if (current_cell->type == TYPE_ARITHMETIC)
+    // {
+    //     if (current_cell->op_data.arithmetic.operand1 &&
+    //         check_cycle(sheet, start_cell, current_cell->op_data.arithmetic.operand1))
+    //     {
+    //         return true;
+    //     }
+    //     if (current_cell->op_data.arithmetic.operand2 &&
+    //         check_cycle(sheet, start_cell, current_cell->op_data.arithmetic.operand2))
+    //     {
+    //         return true;
+    //     }
+    // }
+    // else if (current_cell->type == TYPE_FUNCTION)
+    // {
+    //     for (int i = 0; i < current_cell->op_data.function.range_size; i++)
+    //     {
+    //         if (check_cycle(sheet, start_cell, current_cell->op_data.function.range[i]))
+    //         {
+    //             return true;
+    //         }
+    //     }
+    // }
 
-    current_cell->in_stack = false;
+    // current_cell->in_stack = false;
     return false;
 }
 static int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col)
@@ -508,173 +513,6 @@ static int check_constant_or_cell_address(const char *str, int *constant_value, 
     return 1;
 }
 
-int evaluate_cell(Cell *cell)
-{
-    // If this cell already has an error, return 0.
-    if (cell->has_error)
-    {
-        return 0;
-    }
-
-    switch (cell->type)
-    {
-    case TYPE_EMPTY:
-        return 0;
-
-    case TYPE_CONSTANT:
-        return cell->value;
-
-    case TYPE_REFERENCE:
-    {
-        // For a reference, the parser should have stored the referenced cell in operand1.
-        if (cell->op_data.arithmetic.operand1 != NULL)
-        {
-            return evaluate_cell(cell->op_data.arithmetic.operand1);
-        }
-        else
-        {
-            // Malformed reference.
-            cell->has_error = true;
-            cell->error_msg = strdup("Invalid reference");
-            return 0;
-        }
-    }
-
-    case TYPE_ARITHMETIC:
-    {
-        int left, right;
-
-        // For each operand, if the pointer is not NULL, evaluate the referenced cell.
-        // Otherwise, use the constant stored in 'constant'.
-        if (cell->op_data.arithmetic.operand1 != NULL)
-            left = evaluate_cell(cell->op_data.arithmetic.operand1);
-        else
-            left = cell->op_data.arithmetic.constant;
-
-        if (cell->op_data.arithmetic.operand2 != NULL)
-            right = evaluate_cell(cell->op_data.arithmetic.operand2);
-        else
-            right = cell->op_data.arithmetic.constant;
-
-        // Apply the operator.
-        switch (cell->op_data.arithmetic.op)
-        {
-        case OP_ADD:
-            return left + right;
-        case OP_SUB:
-            return left - right;
-        case OP_MUL:
-            return left * right;
-        case OP_DIV:
-            if (right == 0)
-            {
-                cell->has_error = true;
-                cell->error_msg = strdup("Division by zero");
-                return 0;
-            }
-            return left / right;
-        default:
-            cell->has_error = true;
-            cell->error_msg = strdup("Unknown arithmetic operator");
-            return 0;
-        }
-    }
-
-    case TYPE_FUNCTION:
-    {
-        // Ensure there is at least one cell in the function range.
-        if (cell->op_data.function.range_size <= 0)
-        {
-            cell->has_error = true;
-            cell->error_msg = strdup("Empty function range");
-            return 0;
-        }
-        // Allocate an array to hold evaluated values.
-        int *values = malloc(sizeof(int) * cell->op_data.function.range_size);
-        if (!values)
-        {
-            cell->has_error = true;
-            cell->error_msg = strdup("Memory allocation error");
-            return 0;
-        }
-        for (int i = 0; i < cell->op_data.function.range_size; i++)
-        {
-            values[i] = evaluate_cell(cell->op_data.function.range[i]);
-        }
-        int result = 0;
-        if (strcmp(cell->op_data.function.func_name, "MIN") == 0)
-        {
-            result = values[0];
-            for (int i = 1; i < cell->op_data.function.range_size; i++)
-            {
-                if (values[i] < result)
-                    result = values[i];
-            }
-        }
-        else if (strcmp(cell->op_data.function.func_name, "MAX") == 0)
-        {
-            result = values[0];
-            for (int i = 1; i < cell->op_data.function.range_size; i++)
-            {
-                if (values[i] > result)
-                    result = values[i];
-            }
-        }
-        else if (strcmp(cell->op_data.function.func_name, "SUM") == 0)
-        {
-            for (int i = 0; i < cell->op_data.function.range_size; i++)
-            {
-                result += values[i];
-            }
-        }
-        else if (strcmp(cell->op_data.function.func_name, "AVG") == 0)
-        {
-            int sum = 0;
-            for (int i = 0; i < cell->op_data.function.range_size; i++)
-            {
-                sum += values[i];
-            }
-            result = sum / cell->op_data.function.range_size; // Integer division.
-        }
-        else if (strcmp(cell->op_data.function.func_name, "STDEV") == 0)
-        {
-            int sum = 0;
-            for (int i = 0; i < cell->op_data.function.range_size; i++)
-            {
-                sum += values[i];
-            }
-            int avg = sum / cell->op_data.function.range_size;
-            long sq_sum = 0;
-            for (int i = 0; i < cell->op_data.function.range_size; i++)
-            {
-                int diff = values[i] - avg;
-                sq_sum += diff * diff;
-            }
-            int variance = sq_sum / cell->op_data.function.range_size;
-            result = (int)sqrt((double)variance);
-        }
-        else if (strcmp(cell->op_data.function.func_name, "SLEEP") == 0)
-        {
-            // For SLEEP, we assume the first value is the sleep duration (in seconds).
-            int sleep_duration = values[0];
-            sleep(sleep_duration);
-            result = sleep_duration;
-        }
-        else
-        {
-            cell->has_error = true;
-            cell->error_msg = strdup("Unknown function");
-            result = 0;
-        }
-        free(values);
-        return result;
-    }
-
-    default:
-        return 0;
-    }
-}
-
 int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
 {
     // Reset cell's current state
@@ -714,8 +552,7 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
         }
     }
     /*                                      Check if it's an arithmetic expression                                                */
-    else if (strchr(formula, '+') || strchr(formula, '-') ||
-             strchr(formula, '*') || strchr(formula, '/'))
+    else if (strchr(formula, '+') || strchr(formula, '-') ||strchr(formula, '*') || strchr(formula, '/'))
     {
         if (parse_arithmetic(sheet, cell, formula) != 0)
         {
@@ -738,9 +575,11 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
         if (cell->dependencies == NULL)
             cell->dependencies = create_set(default_ptr_cmp);
         set_insert(cell->dependencies, &sheet->cells[row][col]);
+        cell->depd_count++;
         if (sheet->cells[row][col].dependents == NULL)
             sheet->cells[row][col].dependents = create_set(default_ptr_cmp);
         set_insert(sheet->cells[row][col].dependents, cell);
+        sheet->cells[row][col].depd_count++;
     }
     else
     {
@@ -748,14 +587,18 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula)
         return -1;
     }
 
-    for (int r = 0; r < sheet->totalRows; r++)
-    {
-        for (int c = 0; c < sheet->totalCols; c++)
-        {
-            sheet->cells[r][c].visited = false;
-            sheet->cells[r][c].in_stack = false;
-        }
-    }
+    /*
+        We do not need it. We should handle it when we are done with check_cycle
+    */
+
+    // for (int r = 0; r < sheet->totalRows; r++)
+    // {
+    //     for (int c = 0; c < sheet->totalCols; c++)
+    //     {
+    //         sheet->cells[r][c].visited = false;
+    //         sheet->cells[r][c].in_stack = false;
+    //     }
+    // }
 
     if (check_cycle(sheet, cell, cell))
     {
@@ -823,6 +666,12 @@ void process_command(Spreadsheet *sheet, char *input)
     int old_value = target_cell->value;
     CellType old_type = target_cell->type;
 
+    /*
+     I have not saved the dependents and dependencies for saving, will consider it
+     Maybe create pointers to the old set and add new set to the cell. I successful,
+     delete the old one, else delete the new one and update the cell with the old one 
+    */
+
     char *new_formula = strdup(formula);
     target_cell->formula = new_formula;
 
@@ -840,6 +689,11 @@ void process_command(Spreadsheet *sheet, char *input)
         free(old_formula);
     }
 
+
+    /*
+        Here, some condition should be set. 
+        If there is no dependents, there is no need for recalc.
+    */
     mark_for_recalculation(sheet, target_cell);
     recalculate_sheet(sheet);
 
