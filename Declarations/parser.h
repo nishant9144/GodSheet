@@ -4,16 +4,6 @@
 #include "header.h"
 #include "ds.h"
 
-
-// static int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col);
-// static int default_ptr_cmp(const void *a, const void *b);
-// static int col_label_to_index(const char *label);
-// static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, int *col);
-// static int is_valid_formula(const char *formula);
-
-// static int parse_range(Spreadsheet *sheet, const char *range_str, Set* new_deps);
-// static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set* new_deps);
-// static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set* new_deps);
 int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set* new_deps);
 void process_command(Spreadsheet *sheet, char *input);
 int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col);

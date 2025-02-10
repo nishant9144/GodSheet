@@ -389,8 +389,8 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
 {
     // Reset cell's current state
     cell->has_error = false;
-    free(cell->error_msg);
-    cell->error_msg = NULL;
+    // free(cell->error_msg);
+    // cell->error_msg = NULL;
 
     /*                                      Check if the value is a single constant                                        */
     bool is_numeric = true;

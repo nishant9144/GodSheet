@@ -27,7 +27,6 @@ typedef enum
 
 typedef enum
 {
-    TYPE_EMPTY,
     TYPE_CONSTANT,
     TYPE_REFERENCE,  // References another cell (e.g., =A1)
     TYPE_ARITHMETIC, // Simple arithmetic (e.g., =A1+1)
@@ -78,38 +77,38 @@ struct Set {
 // Cell structure definition
 struct Cell {
     int value;          
-    char* formula; 
     int row; // -> can fix to 3 field.
+    char* formula; 
     char* col;  /// max of 3 fields
     CellType type;     // use bits 
+    int topo_order;
 
     union {
+        Cell* ref;
         struct {  
             Operation op;       // use bits
+            int constant;      
             Cell* operand1;     
             Cell* operand2;
-            int constant;      
         } arithmetic;
 
         struct {  
-            char* func_name;    
-            // Cell** range;      
+            char* func_name;        
             int range_size;     
         } function;
-        Cell* ref;
     } op_data;
     
-    bool is_sleep;
-
+    
     Set* dependents;  
     Set* dependencies;
+    bool is_sleep;
+    bool has_error;
+   
+    // char* error_msg;    
     
-    bool has_error;     
-    char* error_msg;    
-    
-    bool visited;      
-    bool in_stack;     
-    int topo_order;    
+    // bool visited;      
+    // bool in_stack;     
+        
 };
 
 // Spreadsheet structure
@@ -119,12 +118,12 @@ typedef struct {
     int totalCols;
     int scroll_row;
     int scroll_col;
-    int mode;
-    int cursorRow;
-    int cursorCol;
-    bool output_enabled;
-    struct timeval last_cmd_time;
+    // int mode;
+    // int cursorRow;
+    // int cursorCol;
     CalcStatus last_status;
+    struct timeval last_cmd_time;
+    bool output_enabled;
 } Spreadsheet;
 
 // Iterator structures

@@ -328,11 +328,7 @@ int evaluate_cell(Cell *cell)
 {
     if (cell -> has_error) return -1;
     switch(cell->type)
-    {
-        case TYPE_EMPTY:
-            return 0;
-            break;
-        
+    {        
         case TYPE_CONSTANT:
             if (cell->is_sleep && cell->value>0) sleep(cell->value);
             return 0;

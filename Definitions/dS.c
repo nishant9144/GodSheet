@@ -450,15 +450,15 @@ Cell* create_cell(int row, int col) {
     if(cell->col == NULL){fprintf(stderr, "Cell allocation failed. line 458\n"); exit(1);} 
     colNumberToName(col,cell->col);  // Make a copy of the column string
     cell->topo_order = -1;
-    cell->type = TYPE_EMPTY;
+    cell->type = TYPE_CONSTANT;
     cell->value = 0; // Use 0 as initial value
     cell->formula = NULL;
     cell->dependents = NULL;
     cell->dependencies = NULL;
     cell->has_error = false;
-    cell->error_msg = NULL;
-    cell->visited = false;
-    cell->in_stack = false;
+    // cell->error_msg = NULL;
+    // cell->visited = false;
+    // cell->in_stack = false;
     cell->is_sleep = false;
     return cell;
 }
@@ -466,7 +466,7 @@ Cell* create_cell(int row, int col) {
 void free_cell(Cell* cell) {
     if(cell->col!=NULL) free(cell->col);
     if(cell->formula != NULL) free(cell->formula);
-    if(cell->error_msg != NULL) free(cell->error_msg);
+    // if(cell->error_msg != NULL) free(cell->error_msg);
     if(cell->dependencies != NULL) set_free(cell->dependencies);
     if(cell->dependents != NULL) set_free(cell->dependents);
     // free(cell);
@@ -524,7 +524,8 @@ Spreadsheet* create_spreadsheet(int rows, int cols){
 
     sheet->scroll_row = 0;
     sheet->scroll_col = 0;
-    sheet->mode = VIEW_MODE;
+    sheet->output_enabled = 1;
+    // sheet->mode = VIEW_MODE;y
     sheet->last_status = STATUS_OK;
 
     sheet->cells = (Cell**)malloc(rows* sizeof(Cell*));
