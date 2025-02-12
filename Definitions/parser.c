@@ -5,14 +5,12 @@
 #include "../Declarations/backend.h"
 #include "../Declarations/ds.h"
 
-
 // static int default_ptr_cmp(const void *a, const void *b)
 // {
 //     if (a == b)
 //         return 0;
 //     return (a < b) ? -1 : 1;
 // }
-
 
 Operation char_to_operation(char c)
 {
@@ -48,7 +46,7 @@ static int col_label_to_index(const char *label)
 
 static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, int *col)
 {
-    char col_part[4] = {'\0','\0','\0','\0'};
+    char col_part[4] = {'\0', '\0', '\0', '\0'};
     int i = 0;
 
     while (isalpha(**input) && i < 3)
@@ -103,9 +101,8 @@ static int is_valid_formula(const char *formula)
     return ret == 0;
 }
 
-
 // Parse a range (e.g., "A1:B2") and store cells in the range array
-static int parse_range(Spreadsheet *sheet, const char *range_str, Set* new_deps)
+static int parse_range(Spreadsheet *sheet, const char *range_str, Set *new_deps)
 {
     char *colon = strchr(range_str, ':');
     // Split the range into start and end
@@ -139,18 +136,16 @@ static int parse_range(Spreadsheet *sheet, const char *range_str, Set* new_deps)
 
     for (int i = start_row; i <= end_row; i++)
     {
-        for (int j = start_col; j <= end_col;j++)
+        for (int j = start_col; j <= end_col; j++)
         {
             set_add(new_deps, &sheet->cells[i][j]);
         }
     }
-    
 
     /*
         Here, the cells should be added to the dependencies
         Check if the dependencies is empty or needed to be cleared
     */
-
 
     // for (int r = start_row; r <= end_row; r++) {
     //     for (int c = start_col; c <= end_col; c++) {
@@ -166,10 +161,10 @@ static int parse_range(Spreadsheet *sheet, const char *range_str, Set* new_deps)
 }
 
 // Parse arithmetic expression (e.g., "A1+2" or "B2*C3")
-static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set* new_deps)
+static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set *new_deps)
 {
     regex_t regex;
-    // Pattern explanation:
+    const char *pattern = "^([-+]?[0-9]+|[A-Z]+[0-9]+)([+*/-])([-+]?[0-9]+|[A-Z]+[0-9]+)$";
     //   ^\s*                         : start of string, optional whitespace
     //   ([-+]?[0-9]+|[A-Z]+[0-9]+)    : operand1 (a constant with optional sign or a cell reference)
     //   \s*                          : optional whitespace
@@ -177,7 +172,6 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     //   \s*                          : optional whitespace
     //   ([-+]?[0-9]+|[A-Z]+[0-9]+)    : operand2 (again, a constant or a cell reference)
     //   \s*$                         : optional whitespace until end of string
-    const char *pattern = "^\\s*([-+]?[0-9]+|[A-Z]+[0-9]+)\\s*([+\\-*/])\\s*([-+]?[0-9]+|[A-Z]+[0-9]+)\\s*$";
     if (regcomp(&regex, pattern, REG_EXTENDED) != 0)
     {
         sheet->last_status = ERR_SYNTAX;
@@ -221,14 +215,14 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     if (type1 == 0)
     {
         // Operand is a numeric constant.
-        //target_cell->op_data.arithmetic.operand1 = NULL;
+        target_cell->op_data.arithmetic.operand1 = NULL;
         target_cell->op_data.arithmetic.constant += value1;
     }
     else if (type1 == 1)
     {
         // Operand is a cell reference.
-        //target_cell->op_data.arithmetic.operand1 = &sheet->cells[row1][col1];
-        set_add(new_deps,&sheet->cells[row1][col1]);
+        target_cell->op_data.arithmetic.operand1 = &sheet->cells[row1][col1];
+        set_add(new_deps, &sheet->cells[row1][col1]);
     }
     else
     {
@@ -241,12 +235,12 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     type2 = check_constant_or_cell_address(operand2, &value2, &row2, &col2);
     if (type2 == 0)
     {
-        //target_cell->op_data.arithmetic.operand2 = NULL;
+        // target_cell->op_data.arithmetic.operand2 = NULL;
         target_cell->op_data.arithmetic.constant += value2;
     }
     else if (type2 == 1)
     {
-        //target_cell->op_data.arithmetic.operand2 = &sheet->cells[row2][col2];
+        target_cell->op_data.arithmetic.operand2 = &sheet->cells[row2][col2];
         set_add(new_deps, &sheet->cells[row2][col2]);
     }
     else
@@ -288,7 +282,7 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
 }
 
 // Parse function call (e.g., "SUM(A1:B2)")
-static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set* new_deps)
+static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set *new_deps)
 {
     // Extract function name
     char func_name[10] = {0};
@@ -317,8 +311,7 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     // Parse range or single value
 
     // Maybe handle sleep differently
-    
-    
+
     if (strchr(range_str, ':'))
     {
         if (parse_range(sheet, range_str, new_deps) != 0)
@@ -354,9 +347,9 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     free(range_str);
 
     // // --- Update dependency sets for each cell in the function range ---
-    // Set *dependencies; 
+    // Set *dependencies;
     // set_init(&dependencies);
-    
+
     // for (int i = r1; i <= r2; i++)
     // {
     //     for (int j = c1; j <= c2; j++)
@@ -364,11 +357,10 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     //         set_add(dependencies, &sheet->cells[i][j]);
     //     }
     // }
-    
+
     target_cell->op_data.function.range = NULL;
     return 0;
 }
-
 
 int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col)
 {
@@ -427,7 +419,7 @@ int check_constant_or_cell_address(const char *str, int *constant_value, int *ro
     return 1;
 }
 
-int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set* new_deps)
+int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_deps)
 {
     // Reset cell's current state
     cell->has_error = false;
@@ -458,16 +450,16 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set* new_
     }
 
     /*                                      Check if the input is a formula                                                      */
-    if (is_valid_formula(formula)) //min,max,stddev, etc.
+    if (is_valid_formula(formula)) // min,max,stddev, etc.
     {
         if (parse_function(sheet, cell, formula, new_deps) != 0)
         {
-            // raise Error parsing function 
+            // raise Error parsing function
             return -1;
         }
     }
     /*                                      Check if it's an arithmetic expression                                                */
-    else if (strchr(formula, '+') || strchr(formula, '-') ||strchr(formula, '*') || strchr(formula, '/'))
+    else if (strchr(formula, '+') || strchr(formula, '-') || strchr(formula, '*') || strchr(formula, '/'))
     {
         if (parse_arithmetic(sheet, cell, formula, new_deps) != 0)
         {
@@ -527,7 +519,7 @@ void process_command(Spreadsheet *sheet, char *input)
     while (*input == ' ')
         input++;
     char *start = input;
-    while (start < input+strlen(input) && *start != '\0')
+    while (start < input + strlen(input) && *start != '\0')
         start++;
     char *end = start - 1;
     char *eq_pos = strchr(input, '=');
@@ -576,13 +568,13 @@ void process_command(Spreadsheet *sheet, char *input)
     /*
      I have not saved the dependents and dependencies for saving, will consider it
      Maybe create pointers to the old set and add new set to the cell. I successful,
-     delete the old one, else delete the new one and update the cell with the old one 
+     delete the old one, else delete the new one and update the cell with the old one
     */
 
     char *new_formula = strdup(formula);
     target_cell->formula = new_formula;
-    
-    Set* new_deps = (Set*)malloc(sizeof(Set));
+
+    Set *new_deps = (Set *)malloc(sizeof(Set));
     set_init(new_deps);
     // Attempt to parse and validate the new formula, which also checks for cycles
     if (parse_formula(sheet, target_cell, formula, new_deps) != 0)
@@ -600,14 +592,21 @@ void process_command(Spreadsheet *sheet, char *input)
         free(old_formula);
     }
 
-    if(new_deps != NULL){
-        if(update_dependencies(target_cell,new_deps)){ // 0 -> cycle, 1 -> no cycle
-            if(evaluate_cell(target_cell) == 0){
+    if (new_deps != NULL)
+    {
+        if (update_dependencies(target_cell, new_deps))
+        { // 0 -> cycle, 1 -> no cycle
+            if (evaluate_cell(target_cell) == 0)
+            {
                 sheet->last_status = STATUS_OK;
-            }else{
+            }
+            else
+            {
                 sheet->last_status = DIV_BY_ZERO;
             }
-        }else{
+        }
+        else
+        {
             sheet->last_status = ERR_CIRCULAR_REFERENCE;
         }
         set_free(new_deps);
@@ -624,14 +623,11 @@ void process_command(Spreadsheet *sheet, char *input)
         else:
             report error;
     */
-    
 
     /*
-        Here, some condition should be set. 
+        Here, some condition should be set.
         If there is no dependents, there is no need for recalc.
     */
     // mark_for_recalculation(sheet, target_cell);
     // recalculate_sheet(sheet);k
-
 }
-
