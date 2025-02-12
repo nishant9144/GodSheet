@@ -365,6 +365,7 @@ int evaluate_cell(Cell *cell)
             break;
 
         case TYPE_ARITHMETIC:
+        {
             int left, right;
             left = (cell->op_data.arithmetic.operand1 != NULL) ? 
                 cell->op_data.arithmetic.operand1->value : cell->op_data.arithmetic.constant;
@@ -395,6 +396,7 @@ int evaluate_cell(Cell *cell)
                     return -1;
             }
             break;
+        }    
         case TYPE_FUNCTION:
             if ((cell->op_data.function.range_size)<=0){
                 cell->has_error=true;return -1;

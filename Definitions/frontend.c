@@ -3,9 +3,8 @@
 
 static struct termios original_term;
 
-// Helper functions
-void configure_terminal()
-{
+/* Terminal configuration */
+void configure_terminal() {
     struct termios new_term;
     tcgetattr(STDIN_FILENO, &original_term);
     new_term = original_term;
@@ -13,267 +12,123 @@ void configure_terminal()
     tcsetattr(STDIN_FILENO, TCSANOW, &new_term);
 }
 
-void restore_terminal()
-{
+void restore_terminal() {
     tcsetattr(STDIN_FILENO, TCSANOW, &original_term);
 }
 
-void clear_screen()
-{
-    write(STDOUT_FILENO, CLEAR_SCREEN, sizeof(CLEAR_SCREEN));
-}
-
-void display_status_bar(Spreadsheet *sheet)
-{
-    struct timeval now;
-    gettimeofday(&now, NULL);
-    double elapsed = ((now.tv_sec - sheet->last_cmd_time.tv_sec) +
-                      (now.tv_usec - sheet->last_cmd_time.tv_usec)) /
-                     1000000.0;
-
-    const char *status_msg;
-    switch (sheet->last_status)
-    {
-    case STATUS_OK:
-        status_msg = "ok";
-        break;
-    case ERR_INVALID_CELL:
-        status_msg = "Invalid cell";
-        break;
-    case ERR_CIRCULAR_REF:
-        status_msg = "Circular ref";
-        break;
-    case ERR_DIV_ZERO:
-        status_msg = "Div by zero";
-        break;
-    case ERR_INVALID_RANGE:
-        status_msg = "Invalid range";
-        break;
-    case ERR_SYNTAX:
-        status_msg = "Syntax error";
-        break;
-    default:
-        status_msg = "Unknown error";
+/* Convert column index to Excel-style label */
+static void get_col_label(int col, char* buffer) {
+    int len = 0;
+    do {
+        buffer[len++] = 'A' + (col % 26);
+        col = col / 26 - 1;
+    } while (col >= 0 && len < 3);
+    
+    // Reverse the string
+    for(int i = 0; i < len/2; i++) {
+        char tmp = buffer[i];
+        buffer[i] = buffer[len-1-i];
+        buffer[len-1-i] = tmp;
     }
-
-    printf("[%.1f] (%s) > ", elapsed, status_msg);
-    fflush(stdout);
+    buffer[len] = '\0';
 }
 
-void display_viewport(Spreadsheet *sheet)
-{
-    write(STDOUT_FILENO, CLEAR_SCREEN, sizeof(CLEAR_SCREEN));
 
-    int end_row = sheet->scroll_row + VIEWPORT_ROWS;
-    int end_col = sheet->scroll_col + VIEWPORT_COLS;
-    end_row = end_row > sheet->totalRows ? sheet->totalRows : end_row;
-    end_col = end_col > sheet->totalCols ? sheet->totalCols : end_col;
-
-    // Display mode and navigation info
-    char start_col_ref[4], end_col_ref[4];
-    int num = sheet->scroll_col;
-    int idx = 0;
-    do
-    {
-        start_col_ref[idx++] = 'A' + (num % 26);
-        num = num / 26 - 1;
-    } while (num >= 0 && idx < 3);
-    start_col_ref[idx] = '\0';
-
-    num = end_col - 1;
-    idx = 0;
-    do
-    {
-        end_col_ref[idx++] = 'A' + (num % 26);
-        num = num / 26 - 1;
-    } while (num >= 0 && idx < 3);
-    end_col_ref[idx] = '\0';
-
-    printf("Mode: %s    Page: Row %d-%d, Col %s-%s\n",
-           sheet->mode == VIEW_MODE ? "VIEW" : "EDIT",
-           sheet->scroll_row + 1, end_row,
-           start_col_ref, end_col_ref);
-
-    // Display column headers
-    printf("     ");
-    for (int j = sheet->scroll_col; j < end_col; j++)
-    {
-        char col_ref[4];
-        int num = j;
-        int idx = 0;
-        do
-        {
-            col_ref[idx++] = 'A' + (num % 26);
-            num = num / 26 - 1;
-        } while (num >= 0 && idx < 3);
-        col_ref[idx] = '\0';
-        printf("%-*s", CELL_WIDTH, col_ref);
+/* Display 10x10 viewport */
+void display_viewport(Spreadsheet *sheet) {
+    printf(CLEAR_SCREEN);
+    
+    // Print column headers
+    printf("    ");
+    for(int col = sheet->scroll_col; 
+        col < sheet->scroll_col + VIEWPORT_COLS && col < sheet->totalCols; 
+        col++) {
+        char col_buf[4];
+        get_col_label(col, col_buf);
+        printf("%-*s", CELL_WIDTH, col_buf);
     }
     printf("\n");
 
-    // Print horizontal separator
-    printf("    +-");
-    for (int j = sheet->scroll_col; j < end_col; j++)
-    {
-        for (int k = 0; k < CELL_WIDTH; k++)
-            printf("-");
-        printf("-");
-    }
-    printf("\n");
-
-    // Display Cells
-    for (int i = sheet->scroll_row; i < end_row; i++)
-    {
-        printf("%4d ", i + 1);
-        for (int j = sheet->scroll_col; j < end_col; j++)
-        {
-            Cell *cell = &sheet->cells[i][j];
-            if (i == sheet->cursorRow && j == sheet->cursorCol)
-            {
-                printf("\x1b[47m\x1b[30m"); // Highlight
-            }
-
-            if (cell->formula != NULL)
-            {
-                printf("%-*d", CELL_WIDTH, cell->value);
-            }
-            else
-            {
-                printf("%-*d", CELL_WIDTH, cell->value);
-            }
-
-            if (i == sheet->cursorRow && j == sheet->cursorCol)
-            {
-                printf("\x1b[0m"); // Reset
-            }
+    // Print cells
+    for(int row = sheet->scroll_row;
+        row < sheet->scroll_row + VIEWPORT_ROWS && row < sheet->totalRows;
+        row++) {
+        printf("%3d ", row+1);
+        for(int col = sheet->scroll_col;
+            col < sheet->scroll_col + VIEWPORT_COLS && col < sheet->totalCols;
+            col++) {
+            Cell* cell = &sheet->cells[row][col];
+            printf("%-*d", CELL_WIDTH, cell->value);
         }
         printf("\n");
     }
-
-    // Print bottom border
-    printf("    +-");
-    for (int j = sheet->scroll_col; j < end_col; j++)
-    {
-        for (int k = 0; k < CELL_WIDTH; k++)
-            printf("-");
-        printf("-");
-    }
-    printf("\n");
-
-    // Display controls
-    printf("\nControls:\n");
-    printf("Arrow keys: Move cursor    M: Switch Mode    Q: Quit\n");
-    printf("Page Navigation: N: Next page    P: Previous page\n");
-    printf("R: Next row page    C: Next column page\n");
-    if (sheet->mode == EDIT_MODE)
-    {
-        printf("Enter: Edit cell    Esc: Cancel edit\n");
-    }
-
-    display_status_bar(sheet);
 }
 
-char readArrowKeys()
-{
-    char c = getchar();
-    if (c == ESC)
-    {
-        c = getchar(); // Skip '['
-        if (c == '[')
-        {
-            return getchar();
-        }
-        return c;
+/* Handle scroll commands */
+void handle_scroll(Spreadsheet *sheet, char direction) {
+    switch(direction) {
+        case 'w':  // Up
+            sheet->scroll_row = (sheet->scroll_row >= 10) 
+                              ? sheet->scroll_row - 10 
+                              : 0;
+            break;
+        case 's':  // Down
+            if(sheet->scroll_row + 10 < sheet->totalRows - VIEWPORT_ROWS)
+                sheet->scroll_row += 10;
+            break;
+        case 'a':  // Left
+            sheet->scroll_col = (sheet->scroll_col >= 10)
+                              ? sheet->scroll_col - 10
+                              : 0;
+            break;
+        case 'd':  // Right
+            if(sheet->scroll_col + 10 < sheet->totalCols - VIEWPORT_COLS)
+                sheet->scroll_col += 10;
+            break;
     }
-    return c;
 }
 
-void handleNavigation(Spreadsheet *sheet, char key)
-{
-    switch (key)
-    {
-    case ARROW_UP:
-        if (sheet->cursorRow > 0)
-        {
-            sheet->cursorRow--;
-            // Scroll viewport if necessary
-            if (sheet->cursorRow < sheet->scroll_row)
-            {
-                sheet->scroll_row = sheet->cursorRow;
-            }
-        }
-        break;
-    case ARROW_DOWN:
-        if (sheet->cursorRow < sheet->totalRows - 1)
-        {
-            sheet->cursorRow++;
-            // Scroll viewport if necessary
-            if (sheet->cursorRow >= sheet->scroll_row + VIEWPORT_ROWS)
-            {
-                sheet->scroll_row = sheet->cursorRow - VIEWPORT_ROWS + 1;
-            }
-        }
-        break;
-    case ARROW_LEFT:
-        if (sheet->cursorCol > 0)
-        {
-            sheet->cursorCol--;
-            // Scroll viewport if necessary
-            if (sheet->cursorCol < sheet->scroll_col)
-            {
-                sheet->scroll_col = sheet->cursorCol;
-            }
-        }
-        break;
 
-    case ARROW_RIGHT:
-        if (sheet->cursorCol < sheet->totalCols - 1)
-        {
-            sheet->cursorCol++;
-            // Scroll viewport if necessary
-            if (sheet->cursorCol >= sheet->scroll_col + VIEWPORT_COLS)
-            {
-                sheet->scroll_col = sheet->cursorCol - VIEWPORT_COLS + 1;
-            }
+
+/* Main UI loop */
+void run_ui(Spreadsheet *sheet) {
+    struct timeval start_time, end_time;
+    char input[100];  // Fixed buffer size for input
+    
+    while(1) {
+        gettimeofday(&start_time, NULL);
+        
+        // Display current view
+        display_viewport(sheet);
+        
+        // Calculate elapsed time since last command
+        double elapsed = (start_time.tv_sec - sheet->last_cmd_time.tv_sec) +
+                        (start_time.tv_usec - sheet->last_cmd_time.tv_usec) / 1000000.0;
+        
+        // Show prompt with status
+        printf("[%.1f] (%s) > ", elapsed, 
+               sheet->last_status == STATUS_OK ? "ok" : "error");
+        fflush(stdout);
+        
+        // Get input
+        if(!fgets(input, sizeof(input), stdin)) break;
+        input[strcspn(input, "\n")] = '\0';  // Remove newline
+        
+        // Handle commands
+        if(strlen(input) == 0) continue;
+        
+        if(input[0] == 'q') break;
+        
+        if(strchr("wasd", input[0])) {
+            handle_scroll(sheet, input[0]);
+            sheet->last_status = STATUS_OK;
         }
-        break;
-    case 'n': // Next page (both rows and columns)
-        if (sheet->scroll_row + VIEWPORT_ROWS < sheet->totalRows)
-        {
-            sheet->scroll_row += VIEWPORT_ROWS;
-            sheet->cursorRow = sheet->scroll_row;
+        else {
+            // Process formula or other commands
+            process_command(sheet, input);
         }
-        if (sheet->scroll_col + VIEWPORT_COLS < sheet->totalCols)
-        {
-            sheet->scroll_col += VIEWPORT_COLS;
-            sheet->cursorCol = sheet->scroll_col;
-        }
-        break;
-    case 'p': // Previous page (both rows and columns)
-        if (sheet->scroll_row > 0)
-        {
-            sheet->scroll_row = (sheet->scroll_row >= VIEWPORT_ROWS) ? sheet->scroll_row - VIEWPORT_ROWS : 0;
-            sheet->cursorRow = sheet->scroll_row;
-        }
-        if (sheet->scroll_col > 0)
-        {
-            sheet->scroll_col = (sheet->scroll_col >= VIEWPORT_COLS) ? sheet->scroll_col - VIEWPORT_COLS : 0;
-            sheet->cursorCol = sheet->scroll_col;
-        }
-        break;
-    case 'r': // Next row page
-        if (sheet->scroll_row + VIEWPORT_ROWS < sheet->totalRows)
-        {
-            sheet->scroll_row += VIEWPORT_ROWS;
-            sheet->cursorRow = sheet->scroll_row;
-        }
-        break;
-    case 'c': // Next column page
-        if (sheet->scroll_col + VIEWPORT_COLS < sheet->totalCols)
-        {
-            sheet->scroll_col += VIEWPORT_COLS;
-            sheet->cursorCol = sheet->scroll_col;
-        }
-        break;
+        
+        // Update last command time
+        gettimeofday(&sheet->last_cmd_time, NULL);
     }
 }
