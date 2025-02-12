@@ -1,5 +1,6 @@
 // dS.c
 #include "../Declarations/ds.h"
+#include "../Declarations/frontend.h"
 
 // Helper function to compare cells based on (row, col) tuple
 int compare_cells_position(Cell* a, Cell* b) {
@@ -43,9 +44,6 @@ Cell* vector_iterator_next(VectorIterator* iterator) {
     return iterator->vector->data[iterator->index++];
 }
 
-void vector_iterator_free(VectorIterator* iterator) {
-    // Nothing to free here
-}
 
 // Queue implementation for Cells
 void queue_init(Queue* queue, size_t capacity) {
@@ -434,7 +432,7 @@ Vector topological_sort(Set* adjList, int numVertices, Cell** cell_map) {
     vector_init(&result);
     
     // Reverse the order (as DFS gives reverse topological sort)
-    for (int i = 0; i < sorted.size; i++) {
+    for (size_t i = 0; i < sorted.size; i++) {
         vector_push_back(&result, sorted.data[i]);
     }
 
@@ -466,12 +464,12 @@ Cell* create_cell(int row, int col) {
 }
 
 void free_cell(Cell* cell) {
-    free(cell->col);
+    if(cell->col!=NULL) free(cell->col);
     if(cell->formula != NULL) free(cell->formula);
     if(cell->error_msg != NULL) free(cell->error_msg);
     if(cell->dependencies != NULL) set_free(cell->dependencies);
     if(cell->dependents != NULL) set_free(cell->dependents);
-    free(cell);
+    // free(cell);
 }
 
 int colNameToNumber(const char *colName) {
@@ -515,7 +513,7 @@ Spreadsheet* create_spreadsheet(int rows, int cols){
     sheet->totalCols = cols;
     sheet->scroll_row = 0;
     sheet->scroll_col = 0;
-    // sheet->mode = VIEW_MODE;
+    sheet->mode = VIEW_MODE;
     sheet->last_status = STATUS_OK;
 
     sheet->cells = (Cell**)malloc(rows* sizeof(Cell*));
@@ -525,16 +523,6 @@ Spreadsheet* create_spreadsheet(int rows, int cols){
             sheet->cells[i][j] = *create_cell(i, j);
         }
     }
-
-    // // Create cells and cell mapping
-    // int index = cols+1;
-    // for (int i = 1; i <= rows; i++) {
-    //     for (int j = 1; j <= cols; j++) {
-    //         // Create column name (A, B, C, etc.)
-    //         char col[2] = {(char)('A' + j - 1), '\0'};
-    //         sheet->cells[index++] = create_cell(i, col);
-    //     }
-    // }
     return sheet;
 }
 
@@ -563,6 +551,7 @@ void free_spreadsheet(Spreadsheet* sheet){
         for (int j = 0; j < sheet->totalCols; j++) {
             free_cell(&(sheet->cells[i][j]));
         }
+        free(sheet->cells[i]);
     }
     free(sheet->cells);
     free(sheet);

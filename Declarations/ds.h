@@ -157,7 +157,6 @@ void vector_free(Vector* vector);
 void vector_iterator_init(VectorIterator* iterator, Vector* vector);
 int vector_iterator_has_next(VectorIterator* iterator);
 Cell* vector_iterator_next(VectorIterator* iterator);
-void vector_iterator_free(VectorIterator* iterator);
 
 void queue_init(Queue* queue, size_t capacity);
 int queue_is_full(Queue* queue);

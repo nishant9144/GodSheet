@@ -1,6 +1,7 @@
 #include "../Declarations/frontend.h"
 #include "../Declarations/backend.h"
-
+#include "../Declarations/parser.h"
+#include "../Declarations/ds.h"
 
 int main(int argc, char *argv[])
 {
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
 
         if (input == 'q' || input == 'Q')
         {
+            printf("\n");
             break;
         }
         else if (input == 'm' || input == 'M')

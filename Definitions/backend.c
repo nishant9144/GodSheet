@@ -1,6 +1,7 @@
 #include "../Declarations/ds.h"
 #include "../Declarations/parser.h"
 #include "../Declarations/backend.h"
+#include "../Declarations/frontend.h"
 
 
 void print_cell(Cell* cell) {
@@ -90,7 +91,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
     set_iterator_free(&new_it);
 
     // Check for circular dependencies
-    if (check_circular_dependencies(curr_cell, &new_deps_copy)) {
+    if (check_circular_dependencies(curr_cell)) {
         // Circular dependency detected, revert changes
         printf("Circular dependency detected. Reverting changes.\n");
 
@@ -116,6 +117,20 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
         }
         set_iterator_free(&old_it);
 
+        // Revert the dependencies of the current cell
+        if (curr_cell->dependencies != NULL) {
+            set_free(curr_cell->dependencies);
+            free(curr_cell->dependencies);
+        }
+        curr_cell->dependencies = (Set*)malloc(sizeof(Set));
+        set_init(curr_cell->dependencies);
+        set_iterator_init(&old_it, &old_dependencies);
+        while (set_iterator_has_next(&old_it)) {
+            Cell* old_dep = set_iterator_next(&old_it);
+            set_add(curr_cell->dependencies, old_dep);
+        }
+        set_iterator_free(&old_it);
+
         // Free the temporary sets
         set_free(&old_dependencies);
         set_free(&new_deps_copy);
@@ -128,7 +143,6 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
     set_free(&new_deps_copy);
 
     // Call the function to update the cell's value based on its new dependencies
-    update_cell_value(curr_cell);
     return 1;
 }
 
@@ -167,7 +181,7 @@ bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack) {
     return false;
 }
 
-bool check_circular_dependencies(Cell* curr_cell, Set* dependencies) {
+bool check_circular_dependencies(Cell* curr_cell) {
     Set visited, recursion_stack;
     set_init(&visited);
     set_init(&recursion_stack);
@@ -271,7 +285,6 @@ void update_dependents(Cell* curr_cell) {
     Vector sorted = topological_sort(adj_list, num_cells, cell_map);
 
     // Update cells in topological order
-    bool div_by_zero_encountered = false;
     VectorIterator update_it;
     vector_iterator_init(&update_it, &sorted);
     printf("$ TopoSorted: ");
@@ -308,7 +321,6 @@ Set* createDependenciesSet(Vector* List){
         Cell* cell = vector_iterator_next(&it);
         set_add(dependencies, cell); // vector mein jo copied cell hai uska pointer hai set mein
     }
-    vector_iterator_free(&it);
     return dependencies;
 }
 
@@ -318,14 +330,15 @@ void editCell(Spreadsheet *sheet)
     restore_terminal();
 
     char input_line[MAX_CELL_LENGTH];
+    // FILE *log = fopen("./log.txt", "w");
     fgets(input_line, MAX_CELL_LENGTH, stdin);
+    // fputs(input_line, log);
+    // fclose(log);
     input_line[strcspn(input_line, "\n")] = 0;
-
     if (strlen(input_line) > 0)
     {
         process_command(sheet, input_line);
     }
-    // recalculate(sheet);
     configure_terminal();
 }
 
@@ -340,10 +353,12 @@ int evaluate_cell(Cell *cell)
     {
         case TYPE_EMPTY:
             return 0;
+            break;
         
         case TYPE_CONSTANT:
             if (cell->is_sleep) sleep(cell->value);
             return 0;
+            break;
 
         case TYPE_ARITHMETIC:
             int left, right;
@@ -356,39 +371,45 @@ int evaluate_cell(Cell *cell)
             switch(cell->op_data.arithmetic.op) 
             {
                 case OP_ADD:
-                    return left + right;
+                    cell->value = left + right;
+                    return 0;
                 case OP_SUB:
-                    return left - right;
+                    cell->value = left - right;
+                    return 0;
                 case OP_MUL:
-                    return left * right;
+                    cell->value = left * right;
+                    return 0;
                 case OP_DIV:
                     if (right == 0) {
                         cell->has_error = true;
                         return -1;
                     }
-                    return left / right;
+                    cell->value = left / right;
+                    return 0;
                 default:
                     cell->has_error = true;
                     return -1;
             }
-
+            break;
         case TYPE_FUNCTION:
-            if (cell->op_data.function.range_size<=0)
+            if ((cell->op_data.function.range_size)<=0){
                 cell->has_error=true;return -1;
+            }
 
             int sum = 0, count = 0;
             int min_val = INT_MAX, max_val = INT_MIN;
             double sum_sq = 0.0;
 
-            SetIterator *it = set_iterator(cell->dependencies);
+            SetIterator it;
+            set_iterator_init(&it, cell->dependencies);
             Cell *dep;
-            while ((dep = set_iter_next(it)) != NULL)
+            while ((dep = set_iterator_next(&it)) != NULL)
             {
                 int dep_val = dep->value;
                 if (dep->has_error)
                 {
                     cell->has_error = true;
-                    set_iter_free(it);
+                    set_iterator_free(&it);
                     return -1;
                 }
                 sum += dep_val;
@@ -397,7 +418,7 @@ int evaluate_cell(Cell *cell)
                 sum_sq += dep_val * dep_val;
                 count++;
             }
-            set_iter_free(it);
+            set_iterator_free(&it);
             if (count == 0)
             {
                 cell->has_error = true;
@@ -430,14 +451,16 @@ int evaluate_cell(Cell *cell)
                 cell->has_error = true;
                 return -1;
             }
+            break;
         case TYPE_REFERENCE:
             cell->value = cell->op_data.ref->value;
             if (cell->is_sleep) sleep(cell->value);
+            break;
     }
     return 0;
 }
 
-
+/*
 int main(void){
     printf("Hello World\n");
 
@@ -509,3 +532,4 @@ int main(void){
     printf("Resources freed\n");
     return 0;
 }
+*/

@@ -6,11 +6,29 @@
 #include "../Declarations/ds.h"
 
 
-static int default_ptr_cmp(const void *a, const void *b)
+// static int default_ptr_cmp(const void *a, const void *b)
+// {
+//     if (a == b)
+//         return 0;
+//     return (a < b) ? -1 : 1;
+// }
+
+
+Operation char_to_operation(char c)
 {
-    if (a == b)
-        return 0;
-    return (a < b) ? -1 : 1;
+    switch (c)
+    {
+    case '+':
+        return OP_ADD;
+    case '-':
+        return OP_SUB;
+    case '*':
+        return OP_MUL;
+    case '/':
+        return OP_DIV;
+    default:
+        return OP_NONE;
+    }
 }
 
 static int col_label_to_index(const char *label)
@@ -46,7 +64,7 @@ static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, 
 
     // Convert column to index
     *col = col_label_to_index(col_part);
-    if (*col <= 0 || *col > MAX_COLS)
+    if (*col < 0 || *col > MAX_COLS)
     {
         sheet->last_status = ERR_SYNTAX;
         return -1;
@@ -351,7 +369,7 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
 }
 
 
-static int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col)
+int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col)
 {
     // First, try to parse a constant.
     char *endptr;
@@ -507,10 +525,10 @@ void process_command(Spreadsheet *sheet, char *input)
 
     while (*input == ' ')
         input++;
-    char *end = input + strlen(input) - 1;
-    while (end > input && *end == ' ')
-        *end-- = '\0';
-
+    char *start = input;
+    while (start < input+strlen(input) && *start != '\0')
+        start++;
+    char *end = start - 1;
     char *eq_pos = strchr(input, '=');
     if (!eq_pos)
     {
@@ -563,7 +581,7 @@ void process_command(Spreadsheet *sheet, char *input)
     char *new_formula = strdup(formula);
     target_cell->formula = new_formula;
     
-    Set* new_deps;
+    Set* new_deps = (Set*)malloc(sizeof(Set));
     set_init(new_deps);
     // Attempt to parse and validate the new formula, which also checks for cycles
     if (parse_formula(sheet, target_cell, formula, new_deps) != 0)
@@ -583,8 +601,11 @@ void process_command(Spreadsheet *sheet, char *input)
 
     if(new_deps != NULL){
         if(update_dependencies(target_cell,new_deps)){ // 0 -> cycle, 1 -> no cycle
-            evaluate_cell(target_cell);
-            sheet->last_status = STATUS_OK;
+            if(evaluate_cell(target_cell) == 0){
+                sheet->last_status = STATUS_OK;
+            }else{
+                sheet->last_status = DIV_BY_ZERO;
+            }
         }else{
             sheet->last_status = ERR_CIRCULAR_REFERENCE;
         }
@@ -613,30 +634,3 @@ void process_command(Spreadsheet *sheet, char *input)
 
 }
 
-void evaluate_cell(Cell* cell){
-    printf("evaluation of %s%d depends upon: {",cell->col, cell->row);
-    if(cell->dependencies == NULL){
-        printf(" a constant");
-    }else{
-        SetIterator it;
-        set_iterator_init(&it, cell->dependencies);
-        while (set_iterator_has_next(&it) > 0)
-        {
-            Cell* cell1 = set_iterator_next(&it);
-            printf(" %s%d", cell1->col, cell1->row);
-        }
-        set_iterator_free(&it);
-    }
-    printf(" }");
-}
-
-void mark_for_recalculation(Spreadsheet *sheet, Cell *cell)
-{
-    // Stub implementation; add actual recalculation marking here.
-    
-}
-
-void recalculate_sheet(Spreadsheet *sheet)
-{
-    // Stub implementation; add actual sheet recalculation logic here.
-}
