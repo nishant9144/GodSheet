@@ -135,7 +135,7 @@ void display_viewport(Spreadsheet *sheet)
 
             if (cell->formula != NULL)
             {
-                printf("=%-*s", CELL_WIDTH, cell->formula);
+                printf("%-*d", CELL_WIDTH, cell->value);
             }
             else
             {

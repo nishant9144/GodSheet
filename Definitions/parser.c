@@ -48,7 +48,7 @@ static int col_label_to_index(const char *label)
 
 static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, int *col)
 {
-    char col_part[4] = {0};
+    char col_part[4] = {'\0','\0','\0','\0'};
     int i = 0;
 
     while (isalpha(**input) && i < 3)
@@ -82,6 +82,7 @@ static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, 
         return -1;
     }
     *row -= 1;
+    // should also make curr_cell->op_data.ref = &sheet->cells[row][col];
     return 0;
 }
 
@@ -484,7 +485,7 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set* new_
             return -1;
         }
         cell->type = TYPE_REFERENCE;
-        
+        cell->op_data.ref = &sheet->cells[row][col];
         set_add(new_deps, &sheet->cells[row][col]);
     }
     else
