@@ -294,13 +294,17 @@ void update_dependents(Cell* curr_cell) {
     }
     printf("\n");
 
+    bool divbyzeroflag = (evaluate_cell(curr_cell) == -1);
     vector_iterator_init(&update_it, &sorted);
     while (vector_iterator_has_next(&update_it)) {
         Cell* cell = vector_iterator_next(&update_it);
         // Recalculate cell value
         // Note: This is where you'd call your cell evaluation function
         // For now, we'll just check for division by zero
-        evaluate_cell(cell);
+        if(divbyzeroflag)
+            cell->has_error = true;
+        else
+            evaluate_cell(cell);
     }
     // Cleanup
     vector_free(&sorted);

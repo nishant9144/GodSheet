@@ -102,7 +102,7 @@ static int is_valid_formula(const char *formula)
 }
 
 // Parse a range (e.g., "A1:B2") and store cells in the range array
-static int parse_range(Spreadsheet *sheet, const char *range_str, Set *new_deps)
+static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_str, Set *new_deps)
 {
     char *colon = strchr(range_str, ':');
     // Split the range into start and end
@@ -141,6 +141,7 @@ static int parse_range(Spreadsheet *sheet, const char *range_str, Set *new_deps)
             set_add(new_deps, &sheet->cells[i][j]);
         }
     }
+    target_cell->op_data.function.range_size = (end_row-start_row+1)*(end_col-start_col+1);
 
     /*
         Here, the cells should be added to the dependencies
@@ -314,7 +315,7 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
 
     if (strchr(range_str, ':'))
     {
-        if (parse_range(sheet, range_str, new_deps) != 0)
+        if (parse_range(target_cell, sheet, range_str, new_deps) != 0)
         {
             free(range_str);
             return -1;
@@ -332,6 +333,7 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
                 free(range_str);
                 return -1;
             }
+            target_cell->op_data.function.range_size = 1;
             set_add(new_deps, &sheet->cells[row][col]);
         }
         else
@@ -604,6 +606,7 @@ void process_command(Spreadsheet *sheet, char *input)
             {
                 sheet->last_status = DIV_BY_ZERO;
             }
+            update_dependents(target_cell);
         }
         else
         {
@@ -612,7 +615,6 @@ void process_command(Spreadsheet *sheet, char *input)
         set_free(new_deps);
         new_deps = NULL;
     }
-    update_dependents(target_cell);
 
     // Set* new_deps;
     // TODO:
