@@ -2,7 +2,7 @@
 #include "../Declarations/frontend.h"
 #include "../Declarations/parser.h" // Add this line to include the declaration of process_command
 
-
+int output_enabled = 1; // Declared output_enabled variable
 static struct termios original_term;
 
 /* Terminal configuration */
@@ -52,7 +52,8 @@ static void get_col_label(int col, char* buffer) {
 
 /* Display 10x10 viewport */
 void display_viewport(Spreadsheet *sheet) {
-    // printf(CLEAR_SCREEN);
+    if (!output_enabled) return;
+    printf(CLEAR_SCREEN);
     
     // Print column headers
     printf("    ");
@@ -78,6 +79,8 @@ void display_viewport(Spreadsheet *sheet) {
         }
         printf("\n");
     }
+
+    
 }
 
 /* Handle scroll commands */
@@ -138,6 +141,28 @@ void handle_scroll(Spreadsheet *sheet, char direction) {
 
 
 
+void scroll_to(Spreadsheet *sheet, int row, int col) {
+    // Ensure row and col are within valid bounds
+    if (row < 0) row = 0;
+    if (col < 0) col = 0;
+    if (row >= sheet->totalRows) row = sheet->totalRows - 1;
+    if (col >= sheet->totalCols) col = sheet->totalCols - 1;
+
+    // Adjust scroll_row to ensure the target row is visible
+    if (row < sheet->scroll_row) {
+        sheet->scroll_row = row;  // Move viewport up
+    } else if (row >= sheet->scroll_row + VIEWPORT_ROWS) {
+        sheet->scroll_row = row - VIEWPORT_ROWS + 1;  // Move viewport down
+    }
+
+    // Adjust scroll_col to ensure the target column is visible
+    if (col < sheet->scroll_col) {
+        sheet->scroll_col = col;  // Move viewport left
+    } else if (col >= sheet->scroll_col + VIEWPORT_COLS) {
+        sheet->scroll_col = col - VIEWPORT_COLS + 1;  // Move viewport right
+    }
+}
+
 
 /* Main UI loop */
 void run_ui(Spreadsheet *sheet) {
@@ -171,24 +196,58 @@ void run_ui(Spreadsheet *sheet) {
 
         
         // Handle commands
-        if(strlen(input) == 0) continue;
+        // Handle commands
+        if (strlen(input) == 0)
+            continue;
+
+        // Check for quit command
+        if (strcmp(input, "q") == 0)
+            break;
+
+        // First check for full-string commands
+        if (strcmp(input, "disable_output") == 0) {
+            output_enabled = 0;
+            sheet->last_status = STATUS_OK;
+            continue;
+        }
+
+        if (strcmp(input, "enable_output") == 0) {
+            output_enabled = 1;
+            sheet->last_status = STATUS_OK;
+            display_viewport(sheet); // Show UI again after enabling output
+            continue;
+        }
+
         
-        if(input[0] == 'q') break;
+        if (strncmp(input, "goto ", 5) == 0) {
+            char cell_ref[10];
+            sscanf(input + 5, "%s", cell_ref);
+            int col = 0, i = 0;
+            while (cell_ref[i] && isalpha(cell_ref[i])) {
+                col = col * 26 + (toupper(cell_ref[i]) - 'A' + 1);
+                i++;
+            }
+            col = col - 1;  // Convert to 0-based index
+            int row = atoi(cell_ref + i) - 1;  // Convert to 0-based index
+            scroll_to(sheet, row, col);
+            sheet->last_status = STATUS_OK;
+            if (output_enabled)
+                display_viewport(sheet);
+            continue;
+        }
+
         
-        // if(strchr("wasd", input[0])) {
-        //     handle_scroll(sheet, input[0]);
-        //     sheet->last_status = STATUS_OK;
-        // }
-        if (strchr("wasd", input[0])) {
+        // If input is a single character and that character is one of "wasd", treat it as a scroll command
+        if (strlen(input) == 1 && strchr("wasd", input[0]) != NULL) {
             handle_scroll(sheet, input[0]);
             sheet->last_status = STATUS_OK;
-            display_viewport(sheet); // Refresh screen after scrolling
+            if (output_enabled)
+                display_viewport(sheet);
+            continue;
         }
-        
-        else {
-            // Process formula or other commands
-            process_command(sheet, input);
-        }
+
+        // Otherwise, process formula or other commands
+        process_command(sheet, input);
         
         // Update last command time
         gettimeofday(&end_time, NULL);
