@@ -5,7 +5,6 @@
 #include "ds.h"
 
 #define DIV_BY_ZERO -999999
-#define MAX_CELL_LENGTH 50
 
 void print_cell(Cell* cell);
 void print_dependents(Cell* cell);

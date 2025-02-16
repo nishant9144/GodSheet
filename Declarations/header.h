@@ -14,4 +14,9 @@
 #include <limits.h>
 #include <regex.h>
 
+#define MAX_ROWS 999
+#define MAX_COLS 18278
+#define VIEW_MODE 0
+#define EDIT_MODE 1
+
 #endif
