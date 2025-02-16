@@ -508,9 +508,20 @@ void colNumberToName(int colNumber, char *colName) { // 0 based argument
 }
 
 Spreadsheet* create_spreadsheet(int rows, int cols){
+    printf("Inside create_spreadsheet: rows=%d, cols=%d\n", rows, cols); //debug statement
+
+
     Spreadsheet* sheet = (Spreadsheet*)malloc(sizeof(Spreadsheet));
+    if (!sheet) {
+        fprintf(stderr, "Memory allocation failed for spreadsheet\n");
+        exit(1);
+    }
     sheet->totalRows = rows;
     sheet->totalCols = cols;
+
+    printf("After assigning values: totalRows=%d, totalCols=%d\n", 
+        sheet->totalRows, sheet->totalCols);
+
     sheet->scroll_row = 0;
     sheet->scroll_col = 0;
     sheet->mode = VIEW_MODE;
@@ -523,6 +534,8 @@ Spreadsheet* create_spreadsheet(int rows, int cols){
             sheet->cells[i][j] = *create_cell(i, j);
         }
     }
+    printf("Final values before returning: totalRows=%d, totalCols=%d\n",
+        sheet->totalRows, sheet->totalCols);
     return sheet;
 }
 
