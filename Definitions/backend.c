@@ -3,9 +3,7 @@
 #include "../Declarations/backend.h"
 #include "../Declarations/frontend.h"
 
-
-void print_cell(Cell* cell) {
-    printf("%s%d: %d\n", cell->col, cell->row+1, cell->value);
+void print_cell(Cell* cell) {printf("%s%d: %d\n", cell->col, cell->row+1, cell->value);
 }
 void print_dependents(Cell* cell){
     printf("Dependents of %s%d: ", cell->col, cell->row+1);
@@ -42,9 +40,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
     set_iterator_init(&old_it, &old_dependencies);
     while (set_iterator_has_next(&old_it)) {
         Cell* old_dep = set_iterator_next(&old_it);
-        if (old_dep->dependents != NULL) {
-            set_remove(old_dep->dependents, curr_cell);
-        }
+        if (old_dep->dependents != NULL) set_remove(old_dep->dependents, curr_cell);
     }
     set_iterator_free(&old_it);
 
@@ -99,9 +95,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
         set_iterator_init(&new_it, &new_deps_copy);
         while (set_iterator_has_next(&new_it)) {
             Cell* new_dep = set_iterator_next(&new_it);
-            if (new_dep->dependents != NULL) {
-                set_remove(new_dep->dependents, curr_cell);
-            }
+            if (new_dep->dependents != NULL) set_remove(new_dep->dependents, curr_cell);
         }
         set_iterator_free(&new_it);
         
@@ -230,10 +224,8 @@ void update_dependents(Cell* curr_cell) {
 
     printf("$ Number of affected cells: %d\n", num_cells);
     if (num_cells == 0) {
-        set_free(&affected_cells);
-        return;
+        set_free(&affected_cells); return;
     }
-
     // Create cell mapping
     Cell** cell_map = (Cell**)malloc((num_cells + 1) * sizeof(Cell*));
     if (cell_map == NULL) {
@@ -250,7 +242,6 @@ void update_dependents(Cell* curr_cell) {
         cell_map[index++] = cell;
     }
     set_iterator_free(&map_it);
-
     // Create adjacency matrix
     Set* adj_list = (Set*)malloc((num_cells + 1) * sizeof(Set));
     if(adj_list == NULL) {
@@ -260,10 +251,8 @@ void update_dependents(Cell* curr_cell) {
         return;
     }
 
-    for (int i = 1; i <= num_cells; i++) {
-        set_init(&adj_list[i]);
-    }
-
+    for (int i = 1; i <= num_cells; i++) set_init(&adj_list[i]);
+    
     // Fill adjacency list - only add edges between affected cells
     for (int i = 1; i <= num_cells; i++) {
         Cell* cell = cell_map[i];
@@ -273,9 +262,7 @@ void update_dependents(Cell* curr_cell) {
             while (set_iterator_has_next(&dep_it)) {
                 Cell* dep = set_iterator_next(&dep_it);
                 // Only add edge if dependency is in affected_cells
-                if (set_find(&affected_cells, dep) != NULL) {
-                    set_add(&adj_list[i], dep);
-                }
+                if (set_find(&affected_cells, dep) != NULL) set_add(&adj_list[i], dep);
             }
             set_iterator_free(&dep_it);
         }
@@ -301,16 +288,12 @@ void update_dependents(Cell* curr_cell) {
         // Recalculate cell value
         // Note: This is where you'd call your cell evaluation function
         // For now, we'll just check for division by zero
-        if(divbyzeroflag)
-            cell->has_error = true;
-        else
-            evaluate_cell(cell);
+        if(divbyzeroflag) cell->has_error = true;
+        else evaluate_cell(cell);
     }
     // Cleanup
     vector_free(&sorted);
-    for (int i = 1; i <= num_cells; i++) {
-        set_free(&adj_list[i]);
-    }
+    for (int i = 1; i <= num_cells; i++) set_free(&adj_list[i]);
     free(adj_list);
     free(cell_map);
     set_free(&affected_cells);  
@@ -334,25 +317,16 @@ void editCell(Spreadsheet *sheet)
     restore_terminal();
 
     char input_line[MAX_CELL_LENGTH];
-    // FILE *log = fopen("./log.txt", "w");
     fgets(input_line, MAX_CELL_LENGTH, stdin);
-    // fputs(input_line, log);
-    // fclose(log);
     input_line[strcspn(input_line, "\n")] = 0;
-    if (strlen(input_line) > 0)
-    {
-        process_command(sheet, input_line);
-    }
+    if (strlen(input_line) > 0) process_command(sheet, input_line);
     configure_terminal();
 }
 
 
 int evaluate_cell(Cell *cell)
 {
-    if (cell -> has_error)
-    {
-        return -1;
-    }
+    if (cell -> has_error) return -1;
     switch(cell->type)
     {
         case TYPE_EMPTY:
@@ -360,7 +334,7 @@ int evaluate_cell(Cell *cell)
             break;
         
         case TYPE_CONSTANT:
-            if (cell->is_sleep) sleep(cell->value);
+            if (cell->is_sleep && cell->value>0) sleep(cell->value);
             return 0;
             break;
 
@@ -376,31 +350,22 @@ int evaluate_cell(Cell *cell)
             switch(cell->op_data.arithmetic.op) 
             {
                 case OP_ADD:
-                    cell->value = left + right;
-                    return 0;
+                    cell->value = left + right; return 0;
                 case OP_SUB:
-                    cell->value = left - right;
-                    return 0;
+                    cell->value = left - right; return 0;
                 case OP_MUL:
-                    cell->value = left * right;
-                    return 0;
+                    cell->value = left * right; return 0;
                 case OP_DIV:
-                    if (right == 0) {
-                        cell->has_error = true;
-                        return -1;
-                    }
+                    if (right == 0) {cell->has_error = true; return -1;}
                     cell->value = left / right;
                     return 0;
                 default:
-                    cell->has_error = true;
-                    return -1;
+                    cell->has_error = true; return -1;
             }
             break;
         }    
         case TYPE_FUNCTION:
-            if ((cell->op_data.function.range_size)<=0){
-                cell->has_error=true;return -1;
-            }
+            if ((cell->op_data.function.range_size)<=0) {cell->has_error=true;return -1;}
 
             int sum = 0, count = 0;
             int min_val = INT_MAX, max_val = INT_MIN;
@@ -427,115 +392,24 @@ int evaluate_cell(Cell *cell)
             set_iterator_free(&it);
             if (count == 0)
             {
-                cell->has_error = true;
-                return -1;
+                cell->has_error = true; return -1;
             }
-            if (strcmp(cell->op_data.function.func_name, "SUM") == 0)
-            {
-                cell->value = sum;
-            }
-            else if (strcmp(cell->op_data.function.func_name, "AVG") == 0)
-            {
-                cell->value = sum / count;
-            }
-            else if (strcmp(cell->op_data.function.func_name, "MIN") == 0)
-            {
-                cell->value = min_val;
-            }
-            else if (strcmp(cell->op_data.function.func_name, "MAX") == 0)
-            {
-                cell->value = max_val;
-            }
+            if (strcmp(cell->op_data.function.func_name, "SUM") == 0) {cell->value = sum;}
+            else if (strcmp(cell->op_data.function.func_name, "AVG") == 0) {cell->value = sum / count;}
+            else if (strcmp(cell->op_data.function.func_name, "MIN") == 0) {cell->value = min_val;}
+            else if (strcmp(cell->op_data.function.func_name, "MAX") == 0) {cell->value = max_val;}
             else if (strcmp(cell->op_data.function.func_name, "STDEV") == 0)
             {
                 double mean = (double)sum / count;
                 double variance = (sum_sq / count) - (mean * mean);
                 cell->value = (int)sqrt(variance);
             }
-            else
-            {
-                cell->has_error = true;
-                return -1;
-            }
+            else {cell->has_error = true; return -1;}
             break;
         case TYPE_REFERENCE:
             cell->value = cell->op_data.ref->value;
-            if (cell->is_sleep) sleep(cell->value);
+            if (cell->is_sleep && cell->value >0) sleep(cell->value);
             break;
     }
     return 0;
 }
-
-/*
-int main(void){
-    printf("Hello World\n");
-
-    Spreadsheet* sheet = create_spreadsheet(4, 4);
-    Cell* cell1 = &sheet->cells[0][0];
-    Cell* cell2 = &sheet->cells[0][1];
-    Cell* cell3 = &sheet->cells[0][2];
-    Cell* cell4 = &sheet->cells[0][3];
-    Cell* cell5 = &sheet->cells[1][0];
-    Cell* cell6 = &sheet->cells[1][1];
-
-    cell1->value = 1;
-    cell2->value = 2;
-    cell3->value = 3;
-    cell4->value = 4;
-    cell5->value = 5;
-    cell6->value = 6;
-
-    print_spreadsheet(sheet);
-
-    Vector List;
-    vector_init(&List);
-    vector_push_back(&List, cell1);
-    update_dependencies(cell3, createDependenciesSet(&List));
-    update_dependents(cell3);
-    vector_push_back(&List, cell3);
-    update_dependencies(cell4, createDependenciesSet(&List));
-    update_dependents(cell4);
-    vector_free(&List);
-    vector_init(&List);
-    vector_push_back(&List, cell2);
-    vector_push_back(&List, cell3);
-    update_dependencies(cell5, createDependenciesSet(&List));
-    update_dependents(cell5);
-    vector_free(&List);
-    vector_init(&List);
-    vector_push_back(&List, cell4);
-    vector_push_back(&List, cell5);
-    update_dependencies(cell6, createDependenciesSet(&List));
-    update_dependents(cell6);
-    vector_free(&List);
-
-    print_spreadsheet(sheet);
-    
-    vector_init(&List);
-    vector_push_back(&List, cell1);
-    update_dependencies(cell4, createDependenciesSet(&List));
-    vector_free(&List);
-    update_dependents(cell4);
-    print_spreadsheet(sheet);
-    // print_dependents(cell4);
-
-    cell1->value = 10;
-    update_dependents(cell1);
-    print_dependents(cell1);
-    print_dependents(cell3);
-    print_dependents(cell4);
-    print_spreadsheet(sheet);
-    
-
-    cell2->value = 20;
-    update_dependents(cell2);
-    cell3->value = -1;
-    update_dependents(cell3);
-    print_spreadsheet(sheet);
-
-    printf("Freeing resources\n");
-    free_spreadsheet(sheet);
-    printf("Resources freed\n");
-    return 0;
-}
-*/

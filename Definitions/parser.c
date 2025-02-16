@@ -5,13 +5,6 @@
 #include "../Declarations/backend.h"
 #include "../Declarations/ds.h"
 
-// static int default_ptr_cmp(const void *a, const void *b)
-// {
-//     if (a == b)
-//         return 0;
-//     return (a < b) ? -1 : 1;
-// }
-
 Operation char_to_operation(char c)
 {
     switch (c)
@@ -119,9 +112,7 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
     if (parse_cell_address(sheet, &start_ptr, &start_row, &start_col) != 0 ||
         parse_cell_address(sheet, &end_ptr, &end_row, &end_col) != 0)
     {
-        /*
-        Here check if SYNTAX ERROR should be raised or not
-        */
+       sheet->last_status=ERR_SYNTAX;
         free(range_copy);
         return -1;
     }
@@ -142,21 +133,6 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
         }
     }
     target_cell->op_data.function.range_size = (end_row-start_row+1)*(end_col-start_col+1);
-
-    /*
-        Here, the cells should be added to the dependencies
-        Check if the dependencies is empty or needed to be cleared
-    */
-
-    // for (int r = start_row; r <= end_row; r++) {
-    //     for (int c = start_col; c <= end_col; c++) {
-    //         if (target_cell->dependencies == NULL)
-    //             target_cell->dependencies = create_set(default_ptr_cmp);
-    //         set_insert(target_cell->dependencies, &sheet->cells[r][c]);
-    //         target_cell->depd_count++;
-    //     }
-    // }
-
     free(range_copy);
     return 0;
 }
@@ -282,6 +258,23 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     return 0;
 }
 
+static bool is_number(const char *str) {
+    if (!str || *str == '\0')
+        return false;
+    // Allow leading sign
+    if (*str == '+' || *str == '-')
+        str++;
+    // String should not be empty after the sign
+    if (*str == '\0')
+        return false;
+    while (*str) {
+        if (!isdigit((unsigned char)*str))
+            return false;
+        str++;
+    }
+    return true;
+}
+
 // Parse function call (e.g., "SUM(A1:B2)")
 static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set *new_deps)
 {
@@ -305,62 +298,41 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     char *range_str = malloc(range_len + 1);
     strncpy(range_str, p + 1, range_len);
     range_str[range_len] = '\0';
+    int stat = 0;
+
+    if (strcmp(func_name, "SLEEP") == 0)
+    {
+        target_cell->is_sleep =  true;
+        int row, col;
+        const char *ptr = range_str;
+        if (parse_cell_address(sheet, &ptr, &row, &col) == 0)
+        {
+            target_cell->type=TYPE_REFERENCE;
+            target_cell->op_data.ref= &sheet->cells[row][col];
+        }
+        else if (is_number(ptr))
+        {
+            target_cell->type=TYPE_CONSTANT;
+            target_cell->value= atoi(ptr);   
+        }
+        else{
+            sheet->last_status = ERR_SYNTAX;
+            stat = -1;
+        }
+        free(range_str);
+        return stat;
+    }
 
     target_cell->type = TYPE_FUNCTION;
     target_cell->op_data.function.func_name = strdup(func_name);
 
-    // Parse range or single value
-
-    // Maybe handle sleep differently
-
-    if (strchr(range_str, ':'))
+    if (!strchr(range_str, ':') || parse_range(target_cell, sheet, range_str, new_deps) != 0)
     {
-        if (parse_range(target_cell, sheet, range_str, new_deps) != 0)
-        {
-            free(range_str);
-            return -1;
-        }
-    }
-    else
-    {
-        // Single cell or value
-        if (isalpha(range_str[0]))
-        {
-            int row, col;
-            const char *ptr = range_str;
-            if (parse_cell_address(sheet, &ptr, &row, &col) != 0)
-            {
-                free(range_str);
-                return -1;
-            }
-            target_cell->op_data.function.range_size = 1;
-            set_add(new_deps, &sheet->cells[row][col]);
-        }
-        else
-        {
-            // It's a constant value (e.g., SLEEP(2))
-            target_cell->type = TYPE_CONSTANT;
-            target_cell->value = atoi(range_str);
-            free(range_str);
-            return 0;
-        }
+        sheet->last_status = ERR_SYNTAX;
+        stat = -1;
     }
 
     free(range_str);
-
-    // // --- Update dependency sets for each cell in the function range ---
-    // Set *dependencies;
-    // set_init(&dependencies);
-
-    // for (int i = r1; i <= r2; i++)
-    // {
-    //     for (int j = c1; j <= c2; j++)
-    //     {
-    //         set_add(dependencies, &sheet->cells[i][j]);
-    //     }
-    // }
-
-    target_cell->op_data.function.range = NULL;
     return 0;
 }
 
@@ -379,43 +351,22 @@ int check_constant_or_cell_address(const char *str, int *constant_value, int *ro
     // Otherwise, check if the string is a valid cell address.
     // Expected format: one or more letters followed by one or more digits.
     int i = 0;
-    while (str[i] && isalpha((unsigned char)str[i]))
-    {
-        i++;
-    }
-    if (i == 0)
-    {
-        // No alphabetic part, invalid cell address.
-        return -1;
-    }
+    while (str[i] && isalpha((unsigned char)str[i])) i++;
+    if (i == 0) return -1;
 
     int j = i;
-    while (str[j] && isdigit((unsigned char)str[j]))
-    {
-        j++;
-    }
-    if (str[j] != '\0')
-    {
-        // Extra characters detected.
-        return -1;
-    }
+    while (str[j] && isdigit((unsigned char)str[j])) j++;
+    if (str[j] != '\0') return -1;
 
     // Convert letter(s) to a column index (A => 0, B => 1, etc.).
     int col_num = 0;
-    for (int k = 0; k < i; k++)
-    {
-        col_num = col_num * 26 + (toupper(str[k]) - 'A' + 1);
-    }
+    for (int k = 0; k < i; k++) col_num = col_num * 26 + (toupper(str[k]) - 'A' + 1);
     // Adjust for 0-indexing.
     *col = col_num - 1;
 
     // Convert the numeric part to a row index (1-based to 0-based).
     int row_num = atoi(str + i);
-    if (row_num <= 0)
-    {
-        // Invalid row number.
-        return -1;
-    }
+    if (row_num <= 0) return -1;
     *row = row_num - 1;
 
     return 1;
@@ -454,30 +405,19 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
     /*                                      Check if the input is a formula                                                      */
     if (is_valid_formula(formula)) // min,max,stddev, etc.
     {
-        if (parse_function(sheet, cell, formula, new_deps) != 0)
-        {
-            // raise Error parsing function
-            return -1;
-        }
+        if (parse_function(sheet, cell, formula, new_deps) != 0) return -1;
     }
     /*                                      Check if it's an arithmetic expression                                                */
     else if (strchr(formula, '+') || strchr(formula, '-') || strchr(formula, '*') || strchr(formula, '/'))
     {
-        if (parse_arithmetic(sheet, cell, formula, new_deps) != 0)
-        {
-            // raise Error parsing arithmetic expression
-            return -1;
-        }
+        if (parse_arithmetic(sheet, cell, formula, new_deps) != 0) return -1;
     }
     // Must be a cell reference
     else if (isalpha(formula[0]))
     {
         int row, col;
         const char *ptr = formula;
-        if (parse_cell_address(sheet, &ptr, &row, &col) != 0)
-        {
-            return -1;
-        }
+        if (parse_cell_address(sheet, &ptr, &row, &col) != 0) return -1;
         cell->type = TYPE_REFERENCE;
         cell->op_data.ref = &sheet->cells[row][col];
         set_add(new_deps, &sheet->cells[row][col]);
@@ -487,26 +427,6 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
         sheet->last_status = ERR_SYNTAX;
         return -1;
     }
-
-    /*
-        We do not need it. We should handle it when we are done with check_cycle
-    */
-
-    // for (int r = 0; r < sheet->totalRows; r++)
-    // {
-    //     for (int c = 0; c < sheet->totalCols; c++)
-    //     {
-    //         sheet->cells[r][c].visited = false;
-    //         sheet->cells[r][c].in_stack = false;
-    //     }
-    // }
-
-    // if (check_cycle(sheet, cell, cell))
-    // {
-    //     sheet->last_status = ERR_CIRCULAR_REFERENCE;
-    //     return -1;
-    // }
-
     return 0;
 }
 
@@ -567,12 +487,6 @@ void process_command(Spreadsheet *sheet, char *input)
     int old_value = target_cell->value;
     CellType old_type = target_cell->type;
 
-    /*
-     I have not saved the dependents and dependencies for saving, will consider it
-     Maybe create pointers to the old set and add new set to the cell. I successful,
-     delete the old one, else delete the new one and update the cell with the old one
-    */
-
     char *new_formula = strdup(formula);
     target_cell->formula = new_formula;
 
@@ -589,47 +503,19 @@ void process_command(Spreadsheet *sheet, char *input)
         new_deps = NULL;
         return;
     }
-    else
-    {
-        free(old_formula);
-    }
+    else free(old_formula);
+    
 
     if (new_deps != NULL)
     {
         if (update_dependencies(target_cell, new_deps))
         { // 0 -> cycle, 1 -> no cycle
-            if (evaluate_cell(target_cell) == 0)
-            {
-                sheet->last_status = STATUS_OK;
-            }
-            else
-            {
-                sheet->last_status = DIV_BY_ZERO;
-            }
+            if (evaluate_cell(target_cell) == 0) sheet->last_status = STATUS_OK;
+            else sheet->last_status = DIV_BY_ZERO;
             update_dependents(target_cell);
         }
-        else
-        {
-            sheet->last_status = ERR_CIRCULAR_REFERENCE;
-        }
+        else sheet->last_status = ERR_CIRCULAR_REFERENCE;
         set_free(new_deps);
         new_deps = NULL;
     }
-
-    // Set* new_deps;
-    // TODO:
-    /*
-        Here i will have a Set of new dependencies, which i will use to call update dependencies.
-        If there is no cycle:
-            Then i will evaulate this cell based on the new formula, and then i will call update_dependents.
-        else:
-            report error;
-    */
-
-    /*
-        Here, some condition should be set.
-        If there is no dependents, there is no need for recalc.
-    */
-    // mark_for_recalculation(sheet, target_cell);
-    // recalculate_sheet(sheet);k
 }

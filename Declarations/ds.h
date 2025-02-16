@@ -79,13 +79,13 @@ struct Set {
 struct Cell {
     int value;          
     char* formula; 
-    int row;
-    char* col;     
-    CellType type;      
+    int row; // -> can fix to 3 field.
+    char* col;  /// max of 3 fields
+    CellType type;     // use bits 
 
     union {
         struct {  
-            Operation op;       
+            Operation op;       // use bits
             Cell* operand1;     
             Cell* operand2;
             int constant;      
@@ -93,7 +93,7 @@ struct Cell {
 
         struct {  
             char* func_name;    
-            Cell** range;      
+            // Cell** range;      
             int range_size;     
         } function;
         Cell* ref;

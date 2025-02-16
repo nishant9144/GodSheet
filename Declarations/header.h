@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <regex.h>
+#include <errno.h> 
 
 #define MAX_ROWS 999
 #define MAX_COLS 18278
