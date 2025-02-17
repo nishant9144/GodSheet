@@ -18,7 +18,7 @@ void configure_terminal() {
     tcgetattr(STDIN_FILENO, &original_term);
     new_term = original_term;
 
-    new_term.c_lflag &= ~(ICANON);  // Disable line buffering
+ //   new_term.c_lflag &= ~(ICANON);  // Disable line buffering
     new_term.c_lflag |= ECHO;       // Enable character display
     new_term.c_cc[VMIN] = 1;        // Process input immediately
     new_term.c_cc[VTIME] = 0;       // No timeout
@@ -229,11 +229,20 @@ void run_ui(Spreadsheet *sheet) {
             }
             col = col - 1;  // Convert to 0-based index
             int row = atoi(cell_ref + i) - 1;  // Convert to 0-based index
-            scroll_to(sheet, row, col);
-            sheet->last_status = STATUS_OK;
-            if (output_enabled)
-                display_viewport(sheet);
-            continue;
+            
+            // Check if the requested cell is within bounds:
+        if (row < 0 || row >= sheet->totalRows || col < 0 || col >= sheet->totalCols) {
+            sheet->last_status = ERR_INVALID_CELL;
+            printf("Error: Target cell is out of bounds.\n");
+            continue; // Skip further processing of this command.
+        }
+        
+        // If valid, scroll to that cell.
+        scroll_to(sheet, row, col);
+        sheet->last_status = STATUS_OK;
+        if (output_enabled)
+            display_viewport(sheet);
+        continue;
         }
 
         
