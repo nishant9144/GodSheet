@@ -147,7 +147,7 @@ bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack) {
     set_add(visited, curr_cell);
     set_add(recursion_stack, curr_cell);
 
-    // Visit all dependencies
+    #include <errno.h>// Visit all dependencies
     if (curr_cell->dependencies != NULL) {
         SetIterator it;
         set_iterator_init(&it, curr_cell->dependencies);

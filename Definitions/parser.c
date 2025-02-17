@@ -372,6 +372,19 @@ int check_constant_or_cell_address(const char *str, int *constant_value, int *ro
     return 1;
 }
 
+static bool match_formula(const char *formula) {
+    regex_t regex;
+    const char *pattern = "^([-+]?[0-9]+|[A-Z]+[0-9]+)([+*/-])([-+]?[0-9]+|[A-Z]+[0-9]+)$";
+    if (regcomp(&regex, pattern, REG_EXTENDED) != 0) {
+        fprintf(stderr, "Could not compile regex\n");
+        exit(1);
+    }
+
+    int ret = regexec(&regex, formula, 0, NULL, 0);
+    regfree(&regex);
+    return (ret == 0);
+}
+
 int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_deps)
 {
     // Reset cell's current state
@@ -408,7 +421,7 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
         if (parse_function(sheet, cell, formula, new_deps) != 0) return -1;
     }
     /*                                      Check if it's an arithmetic expression                                                */
-    else if (strchr(formula, '+') || strchr(formula, '-') || strchr(formula, '*') || strchr(formula, '/'))
+    else if (match_formula(formula))
     {
         if (parse_arithmetic(sheet, cell, formula, new_deps) != 0) return -1;
     }
