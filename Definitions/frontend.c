@@ -168,24 +168,30 @@ void scroll_to(Spreadsheet *sheet, int row, int col) {
 void run_ui(Spreadsheet *sheet) {
     struct timeval start_time, end_time;
     char input[100];  // Fixed buffer size for input
+    sheet->last_processing_time = 0.0; //Initialize last_processing_time to 0.0
     
     while(1) {
-        gettimeofday(&start_time, NULL);
+        
         
         // Display current view
         display_viewport(sheet);
         
-        // Calculate elapsed time since last command
-        double elapsed = (start_time.tv_sec - sheet->last_cmd_time.tv_sec) +
-                 (start_time.tv_usec - sheet->last_cmd_time.tv_usec) / 1000000.0;
+        // // Calculate elapsed time since last command
+        // double elapsed = (start_time.tv_sec - sheet->last_cmd_time.tv_sec) +
+        //          (start_time.tv_usec - sheet->last_cmd_time.tv_usec) / 1000000.0;
 
-        // Avoid printing a huge number if uninitialized
-        if (elapsed > 10000 || elapsed < 0) {
-            elapsed = 0.0;
-        }
+        // // Avoid printing a huge number if uninitialized
+        // if (elapsed > 10000 || elapsed < 0) {
+        //     elapsed = 0.0;
+        // }
         
-        // Show prompt with status
-        printf("[%.1f] (%s) > ", elapsed, 
+        // // Show prompt with status
+        // printf("[%.1f] (%s) > ", elapsed, 
+        //        sheet->last_status == STATUS_OK ? "ok" : "error");
+        // fflush(stdout);
+
+        // Show prompt with the LAST command's processing time
+        printf("[%.1f] (%s) > ", sheet->last_processing_time,
                sheet->last_status == STATUS_OK ? "ok" : "error");
         fflush(stdout);
         
@@ -194,8 +200,9 @@ void run_ui(Spreadsheet *sheet) {
         input[strcspn(input, "\n")] = '\0';  // Remove newline
         printf("Input received: %s (ASCII: %d)\n", input, input[0]); // Debugging
 
+        gettimeofday(&start_time, NULL);
+
         
-        // Handle commands
         // Handle commands
         if (strlen(input) == 0)
             continue;
@@ -253,18 +260,29 @@ void run_ui(Spreadsheet *sheet) {
             if (output_enabled)
                 display_viewport(sheet);
             continue;
+        } else {
+            // Otherwise, process formula or other commands
+            process_command(sheet, input);
         }
 
-        // Otherwise, process formula or other commands
-        process_command(sheet, input);
+        
         
         // Update last command time
         gettimeofday(&end_time, NULL);
         sheet->last_cmd_time = end_time;
 
-        // Calculate and print the time taken to process the command
-        double processing_time = (end_time.tv_sec - start_time.tv_sec) +
-                                 (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-        printf("Processing time: %.6f seconds\n", processing_time);
+        // // Calculate and print the time taken to process the command
+        // double processing_time = (end_time.tv_sec - start_time.tv_sec) +
+        //                          (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        // printf("Processing time: %.6f seconds\n", processing_time);
+
+        // Calculate processing time for THIS command
+        sheet->last_processing_time = 
+            (end_time.tv_sec - start_time.tv_sec) +
+            (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+
+        // Update last command time (if needed elsewhere)
+        sheet->last_cmd_time = end_time;
+        
     }
 }

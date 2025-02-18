@@ -124,6 +124,7 @@ typedef struct {
     int cursorCol;
     bool output_enabled;
     struct timeval last_cmd_time;
+    double last_processing_time;
     CalcStatus last_status;
 } Spreadsheet;
 
