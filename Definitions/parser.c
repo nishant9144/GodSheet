@@ -195,13 +195,15 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     if (type1 == 0)
     {
         // Operand is a numeric constant.
-        target_cell->op_data.arithmetic.operand1 = NULL;
+        target_cell->op_data.arithmetic.operand1.i = SHRT_MAX;
         target_cell->op_data.arithmetic.constant += value1;
     }
     else if (type1 == 1)
     {
         // Operand is a cell reference.
-        target_cell->op_data.arithmetic.operand1 = &sheet->cells[row1][col1];
+        // target_cell->op_data.arithmetic.operand1 = (Pair*)malloc(sizeof(Pair));
+        target_cell->op_data.arithmetic.operand1.i = row1;
+        target_cell->op_data.arithmetic.operand1.j = col1;
         set_add(new_deps, row1, col1);
     }
     else
@@ -215,12 +217,13 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     type2 = check_constant_or_cell_address(operand2, &value2, &row2, &col2);
     if (type2 == 0)
     {
-        // target_cell->op_data.arithmetic.operand2 = NULL;
+        target_cell->op_data.arithmetic.operand2.i = SHRT_MAX;
         target_cell->op_data.arithmetic.constant += value2;
     }
     else if (type2 == 1)
     {
-        target_cell->op_data.arithmetic.operand2 = &sheet->cells[row2][col2];
+        target_cell->op_data.arithmetic.operand2.i = row2;
+        target_cell->op_data.arithmetic.operand2.j = col2;
         set_add(new_deps, row2, col2);
     }
     else
@@ -520,7 +523,7 @@ void process_command(Spreadsheet *sheet, char *input)
 
         if (update_dependencies(target_cell, new_deps, sheet) == 1)
         { // 0 -> cycle, 1 -> no cycle
-            if (evaluate_cell(target_cell) == 0) {
+            if (evaluate_cell(target_cell, sheet) == 0) {
                 sheet->last_status = STATUS_OK;
             }else {
                 target_cell->value = old_value;
@@ -532,5 +535,4 @@ void process_command(Spreadsheet *sheet, char *input)
             sheet->last_status = ERR_CIRCULAR_REFERENCE;
         }
         if(old_value != target_cell->value) update_dependents(target_cell, sheet);
-     
 }

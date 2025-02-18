@@ -14,6 +14,6 @@ bool check_circular_dependencies(Cell* curr_cell, Spreadsheet* sheet);
 void collect_dependents(Cell* curr_cell, Set* affected_cells);
 void update_dependents(Cell* curr_cell, Spreadsheet* sheet);
 void editCell(Spreadsheet *sheet);
-int evaluate_cell(Cell *cell);
+int evaluate_cell(Cell *cell, Spreadsheet *sheet);
 
 #endif

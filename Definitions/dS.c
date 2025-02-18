@@ -3,7 +3,7 @@
 
 
 // Helper function to compare pairs internally
-static int compare_pairs(Pair a, Pair b) {
+static short compare_pairs(Pair a, Pair b) {
     if (a.i != b.i) {
         return a.i - b.i;
     }
@@ -17,7 +17,7 @@ void vector_init(Vector* vector, Spreadsheet* sheet) {
     vector->sheet = sheet;
 }
 
-void vector_push_back(Vector* vector, int row, int col) {
+void vector_push_back(Vector* vector, short row, short col) {
     if (vector->size == vector->capacity) {
         vector->capacity *= 2;
         vector->data = (Pair*)realloc(vector->data, vector->capacity * sizeof(Pair));
@@ -43,7 +43,7 @@ void vector_iterator_init(VectorIterator* iterator, Vector* vector) {
     iterator->index = 0;
 }
 
-int vector_iterator_has_next(VectorIterator* iterator) {
+bool vector_iterator_has_next(VectorIterator* iterator) {
     return iterator->index < iterator->vector->size;
 }
 
@@ -62,15 +62,15 @@ void queue_init(Queue* queue, size_t capacity, Spreadsheet* sheet) {
     queue->sheet = sheet;
 }
 
-int queue_is_full(Queue* queue) {
+bool queue_is_full(Queue* queue) {
     return (queue->size == queue->capacity);
 }
 
-int queue_is_empty(Queue* queue) {
+bool queue_is_empty(Queue* queue) {
     return (queue->size == 0);
 }
 
-void queue_enqueue(Queue* queue, int row, int col) {
+void queue_enqueue(Queue* queue, short row, short col) {
     if (queue_is_full(queue)) return;
     queue->rear = (queue->rear + 1) % queue->capacity;
     queue->data[queue->rear].i = row;
@@ -100,7 +100,7 @@ void queue_iterator_init(QueueIterator* iterator, Queue* queue) {
     iterator->index = queue->front;
 }
 
-int queue_iterator_has_next(QueueIterator* iterator) {
+bool queue_iterator_has_next(QueueIterator* iterator) {
     return iterator->index != (iterator->queue->rear + 1) % iterator->queue->capacity;
 }
 
@@ -120,7 +120,7 @@ void stack_init(Stack* stack, Spreadsheet* sheet) {
     stack->sheet = sheet;
 }
 
-void stack_push(Stack* stack, int row, int col) {
+void stack_push(Stack* stack, short row, short col) {
     if (stack->size == stack->capacity) {
         stack->capacity *= 2;
         stack->data = (Pair*)realloc(stack->data, stack->capacity * sizeof(Pair));
@@ -150,7 +150,7 @@ void stack_iterator_init(StackIterator* iterator, Stack* stack) {
     iterator->index = stack->size;
 }
 
-int stack_iterator_has_next(StackIterator* iterator) {
+bool stack_iterator_has_next(StackIterator* iterator) {
     return iterator->index > 0;
 }
 
@@ -170,7 +170,7 @@ static int get_balance(AVLNode* node) {
     return node ? height(node->left) - height(node->right) : 0;
 }
 
-static AVLNode* create_node(int row, int col) {
+static AVLNode* create_node(short row, short col) {
     AVLNode* node = (AVLNode*)malloc(sizeof(AVLNode));
     node->pair.i = row;
     node->pair.j = col;
@@ -209,12 +209,12 @@ void set_init(Set* set, Spreadsheet* sheet) {
     set->sheet = sheet;
 }
 
-static AVLNode* insert(AVLNode* node, int row, int col) {
+static AVLNode* insert(AVLNode* node, short row, short col) {
     if (!node)
         return create_node(row, col);
 
     Pair new_pair = {row, col};
-    int cmp = compare_pairs(new_pair, node->pair);
+    short cmp = compare_pairs(new_pair, node->pair);
     
     if (cmp < 0)
         node->left = insert(node->left, row, col);
@@ -251,15 +251,15 @@ static AVLNode* insert(AVLNode* node, int row, int col) {
     return node;
 }
 
-void set_add(Set* set, int row, int col) {
+void set_add(Set* set, short row, short col) {
     set->root = insert(set->root, row, col);
 }
 
-static AVLNode* find(AVLNode* node, int row, int col) {
+static AVLNode* find(AVLNode* node, short row, short col) {
     if (!node) return NULL;
 
     Pair search_pair = {row, col};
-    int cmp = compare_pairs(search_pair, node->pair);
+    short cmp = compare_pairs(search_pair, node->pair);
     
     if (cmp < 0)
         return find(node->left, row, col);
@@ -269,7 +269,7 @@ static AVLNode* find(AVLNode* node, int row, int col) {
         return node;
 }
 
-Cell* set_find(Set* set, int row, int col) {
+Cell* set_find(Set* set, short row, short col) {
     AVLNode* result = find(set->root, row, col);
     if (!result) return NULL;
     return &(set->sheet->cells[row][col]);
@@ -282,11 +282,11 @@ static AVLNode* min_value_node(AVLNode* node) {
     return current;
 }
 
-static AVLNode* remove_node(AVLNode* root, int row, int col) {
+static AVLNode* remove_node(AVLNode* root, short row, short col) {
     if (!root) return root;
 
     Pair remove_pair = {row, col};
-    int cmp = compare_pairs(remove_pair, root->pair);
+    short cmp = compare_pairs(remove_pair, root->pair);
     
     if (cmp < 0)
         root->left = remove_node(root->left, row, col);
@@ -337,7 +337,7 @@ static AVLNode* remove_node(AVLNode* root, int row, int col) {
     return root;
 }
 
-void set_remove(Set* set, int row, int col) {
+void set_remove(Set* set, short row, short col) {
     set->root = remove_node(set->root, row, col);
 }
 
@@ -374,7 +374,7 @@ void set_iterator_init(SetIterator* iterator, Set* set) {
     }
 }
 
-int set_iterator_has_next(SetIterator* iterator) {
+bool set_iterator_has_next(SetIterator* iterator) {
     return iterator->top > 0;
 }
 
@@ -464,7 +464,7 @@ void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* re
 
 
 
-Cell* create_cell(int row, int col) {
+Cell* create_cell(short row, short col) {
     Cell* cell = (Cell*)malloc(sizeof(Cell));
     cell->row = row;
     cell->col = col;
@@ -483,8 +483,8 @@ void free_cell(Cell* cell) {
     if(cell->dependents != NULL) set_free(cell->dependents);
 }
 
-int colNameToNumber(const char *colName) {
-    int result = 0;
+short colNameToNumber(const char *colName) {
+    short result = 0;
     while (*colName) {
         if (!isalpha(*colName)) return -1; // Invalid character check
         result = result * 26 + (toupper(*colName) - 'A' + 1);
@@ -494,13 +494,13 @@ int colNameToNumber(const char *colName) {
     return result;
 }
 
-void colNumberToName(int colNumber, char *colName) { // 0 based argument
+void colNumberToName(short colNumber, char *colName) { // 0 based argument
     if (colNumber < 0 || colNumber > 18277) { // Limit for "ZZZ"
         strcpy(colName, "\0");
         return;
     }
     colNumber++;
-    int index = 0;
+    short index = 0;
     char temp[4];
     while (colNumber > 0) {
         colNumber--;
@@ -510,7 +510,7 @@ void colNumberToName(int colNumber, char *colName) { // 0 based argument
     temp[index] = '\0';
     
     // Reverse the result to get correct column name
-    int len = strlen(temp);
+    short len = strlen(temp);
     for (int i = 0; i < len; i++) {
         colName[i] = temp[len - 1 - i];
     }
@@ -518,7 +518,7 @@ void colNumberToName(int colNumber, char *colName) { // 0 based argument
     return;
 }
 
-Spreadsheet* create_spreadsheet(int rows, int cols){
+Spreadsheet* create_spreadsheet(short rows, short cols){
     printf("Inside create_spreadsheet: rows=%d, cols=%d\n", rows, cols); //debug statement
 
 

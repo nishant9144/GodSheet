@@ -258,7 +258,7 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
     }
     // printf("\n");
 
-    bool divbyzeroflag = (evaluate_cell(curr_cell) == -1);
+    bool divbyzeroflag = (evaluate_cell(curr_cell, sheet) == -1);
     vector_iterator_init(&update_it, &sorted);
     while (vector_iterator_has_next(&update_it)) {
         Cell* cell = vector_iterator_next(&update_it);
@@ -266,7 +266,7 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
         // Note: This is where you'd call your cell evaluation function
         // For now, we'll just check for division by zero
         if(divbyzeroflag) cell->has_error = true;
-        else evaluate_cell(cell);
+        else evaluate_cell(cell, sheet);
     }
     // Cleanup
     // vector_free(&sorted);
@@ -291,7 +291,7 @@ void editCell(Spreadsheet *sheet)
     configure_terminal();
 }
 
-int evaluate_cell(Cell *cell)
+int evaluate_cell(Cell *cell, Spreadsheet *sheet)
 {
     if (cell -> has_error) return -1;
     switch(cell->type)
@@ -304,11 +304,16 @@ int evaluate_cell(Cell *cell)
         case TYPE_ARITHMETIC:
         {
             int left, right;
-            left = (cell->op_data.arithmetic.operand1 != NULL) ? 
-                cell->op_data.arithmetic.operand1->value : cell->op_data.arithmetic.constant;
-
-            right = (cell->op_data.arithmetic.operand2 != NULL) ? 
-                cell->op_data.arithmetic.operand2->value : cell->op_data.arithmetic.constant;
+            if(cell->op_data.arithmetic.operand1.i != SHRT_MAX){
+                left = sheet->cells[cell->op_data.arithmetic.operand1.i][cell->op_data.arithmetic.operand1.j].value;
+            }else{
+                left = cell->op_data.arithmetic.constant;
+            }
+            if(cell->op_data.arithmetic.operand2.i != SHRT_MAX){
+                right = sheet->cells[cell->op_data.arithmetic.operand2.i][cell->op_data.arithmetic.operand2.j].value;
+            }else{
+                right = cell->op_data.arithmetic.constant;
+            }
 
             switch(cell->op_data.arithmetic.op) 
             {
