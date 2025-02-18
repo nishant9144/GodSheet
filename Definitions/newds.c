@@ -1,43 +1,37 @@
-#include "../Declarations/ds.h"
+// dS.c
+// #include "../Declarations/ds.h"
 #include "../Declarations/frontend.h"
 
-
-// Helper function to compare pairs internally
-static int compare_pairs(Pair a, Pair b) {
-    if (a.i != b.i) {
-        return a.i - b.i;
+// Helper function to compare cells based on (row, col) tuple
+int compare_cells_position(Cell* a, Cell* b) {
+    // First compare rows
+    if (a->row != b->row) {
+        return a->row - b->row;
     }
-    return a.j - b.j;
+    return strcmp(a->col, b->col);
 }
 
-void vector_init(Vector* vector, Spreadsheet* sheet) {
+// Vector implementation for Cells
+void vector_init(Vector* vector) {
     vector->size = 0;
     vector->capacity = 4;
-    vector->data = (Pair*)malloc(vector->capacity * sizeof(Pair));
-    vector->sheet = sheet;
+    vector->data = (Cell**)malloc(vector->capacity * sizeof(Cell*));
 }
 
-void vector_push_back(Vector* vector, int row, int col) {
+void vector_push_back(Vector* vector, Cell* value) {
     if (vector->size == vector->capacity) {
         vector->capacity *= 2;
-        vector->data = (Pair*)realloc(vector->data, vector->capacity * sizeof(Pair));
+        vector->data = (Cell**)realloc(vector->data, vector->capacity * sizeof(Cell*));
     }
-    vector->data[vector->size].i = row;
-    vector->data[vector->size].j = col;
-    vector->size++;
+    vector->data[vector->size++] = value;
 }
-
 
 void vector_free(Vector* vector) {
-    if (vector->data) {
-        free(vector->data);
-        vector->data = NULL;
-    }
-    vector->size = 0;
-    vector->capacity = 0;
+    free(vector->data);
+    vector->data = NULL;
 }
 
-
+// Vector iterator implementation
 void vector_iterator_init(VectorIterator* iterator, Vector* vector) {
     iterator->vector = vector;
     iterator->index = 0;
@@ -48,18 +42,16 @@ int vector_iterator_has_next(VectorIterator* iterator) {
 }
 
 Cell* vector_iterator_next(VectorIterator* iterator) {
-    if (!vector_iterator_has_next(iterator)) return NULL;
-    Pair pos = iterator->vector->data[iterator->index++];
-    return &(iterator->vector->sheet->cells[pos.i][pos.j]);
+    return iterator->vector->data[iterator->index++];
 }
 
 
-void queue_init(Queue* queue, size_t capacity, Spreadsheet* sheet) {
+// Queue implementation for Cells
+void queue_init(Queue* queue, size_t capacity) {
     queue->capacity = capacity;
     queue->front = queue->size = 0;
     queue->rear = capacity - 1;
-    queue->data = (Pair*)malloc(queue->capacity * sizeof(Pair));
-    queue->sheet = sheet;
+    queue->data = (Cell**)malloc(queue->capacity * sizeof(Cell*));
 }
 
 int queue_is_full(Queue* queue) {
@@ -70,31 +62,36 @@ int queue_is_empty(Queue* queue) {
     return (queue->size == 0);
 }
 
-void queue_enqueue(Queue* queue, int row, int col) {
-    if (queue_is_full(queue)) return;
+void queue_enqueue(Queue* queue, Cell* value) {
+    if (queue_is_full(queue))
+        return;
     queue->rear = (queue->rear + 1) % queue->capacity;
-    queue->data[queue->rear].i = row;
-    queue->data[queue->rear].j = col;
+    // Create a deep copy when enqueueing
+    queue->data[queue->rear] = (value);
     queue->size++;
 }
 
 Cell* queue_dequeue(Queue* queue) {
-    if (queue_is_empty(queue)) return NULL;
-    Pair pos = queue->data[queue->front];
+    if (queue_is_empty(queue))
+        return NULL;
+    Cell* value = queue->data[queue->front];
     queue->front = (queue->front + 1) % queue->capacity;
     queue->size--;
-    return &(queue->sheet->cells[pos.i][pos.j]);
+    return value;
 }
 
 void queue_free(Queue* queue) {
-    if (queue->data) {
-        free(queue->data);
-        queue->data = NULL;
-    }
-    queue->size = 0;
+    // Free each cell copy
+    // for (size_t i = 0; i < queue->capacity; i++) {
+    //     if (queue->data[i]) {
+    //         free_cell_copy(queue->data[i]);
+    //     }
+    // }
+    free(queue->data);
+    queue->data = NULL;
 }
 
-
+// Queue iterator implementation
 void queue_iterator_init(QueueIterator* iterator, Queue* queue) {
     iterator->queue = queue;
     iterator->index = queue->front;
@@ -105,46 +102,43 @@ int queue_iterator_has_next(QueueIterator* iterator) {
 }
 
 Cell* queue_iterator_next(QueueIterator* iterator) {
-    if (!queue_iterator_has_next(iterator)) return NULL;
-    Cell* value = &(iterator->queue->sheet->cells[iterator->queue->data[iterator->index].i]
-                                                [iterator->queue->data[iterator->index].j]);
+    Cell* value = iterator->queue->data[iterator->index];
     iterator->index = (iterator->index + 1) % iterator->queue->capacity;
     return value;
 }
 
-
-void stack_init(Stack* stack, Spreadsheet* sheet) {
+// Stack implementation for Cells
+void stack_init(Stack* stack) {
     stack->size = 0;
     stack->capacity = 4;
-    stack->data = (Pair*)malloc(stack->capacity * sizeof(Pair));
-    stack->sheet = sheet;
+    stack->data = (Cell**)malloc(stack->capacity * sizeof(Cell*));
 }
 
-void stack_push(Stack* stack, int row, int col) {
+void stack_push(Stack* stack, Cell* value) {
     if (stack->size == stack->capacity) {
         stack->capacity *= 2;
-        stack->data = (Pair*)realloc(stack->data, stack->capacity * sizeof(Pair));
+        stack->data = (Cell**)realloc(stack->data, stack->capacity * sizeof(Cell*));
     }
-    stack->data[stack->size].i = row;
-    stack->data[stack->size].j = col;
-    stack->size++;
+    // Create a deep copy when pushing
+    stack->data[stack->size++] = (value);
 }
 
 Cell* stack_pop(Stack* stack) {
-    if (stack->size == 0) return NULL;
-    stack->size--;
-    return &(stack->sheet->cells[stack->data[stack->size].i][stack->data[stack->size].j]);
+    if (stack->size == 0)
+        return NULL;
+    return stack->data[--stack->size];
 }
 
 void stack_free(Stack* stack) {
-    if (stack->data) {
-        free(stack->data);
-        stack->data = NULL;
-    }
-    stack->size = 0;
-    stack->capacity = 0;
+    // Free each cell copy
+    // for (int i = 0; i < stack->size; i++) {
+    //     free_cell_copy(stack->data[i]);
+    // }
+    free(stack->data);
+    stack->data = NULL;
 }
 
+// Stack iterator implementation
 void stack_iterator_init(StackIterator* iterator, Stack* stack) {
     iterator->stack = stack;
     iterator->index = stack->size;
@@ -155,13 +149,10 @@ int stack_iterator_has_next(StackIterator* iterator) {
 }
 
 Cell* stack_iterator_next(StackIterator* iterator) {
-    if (!stack_iterator_has_next(iterator)) return NULL;
-    iterator->index--;
-    return &(iterator->stack->sheet->cells[iterator->stack->data[iterator->index].i]
-                                        [iterator->stack->data[iterator->index].j]);
+    return iterator->stack->data[--iterator->index];
 }
 
-
+// AVL Tree Node for Set implementation
 static int height(AVLNode* node) {
     return node ? node->height : 0;
 }
@@ -170,10 +161,10 @@ static int get_balance(AVLNode* node) {
     return node ? height(node->left) - height(node->right) : 0;
 }
 
-static AVLNode* create_node(int row, int col) {
+static AVLNode* create_node(Cell* cell) {
     AVLNode* node = (AVLNode*)malloc(sizeof(AVLNode));
-    node->pair.i = row;
-    node->pair.j = col;
+    // Create a deep copy when creating a new node
+    node->cell = (cell);
     node->left = node->right = NULL;
     node->height = 1;
     return node;
@@ -203,25 +194,22 @@ static AVLNode* left_rotate(AVLNode* x) {
     return y;
 }
 
-
-void set_init(Set* set, Spreadsheet* sheet) {
+// Set implementation using AVL Tree
+void set_init(Set* set) {
     set->root = NULL;
-    set->sheet = sheet;
 }
 
-static AVLNode* insert(AVLNode* node, int row, int col) {
+static AVLNode* insert(AVLNode* node, Cell* cell) {
     if (!node)
-        return create_node(row, col);
+        return create_node(cell);
 
-    Pair new_pair = {row, col};
-    int cmp = compare_pairs(new_pair, node->pair);
-    
+    int cmp = compare_cells_position(cell, node->cell);
     if (cmp < 0)
-        node->left = insert(node->left, row, col);
+        node->left = insert(node->left, cell);
     else if (cmp > 0)
-        node->right = insert(node->right, row, col);
+        node->right = insert(node->right, cell);
     else
-        return node;
+        return node; // No duplicate cells
 
     node->height = 1 + (height(node->left) > height(node->right) ? 
                        height(node->left) : height(node->right));
@@ -229,21 +217,21 @@ static AVLNode* insert(AVLNode* node, int row, int col) {
     int balance = get_balance(node);
 
     // Left Left Case
-    if (balance > 1 && compare_pairs(new_pair, node->left->pair) < 0)
+    if (balance > 1 && compare_cells_position(cell, node->left->cell) < 0)
         return right_rotate(node);
 
     // Right Right Case
-    if (balance < -1 && compare_pairs(new_pair, node->right->pair) > 0)
+    if (balance < -1 && compare_cells_position(cell, node->right->cell) > 0)
         return left_rotate(node);
 
     // Left Right Case
-    if (balance > 1 && compare_pairs(new_pair, node->left->pair) > 0) {
+    if (balance > 1 && compare_cells_position(cell, node->left->cell) > 0) {
         node->left = left_rotate(node->left);
         return right_rotate(node);
     }
 
     // Right Left Case
-    if (balance < -1 && compare_pairs(new_pair, node->right->pair) < 0) {
+    if (balance < -1 && compare_cells_position(cell, node->right->cell) < 0) {
         node->right = right_rotate(node->right);
         return left_rotate(node);
     }
@@ -251,29 +239,30 @@ static AVLNode* insert(AVLNode* node, int row, int col) {
     return node;
 }
 
-void set_add(Set* set, int row, int col) {
-    set->root = insert(set->root, row, col);
+void set_add(Set* set, Cell* cell) {
+    set->root = insert(set->root, cell);
 }
 
-static AVLNode* find(AVLNode* node, int row, int col) {
-    if (!node) return NULL;
+static AVLNode* find(AVLNode* node, Cell* cell) {
+    if (!node)
+        return NULL;
 
-    Pair search_pair = {row, col};
-    int cmp = compare_pairs(search_pair, node->pair);
-    
+    int cmp = compare_cells_position(cell, node->cell);
     if (cmp < 0)
-        return find(node->left, row, col);
+        return find(node->left, cell);
     else if (cmp > 0)
-        return find(node->right, row, col);
+        return find(node->right, cell);
     else
         return node;
 }
 
-Cell* set_find(Set* set, int row, int col) {
-    AVLNode* result = find(set->root, row, col);
-    if (!result) return NULL;
-    return &(set->sheet->cells[row][col]);
+Cell* set_find(Set* set, Cell* cell) {
+    AVLNode* result = find(set->root, cell);
+    if (result == NULL)
+        return NULL;
+    return result->cell;
 }
+
 
 static AVLNode* min_value_node(AVLNode* node) {
     AVLNode* current = node;
@@ -282,53 +271,49 @@ static AVLNode* min_value_node(AVLNode* node) {
     return current;
 }
 
-static AVLNode* remove_node(AVLNode* root, int row, int col) {
-    if (!root) return root;
+static AVLNode* remove_node(AVLNode* root, Cell* cell) {
+    if (root == NULL)
+        return root;
 
-    Pair remove_pair = {row, col};
-    int cmp = compare_pairs(remove_pair, root->pair);
-    
+    int cmp = compare_cells_position(cell, root->cell);
     if (cmp < 0)
-        root->left = remove_node(root->left, row, col);
+        root->left = remove_node(root->left, cell);
     else if (cmp > 0)
-        root->right = remove_node(root->right, row, col);
+        root->right = remove_node(root->right, cell);
     else {
-        if (!root->left || !root->right) {
+        if ((root->left == NULL) || (root->right == NULL)) {
             AVLNode* temp = root->left ? root->left : root->right;
-            if (!temp) {
+            if (temp == NULL) {
                 temp = root;
                 root = NULL;
             } else
                 *root = *temp;
             free(temp);
+            temp = NULL;
         } else {
             AVLNode* temp = min_value_node(root->right);
-            root->pair = temp->pair;
-            root->right = remove_node(root->right, temp->pair.i, temp->pair.j);
+            root->cell = temp->cell;
+            root->right = remove_node(root->right, temp->cell);
         }
     }
 
-    if (!root) return root;
+    if (root == NULL)
+        return root;
 
-    root->height = 1 + (height(root->left) > height(root->right) ? 
-                       height(root->left) : height(root->right));
+    root->height = 1 + (height(root->left) > height(root->right) ? height(root->left) : height(root->right));
     int balance = get_balance(root);
 
-    // Left Left Case
     if (balance > 1 && get_balance(root->left) >= 0)
         return right_rotate(root);
 
-    // Left Right Case
     if (balance > 1 && get_balance(root->left) < 0) {
         root->left = left_rotate(root->left);
         return right_rotate(root);
     }
 
-    // Right Right Case
     if (balance < -1 && get_balance(root->right) <= 0)
         return left_rotate(root);
 
-    // Right Left Case
     if (balance < -1 && get_balance(root->right) > 0) {
         root->right = right_rotate(root->right);
         return left_rotate(root);
@@ -337,26 +322,27 @@ static AVLNode* remove_node(AVLNode* root, int row, int col) {
     return root;
 }
 
-void set_remove(Set* set, int row, int col) {
-    set->root = remove_node(set->root, row, col);
+void set_remove(Set* set, Cell* cell) {
+    set->root = remove_node(set->root, cell);
 }
+
 
 static void free_tree(AVLNode* node) {
     if (node) {
         free_tree(node->left);
         free_tree(node->right);
+        // free_cell_copy(node->cell);  // Free the cell copy
         free(node);
+        node = NULL;
     }
 }
 
 void set_free(Set* set) {
     free_tree(set->root);
-    set->root = NULL;
 }
 
 // Set Iterator implementation
 void set_iterator_init(SetIterator* iterator, Set* set) {
-    iterator->set = set;
     iterator->capacity = 32; // Initial capacity
     iterator->stack = (AVLNode**)malloc(iterator->capacity * sizeof(AVLNode*));
     iterator->top = 0;
@@ -383,7 +369,7 @@ Cell* set_iterator_next(SetIterator* iterator) {
         return NULL;
 
     AVLNode* node = iterator->stack[--iterator->top];
-    Cell* cell = &(iterator->set->sheet->cells[node->pair.i][node->pair.j]);
+    Cell* cell = node->cell;
 
     // Push all left nodes of the right subtree
     AVLNode* current = node->right;
@@ -406,10 +392,9 @@ void set_iterator_free(SetIterator* iterator) {
 }
 
 
-
 void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted) {
     // Mark current cell as visited
-    set_add(visited, cell->row, cell->col);
+    set_add(visited, cell);
     
     // Process all adjacent cells (dependencies)
     SetIterator it;
@@ -418,56 +403,57 @@ void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorte
     while (set_iterator_has_next(&it)) {
         Cell* adj_cell = set_iterator_next(&it);
         // Only process if not already visited
-        if (set_find(visited, adj_cell->row, adj_cell->col) == NULL) {
+        if (set_find(visited, adj_cell) == NULL) {
             topological_sort_util(adj_cell, adjList, visited, sorted);
         }
     }
     set_iterator_free(&it);
 
     // Add current cell to sorted list after processing all dependencies
-    vector_push_back(sorted, cell->row, cell->col);
+    vector_push_back(sorted, cell);
 }
 
-void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet) {
+Vector topological_sort(Set* adjList, int numVertices, Cell** cell_map) {
     // Initialize visited set to track processed cells
     Set visited;
-    set_init(&visited, sheet);
+    set_init(&visited);
 
     // Initialize result vector
     Vector sorted;
-    vector_init(&sorted, sheet);
+    vector_init(&sorted);
 
     // Process all vertices
     for (int i = 1; i <= numVertices; i++) {
         // The cell that has this topo_order
         Cell* current = cell_map[i];
         // If it hasn't been visited, process it
-        if (current != NULL && set_find(&visited, current->row, current->col) == NULL) {
+        if (current != NULL && set_find(&visited, current) == NULL) {
             topological_sort_util(current, adjList, &visited, &sorted);
         }
     }
 
     // Create result vector for topo order
-    vector_init(result, sheet);
+    Vector result;
+    vector_init(&result);
     
     // Reverse the order (as DFS gives reverse topological sort)
     for (size_t i = 0; i < sorted.size; i++) {
-        vector_push_back(result, sorted.data[i].i, sorted.data[i].j);
+        vector_push_back(&result, sorted.data[i]);
     }
 
     // Clean up
     set_free(&visited);
     vector_free(&sorted);
 
+    return result;
 }
-
-
-
 
 Cell* create_cell(int row, int col) {
     Cell* cell = (Cell*)malloc(sizeof(Cell));
     cell->row = row;
-    cell->col = col;
+    cell->col = (char *)malloc(4 * sizeof(char)); 
+    if(cell->col == NULL){fprintf(stderr, "Cell allocation failed. line 458\n"); exit(1);} 
+    colNumberToName(col,cell->col);  // Make a copy of the column string
     cell->topo_order = -1;
     cell->type = TYPE_CONSTANT;
     cell->value = 0; // Use 0 as initial value
@@ -475,6 +461,9 @@ Cell* create_cell(int row, int col) {
     cell->dependents = NULL;
     cell->dependencies = NULL;
     cell->has_error = false;
+    // cell->error_msg = NULL;
+    // cell->visited = false;
+    // cell->in_stack = false;
     cell->is_sleep = false;
     return cell;
 }

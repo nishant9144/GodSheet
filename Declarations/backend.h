@@ -8,12 +8,11 @@
 
 void print_cell(Cell* cell);
 void print_dependents(Cell* cell);
-int update_dependencies(Cell* curr_cell, Set* new_dependencies);
+int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* sheet);
 bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack);
-bool check_circular_dependencies(Cell* curr_cell);
+bool check_circular_dependencies(Cell* curr_cell, Spreadsheet* sheet);
 void collect_dependents(Cell* curr_cell, Set* affected_cells);
-void update_dependents(Cell* curr_cell);
-Set* createDependenciesSet(Vector* List);
+void update_dependents(Cell* curr_cell, Spreadsheet* sheet);
 void editCell(Spreadsheet *sheet);
 int evaluate_cell(Cell *cell);
 

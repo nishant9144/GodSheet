@@ -131,7 +131,7 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
     {
         for (int j = start_col; j <= end_col; j++)
         {
-            set_add(new_deps, &sheet->cells[i][j]);
+            set_add(new_deps, i, j);
         }
     }
     target_cell->op_data.function.range_size = (end_row-start_row+1)*(end_col-start_col+1);
@@ -202,7 +202,7 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     {
         // Operand is a cell reference.
         target_cell->op_data.arithmetic.operand1 = &sheet->cells[row1][col1];
-        set_add(new_deps, &sheet->cells[row1][col1]);
+        set_add(new_deps, row1, col1);
     }
     else
     {
@@ -221,7 +221,7 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     else if (type2 == 1)
     {
         target_cell->op_data.arithmetic.operand2 = &sheet->cells[row2][col2];
-        set_add(new_deps, &sheet->cells[row2][col2]);
+        set_add(new_deps, row2, col2);
     }
     else
     {
@@ -438,7 +438,7 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
         if (parse_cell_address(sheet, &ptr, &row, &col) != 0) return -1;
         cell->type = TYPE_REFERENCE;
         cell->op_data.ref = &sheet->cells[row][col];
-        set_add(new_deps, &sheet->cells[row][col]);
+        set_add(new_deps, row, col);
     }
     else
     {
@@ -502,6 +502,7 @@ void process_command(Spreadsheet *sheet, char *input)
     Cell *target_cell = &sheet->cells[row][col];
 
     char *old_formula = target_cell->formula ? strdup(target_cell->formula) : NULL;
+    if(target_cell->formula != NULL) free(target_cell->formula); 
     int old_value = target_cell->value;
     CellType old_type = target_cell->type;
 
@@ -509,35 +510,48 @@ void process_command(Spreadsheet *sheet, char *input)
     target_cell->formula = new_formula;
 
     Set *new_deps = (Set *)malloc(sizeof(Set));
-    set_init(new_deps);
-    // Attempt to parse and validate the new formula, which also checks for cycles
+    set_init(new_deps, sheet);
+    // Attempt to parse and validate the new formula
     if (parse_formula(sheet, target_cell, formula, new_deps) != 0)
     {
         free(target_cell->formula);
-        target_cell->formula = NULL;
+
         target_cell->formula = old_formula;
+        free(old_formula); old_formula = NULL;
+
         target_cell->value = old_value;
         target_cell->type = old_type;
         free(new_deps);
         new_deps = NULL;
         return;
     }
-    else{
-        free(old_formula);
-        old_formula = NULL;
-    } 
     
 
-    if (new_deps != NULL)
-    {
-        if (update_dependencies(target_cell, new_deps))
+    // if (new_deps != NULL)
+    // {
+        if (update_dependencies(target_cell, new_deps, sheet) == 1)
         { // 0 -> cycle, 1 -> no cycle
-            if (evaluate_cell(target_cell) == 0) sheet->last_status = STATUS_OK;
-            else sheet->last_status = DIV_BY_ZERO;
+            if (evaluate_cell(target_cell) == 0) {
+                sheet->last_status = STATUS_OK;
+                free(old_formula);
+                old_formula = NULL; 
+            }else {
+                target_cell->formula = old_formula;
+                target_cell->value = old_value;
+                sheet->last_status = DIV_BY_ZERO; 
+                free(new_formula);
+                new_formula = NULL;
+            }
         }
-        else sheet->last_status = ERR_CIRCULAR_REFERENCE;
+        else{
+            target_cell->formula = old_formula;
+            target_cell->value = old_value;
+            free(new_formula);
+            new_formula = NULL;
+            sheet->last_status = ERR_CIRCULAR_REFERENCE;
+        }
+        if(old_value != target_cell->value) update_dependents(target_cell, sheet);
         // set_free(new_deps);
         // new_deps = NULL;
-    }
-    update_dependents(target_cell);
+    // }
 }

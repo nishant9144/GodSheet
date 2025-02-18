@@ -4,7 +4,7 @@
 #include "../Declarations/frontend.h"
 
 void print_cell(Cell* cell) {
-    printf("%s%d: %d\n", cell->col, cell->row+1, cell->value);
+    printf("%d%d: %d\n", cell->col, cell->row+1, cell->value);
 }
 void print_dependents(Cell* cell){
     // printf("Dependents of %s%d: ", cell->col, cell->row+1);
@@ -13,17 +13,25 @@ void print_dependents(Cell* cell){
         set_iterator_init(&it, cell->dependents);
         while (set_iterator_has_next(&it)) {
             Cell* dep = set_iterator_next(&it);
-            printf("%s%d ", dep->col, dep->row+1);
+            printf("%d%d ", dep->col, dep->row+1);
         }
         set_iterator_free(&it);
     }
     // printf("\n");
 }
 
+
+
 // Function to update the dependencies of a cell: 1 -> no cycle/updated successfully, 0 -> cycle/not updated
-int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
+int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* sheet) {
     // printf("$ Updating dependencies for cell %s%d\n", curr_cell->col, curr_cell->row+1);
     // Create a copy of the old dependencies
+    if(set_find(new_dependencies, curr_cell->row, curr_cell->col) != NULL){
+        // printf("Circular dependency detected. Reverting changes.\n");
+        free(new_dependencies);
+        new_dependencies = NULL;
+        return 0;
+    }
     
     //(OPTIMISATION) removing copy to make it faster
     Set *old_deps = curr_cell->dependencies; // this points to this memory block so we don't lose it
@@ -35,7 +43,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
         set_iterator_init(&old_it, old_deps);
         while (set_iterator_has_next(&old_it)) {
             Cell* old_dep = set_iterator_next(&old_it);
-            if (old_dep->dependents != NULL) set_remove(old_dep->dependents, curr_cell);
+            if (old_dep->dependents != NULL) set_remove(old_dep->dependents, curr_cell->row, curr_cell->col);
         }
         set_iterator_free(&old_it);
     }
@@ -51,9 +59,9 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
             // print_cell(new_dep);
             if (new_dep->dependents == NULL) {
                 new_dep->dependents = (Set*)malloc(sizeof(Set));
-                set_init(new_dep->dependents);
+                set_init(new_dep->dependents, sheet);
             }
-            set_add(new_dep->dependents, curr_cell);
+            set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
             // print_dependents(new_dep);
         }
         set_iterator_free(&new_it);
@@ -61,7 +69,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
     // printf("\n");
 
     // Check for circular dependencies
-    if (check_circular_dependencies(curr_cell)) {
+    if (check_circular_dependencies(curr_cell, sheet)) {
         // Circular dependency detected, revert changes
         // printf("Circular dependency detected. Reverting changes.\n");
 
@@ -71,7 +79,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
             set_iterator_init(&new_it, new_dependencies);
             while (set_iterator_has_next(&new_it)) {
                 Cell* new_dep = set_iterator_next(&new_it);
-                if (new_dep->dependents != NULL) set_remove(new_dep->dependents, curr_cell);
+                if (new_dep->dependents != NULL) set_remove(new_dep->dependents, curr_cell->row, curr_cell->col);
             }
             set_iterator_free(&new_it);
         }
@@ -83,9 +91,9 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
                 Cell* old_dep = set_iterator_next(&old_it);
                 if (old_dep->dependents == NULL) {
                     old_dep->dependents = (Set*)malloc(sizeof(Set));
-                    set_init(old_dep->dependents);
+                    set_init(old_dep->dependents, sheet);
                 }
-                set_add(old_dep->dependents, curr_cell);
+                set_add(old_dep->dependents, curr_cell->row, curr_cell->col);
             }
             set_iterator_free(&old_it);
         }
@@ -104,12 +112,11 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
     return 1;
 }
 
-
 // Helper function for circular dependency check
 bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack) {
     // Mark current cell as visited and add to recursion stack
-    set_add(visited, curr_cell);
-    set_add(recursion_stack, curr_cell);
+    set_add(visited, curr_cell->row, curr_cell->col);
+    set_add(recursion_stack, curr_cell->row, curr_cell->col);
 
     // Visit all dependencies
     if (curr_cell->dependencies != NULL) {
@@ -119,14 +126,14 @@ bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack) {
             Cell* dep = set_iterator_next(&it);
             
             // If not visited, recurse
-            if (set_find(visited, dep) == NULL) {
+            if (set_find(visited, dep->row, dep->col) == NULL) {
                 if (detect_cycle_dfs(dep, visited, recursion_stack)) {
                     set_iterator_free(&it);
                     return true;
                 }
             }
             // If already in recursion stack, we found a cycle
-            else if (set_find(recursion_stack, dep) != NULL) {
+            else if (set_find(recursion_stack, dep->row, dep->col) != NULL) {
                 set_iterator_free(&it);
                 return true;
             }
@@ -135,14 +142,14 @@ bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack) {
     }
 
     // Remove from recursion stack and return
-    set_remove(recursion_stack, curr_cell);
+    set_remove(recursion_stack, curr_cell->row, curr_cell->col);
     return false;
 }
 
-bool check_circular_dependencies(Cell* curr_cell) {
+bool check_circular_dependencies(Cell* curr_cell, Spreadsheet* sheet) {
     Set visited, recursion_stack;
-    set_init(&visited);
-    set_init(&recursion_stack);
+    set_init(&visited, sheet);
+    set_init(&recursion_stack, sheet);
 
     bool has_cycle = detect_cycle_dfs(curr_cell, &visited, &recursion_stack);
 
@@ -158,8 +165,8 @@ void collect_dependents(Cell* curr_cell, Set* affected_cells) {
         set_iterator_init(&it, curr_cell->dependents);
         while (set_iterator_has_next(&it)) {
             Cell* dep = set_iterator_next(&it);
-            if (set_find(affected_cells, dep) == NULL) {
-                set_add(affected_cells, dep);
+            if (set_find(affected_cells, dep->row, dep->col) == NULL) {
+                set_add(affected_cells, dep->row, dep->col);
                 collect_dependents(dep, affected_cells);
             }
         }
@@ -167,11 +174,14 @@ void collect_dependents(Cell* curr_cell, Set* affected_cells) {
     }
 }
 
-void update_dependents(Cell* curr_cell) {
+
+
+
+void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
     if(curr_cell->dependents == NULL) return;
     // Collect all affected cells
     Set affected_cells;
-    set_init(&affected_cells);
+    set_init(&affected_cells, sheet);
     collect_dependents(curr_cell, &affected_cells);
 
     // Create cell mapping and adjacency matrix for topological sort
@@ -179,7 +189,7 @@ void update_dependents(Cell* curr_cell) {
     SetIterator count_it;
 
     set_iterator_init(&count_it, &affected_cells);
-    while (set_iterator_has_next(&count_it)) { //getting an infinite loop here somehow
+    while (set_iterator_has_next(&count_it)) {
         num_cells++;
         //print_cell(set_iterator_next(&count_it));
         set_iterator_next(&count_it);
@@ -216,7 +226,7 @@ void update_dependents(Cell* curr_cell) {
         return;
     }
 
-    for (int i = 1; i <= num_cells; i++) set_init(&adj_list[i]);
+    for (int i = 1; i <= num_cells; i++) set_init(&adj_list[i], sheet);
     
     // Fill adjacency list - only add edges between affected cells
     for (int i = 1; i <= num_cells; i++) {
@@ -227,14 +237,16 @@ void update_dependents(Cell* curr_cell) {
             while (set_iterator_has_next(&dep_it)) {
                 Cell* dep = set_iterator_next(&dep_it);
                 // Only add edge if dependency is in affected_cells
-                if (set_find(&affected_cells, dep) != NULL) set_add(&adj_list[i], dep);
+                if (set_find(&affected_cells, dep->row, dep->col) != NULL) set_add(&adj_list[i], dep->row, dep->col);
             }
             set_iterator_free(&dep_it);
         }
     }
 
     // Perform topological sort
-    Vector sorted = topological_sort(adj_list, num_cells, cell_map);
+    Vector sorted;
+    // vector_init(&sorted, sheet);
+    topological_sort(adj_list, num_cells, cell_map, &sorted, sheet);
 
     // Update cells in topological order
     VectorIterator update_it;
@@ -242,7 +254,7 @@ void update_dependents(Cell* curr_cell) {
     // printf("$ TopoSorted: ");
     while (vector_iterator_has_next(&update_it)) {
         Cell* cell = vector_iterator_next(&update_it);
-        printf("%s%d ", cell->col, cell->row+1);
+        printf("%d%d ", cell->col, cell->row+1);
     }
     // printf("\n");
 
@@ -257,7 +269,7 @@ void update_dependents(Cell* curr_cell) {
         else evaluate_cell(cell);
     }
     // Cleanup
-    vector_free(&sorted);
+    // vector_free(&sorted);
     for (int i = 1; i <= num_cells; i++) set_free(&adj_list[i]);
     free(adj_list);
     free(cell_map);
@@ -266,17 +278,6 @@ void update_dependents(Cell* curr_cell) {
     set_free(&affected_cells); 
 }
 
-Set* createDependenciesSet(Vector* List){
-    Set* dependencies = (Set*)malloc(sizeof(Set));
-    set_init(dependencies);
-    VectorIterator it;
-    vector_iterator_init(&it, List);
-    while (vector_iterator_has_next(&it)) {
-        Cell* cell = vector_iterator_next(&it);
-        set_add(dependencies, cell); // vector mein jo copied cell hai uska pointer hai set mein
-    }
-    return dependencies;
-}
 
 void editCell(Spreadsheet *sheet)
 {
@@ -289,7 +290,6 @@ void editCell(Spreadsheet *sheet)
     if (strlen(input_line) > 0) process_command(sheet, input_line);
     configure_terminal();
 }
-
 
 int evaluate_cell(Cell *cell)
 {
