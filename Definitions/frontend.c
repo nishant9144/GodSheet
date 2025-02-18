@@ -53,7 +53,6 @@ static void get_col_label(int col, char* buffer) {
 /* Display 10x10 viewport */
 void display_viewport(Spreadsheet *sheet) {
     if (!output_enabled) return;
-    printf(CLEAR_SCREEN);
     
     // Print column headers
     printf("    ");
@@ -169,12 +168,16 @@ void run_ui(Spreadsheet *sheet) {
     struct timeval start_time, end_time;
     char input[100];  // Fixed buffer size for input
     sheet->last_processing_time = 0.0; //Initialize last_processing_time to 0.0
+
+    display_viewport(sheet);
+    printf("----------------------------------------------------------------------\n"); // Separator
+
     
     while(1) {
         
         
-        // Display current view
-        display_viewport(sheet);
+       // Initial displ ay
+        // display_viewport(sheet);
         
         // // Calculate elapsed time since last command
         // double elapsed = (start_time.tv_sec - sheet->last_cmd_time.tv_sec) +
@@ -200,6 +203,7 @@ void run_ui(Spreadsheet *sheet) {
         input[strcspn(input, "\n")] = '\0';  // Remove newline
         printf("Input received: %s (ASCII: %d)\n", input, input[0]); // Debugging
 
+        // Start timing
         gettimeofday(&start_time, NULL);
 
         
@@ -215,6 +219,7 @@ void run_ui(Spreadsheet *sheet) {
         if (strcmp(input, "disable_output") == 0) {
             output_enabled = 0;
             sheet->last_status = STATUS_OK;
+            printf("Output disabled.\n");
             continue;
         }
 
@@ -222,6 +227,7 @@ void run_ui(Spreadsheet *sheet) {
             output_enabled = 1;
             sheet->last_status = STATUS_OK;
             display_viewport(sheet); // Show UI again after enabling output
+            printf("Output enabled.\n");
             continue;
         }
 
@@ -266,16 +272,20 @@ void run_ui(Spreadsheet *sheet) {
         }
 
         
-        
+         // Display updated spreadsheet after command
+         display_viewport(sheet);
+         printf("----------------------------------------------------------------------\n"); // Separator
+         
         // Update last command time
         gettimeofday(&end_time, NULL);
-        sheet->last_cmd_time = end_time;
+        // sheet->last_cmd_time = end_time;
 
         // // Calculate and print the time taken to process the command
         // double processing_time = (end_time.tv_sec - start_time.tv_sec) +
         //                          (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
         // printf("Processing time: %.6f seconds\n", processing_time);
 
+        
         // Calculate processing time for THIS command
         sheet->last_processing_time = 
             (end_time.tv_sec - start_time.tv_sec) +
@@ -283,6 +293,7 @@ void run_ui(Spreadsheet *sheet) {
 
         // Update last command time (if needed elsewhere)
         sheet->last_cmd_time = end_time;
-        
+
+       
     }
 }
