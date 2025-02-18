@@ -296,12 +296,12 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
     if (cell -> has_error) return -1;
     switch(cell->type)
     {        
-        case TYPE_CONSTANT:
+        case 'C':
             if (cell->is_sleep && cell->value>0) sleep(cell->value);
             return 0;
             break;
 
-        case TYPE_ARITHMETIC:
+        case 'A':
         {
             int left, right;
             if(cell->op_data.arithmetic.operand1.i != SHRT_MAX){
@@ -332,7 +332,7 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
             }
             break;
         }    
-        case TYPE_FUNCTION:
+        case 'F':
             if ((cell->op_data.function.range_size)<=0) {cell->has_error=true;return -1;}
 
             int sum = 0, count = 0;
@@ -362,11 +362,11 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
             {
                 cell->has_error = true; return -1;
             }
-            if (strcmp(cell->op_data.function.func_name, "SUM") == 0) {cell->value = sum;}
-            else if (strcmp(cell->op_data.function.func_name, "AVG") == 0) {cell->value = sum / count;}
-            else if (strcmp(cell->op_data.function.func_name, "MIN") == 0) {cell->value = min_val;}
-            else if (strcmp(cell->op_data.function.func_name, "MAX") == 0) {cell->value = max_val;}
-            else if (strcmp(cell->op_data.function.func_name, "STDEV") == 0)
+            if (cell->op_data.function.func_name == 'D') {cell->value = sum;}
+            else if (cell->op_data.function.func_name == 'C') {cell->value = sum / count;}
+            else if (cell->op_data.function.func_name == 'A') {cell->value = min_val;}
+            else if (cell->op_data.function.func_name == 'B') {cell->value = max_val;}
+            else if (cell->op_data.function.func_name == 'E')
             {
                 double mean = (double)sum / count;
                 double variance = (sum_sq / count) - (mean * mean);
@@ -374,7 +374,7 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
             }
             else {cell->has_error = true; return -1;}
             break;
-        case TYPE_REFERENCE:
+        case 'R':
             cell->value = cell->op_data.ref->value;
             if (cell->is_sleep && cell->value >0) sleep(cell->value);
             break;

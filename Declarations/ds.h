@@ -104,9 +104,8 @@ struct Cell {
     short row; // -> can fix to 3 field.
     short col;  /// max of 3 fields
     int topo_order;
-
-    Set* dependents;
-    Set* dependencies;
+    bool is_sleep;
+    bool has_error;
     union {
         Cell* ref;
         struct {  
@@ -124,10 +123,9 @@ struct Cell {
         } function;
     } op_data;
     
-    bool is_sleep;
-    bool has_error;
+    Set* dependents;
+    Set* dependencies;
     char type;     // use bits
-
 };
 
 // Spreadsheet structure
