@@ -185,7 +185,7 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     strncpy(operand2, formula + matches[3].rm_so, len);
     operand2[len] = '\0';
 
-    target_cell->type = TYPE_ARITHMETIC;
+    target_cell->type = 'A';
     target_cell->op_data.arithmetic.op = char_to_operation(op_str[0]);
     target_cell->op_data.arithmetic.constant = 0;
 
@@ -258,7 +258,7 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
             sheet->last_status = ERR_SYNTAX;
             return -1;
         }
-        target_cell->type = TYPE_CONSTANT;
+        target_cell->type = 'C';
         target_cell->value = evaluated;
     }
     return 0;
@@ -313,12 +313,12 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
         const char *ptr = range_str;
         if (parse_cell_address(sheet, &ptr, &row, &col) == 0)
         {
-            target_cell->type=TYPE_REFERENCE;
+            target_cell->type='R';
             target_cell->op_data.ref= &sheet->cells[row][col];
         }
         else if (is_number(ptr))
         {
-            target_cell->type=TYPE_CONSTANT;
+            target_cell->type='C';
             target_cell->value= atoi(ptr);   
         }
         else{
@@ -330,8 +330,13 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
         return stat;
     }
 
-    target_cell->type = TYPE_FUNCTION;
-    target_cell->op_data.function.func_name = strdup(func_name);
+    target_cell->type = 'F';
+
+    if (strcmp(func_name, "MIN") == 0) target_cell->op_data.function.func_name = 'A';
+    else if (strcmp(func_name, "MAX") == 0) target_cell->op_data.function.func_name = 'B';
+    else if (strcmp(func_name, "AVG") == 0) target_cell->op_data.function.func_name = 'C';
+    else if (strcmp(func_name, "SUM") == 0) target_cell->op_data.function.func_name = 'D';
+    else if (strcmp(func_name, "STDEV") == 0) target_cell->op_data.function.func_name = 'E';
 
     if (!strchr(range_str, ':') || parse_range(target_cell, sheet, range_str, new_deps) != 0)
     {
@@ -395,10 +400,7 @@ static bool match_formula(const char *formula) {
 
 int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_deps)
 {
-    // Reset cell's current state
     cell->has_error = false;
-    // free(cell->error_msg);
-    // cell->error_msg = NULL;
 
     /*                                      Check if the value is a single constant                                        */
     bool is_numeric = true;
@@ -418,7 +420,7 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
     if (is_numeric)
     {
         int value = atoi(formula);
-        cell->type = TYPE_CONSTANT;
+        cell->type = 'C';
         cell->value = value;
         return 0;
     }
@@ -439,7 +441,7 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
         int row, col;
         const char *ptr = formula;
         if (parse_cell_address(sheet, &ptr, &row, &col) != 0) return -1;
-        cell->type = TYPE_REFERENCE;
+        cell->type = 'R';
         cell->op_data.ref = &sheet->cells[row][col];
         set_add(new_deps, row, col);
     }

@@ -28,10 +28,19 @@ typedef enum
 
 typedef enum
 {
-    TYPE_CONSTANT,
-    TYPE_REFERENCE,  // References another cell (e.g., =A1)
-    TYPE_ARITHMETIC, // Simple arithmetic (e.g., =A1+1)
-    TYPE_FUNCTION,   // Functions like MIN, MAX, etc.
+    MIN, //->A
+    MAX, //->B
+    AVG, //->C
+    SUM, //->D
+    STDEV, //->E
+} FunctionName;
+
+typedef enum
+{
+    TYPE_CONSTANT,   // C
+    TYPE_REFERENCE,  // R
+    TYPE_ARITHMETIC, // A
+    TYPE_FUNCTION,   // F
 } CellType;
 
 typedef enum
@@ -94,9 +103,10 @@ struct Cell {
     int value;          
     short row; // -> can fix to 3 field.
     short col;  /// max of 3 fields
-    CellType type;     // use bits
     int topo_order;
 
+    Set* dependents;
+    Set* dependencies;
     union {
         Cell* ref;
         struct {  
@@ -109,22 +119,15 @@ struct Cell {
         } arithmetic;
 
         struct {  
-            char* func_name;        // char* -> char
+            char func_name;
             int range_size;
         } function;
     } op_data;
     
-    
-    Set* dependents;
-    Set* dependencies;
     bool is_sleep;
     bool has_error;
-   
-    // char* error_msg;    //isko rakhne ki jarurat nahi hai
-    
-    // bool visited;      // not req as of now
-    // bool in_stack;     // not req as of now
-        
+    char type;     // use bits
+
 };
 
 // Spreadsheet structure
@@ -134,9 +137,6 @@ struct Spreadsheet{
     int totalCols;
     int scroll_row;
     int scroll_col;
-    // int mode;
-    // int cursorRow;
-    // int cursorCol;
     CalcStatus last_status;
     struct timeval last_cmd_time;
     bool output_enabled;

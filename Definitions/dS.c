@@ -461,15 +461,12 @@ void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* re
 
 }
 
-
-
-
 Cell* create_cell(short row, short col) {
     Cell* cell = (Cell*)malloc(sizeof(Cell));
     cell->row = row;
     cell->col = col;
     cell->topo_order = -1;
-    cell->type = TYPE_CONSTANT;
+    cell->type = 'C';
     cell->value = 0; // Use 0 as initial value
     cell->dependents = NULL;
     cell->dependencies = NULL;
@@ -536,7 +533,7 @@ Spreadsheet* create_spreadsheet(short rows, short cols){
     sheet->scroll_row = 0;
     sheet->scroll_col = 0;
     sheet->output_enabled = 1;
-    // sheet->mode = VIEW_MODE;y
+
     sheet->last_status = STATUS_OK;
 
     sheet->cells = (Cell**)malloc(rows* sizeof(Cell*));
