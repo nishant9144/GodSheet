@@ -1,0 +1,523 @@
+==60052== Memcheck, a memory error detector
+==60052== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==60052== Using Valgrind-3.22.0-bd4db67b1d-20231031 and LibVEX; rerun with -h for copyright info
+==60052== Command: ./bin/sheet 10 10
+==60052== Parent PID: 22163
+==60052== 
+--60052-- 
+--60052-- Valgrind options:
+--60052--    --leak-check=full
+--60052--    --show-leak-kinds=all
+--60052--    --track-origins=yes
+--60052--    --verbose
+--60052--    --log-file=valgrind-out.txt
+--60052-- Contents of /proc/version:
+--60052--   Linux version 6.11.0-17-generic (buildd@lcy02-amd64-038) (x86_64-linux-gnu-gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0, GNU ld (GNU Binutils for Ubuntu) 2.42) #17~24.04.2-Ubuntu SMP PREEMPT_DYNAMIC Mon Jan 20 22:48:29 UTC 2
+--60052-- 
+--60052-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand-rdseed
+--60052-- Page sizes: currently 4096, max supported 4096
+--60052-- Valgrind library directory: /usr/libexec/valgrind
+--60052-- Reading syms from /home/aayushya-sahay/Spreadsheet/Excel/Spreadsheet/bin/sheet
+--60052-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+--60052--   Considering /usr/lib/debug/.build-id/1c/8db5f83bba514f8fd5f1fb6d7be975be1bb855.debug ..
+--60052--   .. build-id is valid
+--60052-- Reading syms from /usr/libexec/valgrind/memcheck-amd64-linux
+--60052--    object doesn't have a dynamic symbol table
+--60052-- Scheduler: using generic scheduler lock implementation.
+--60052-- Reading suppressions file: /usr/libexec/valgrind/default.supp
+==60052== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-60052-by-aayushya-sahay-on-???
+==60052== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-60052-by-aayushya-sahay-on-???
+==60052== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-60052-by-aayushya-sahay-on-???
+==60052== 
+==60052== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==60052== don't want to do, unless you know exactly what you're doing,
+==60052== or are doing some strange experiment):
+==60052==   /usr/bin/vgdb --pid=60052 ...command...
+==60052== 
+==60052== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==60052==   /path/to/gdb ./bin/sheet
+==60052== and then give GDB the following command
+==60052==   target remote | /usr/bin/vgdb --pid=60052
+==60052== --pid is optional if only one valgrind process is running
+==60052== 
+--60052-- REDIR: 0x4028b00 (ld-linux-x86-64.so.2:strlen) redirected to 0x580c2e1a (???)
+--60052-- REDIR: 0x40272b0 (ld-linux-x86-64.so.2:index) redirected to 0x580c2e34 (???)
+--60052-- Reading syms from /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
+--60052-- Reading syms from /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
+==60052== WARNING: new redirection conflicts with existing -- ignoring it
+--60052--     old: 0x04028b00 (strlen              ) R-> (0000.0) 0x580c2e1a ???
+--60052--     new: 0x04028b00 (strlen              ) R-> (2007.0) 0x0484f340 strlen
+--60052-- REDIR: 0x40274e0 (ld-linux-x86-64.so.2:strcmp) redirected to 0x4850460 (strcmp)
+--60052-- REDIR: 0x4026910 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4853cd0 (mempcpy)
+--60052-- Reading syms from /usr/lib/x86_64-linux-gnu/libm.so.6
+--60052-- Reading syms from /usr/lib/x86_64-linux-gnu/libc.so.6
+--60052--   Considering /usr/lib/debug/.build-id/42/c84c92e6f98126b3e2230ebfdead22c235b667.debug ..
+--60052--   .. build-id is valid
+--60052-- REDIR: 0x4028ca0 (ld-linux-x86-64.so.2:strncmp) redirected to 0x484fc90 (strncmp)
+--60052-- REDIR: 0x4a08050 (libc.so.6:strnlen) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a080e0 (libc.so.6:strpbrk) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a061a0 (libc.so.6:strcmp) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a1f3b0 (libc.so.6:wcsnlen) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a05290 (libc.so.6:memset) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a1eb20 (libc.so.6:wcslen) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a8a3c0 (libc.so.6:__memcpy_chk) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a05200 (libc.so.6:memrchr) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a1f350 (libc.so.6:wcsncpy) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a04720 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a1d8e0 (libc.so.6:wcschr) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a06090 (libc.so.6:index) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a08110 (libc.so.6:rindex) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a1d990 (libc.so.6:wcscmp) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a054b0 (libc.so.6:stpncpy) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a2beb0 (libc.so.6:wmemchr) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a07ef0 (libc.so.6:strncmp) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a05510 (libc.so.6:strcasecmp) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a07310 (libc.so.6:strcspn) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a1e8f0 (libc.so.6:wcscpy) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a06020 (libc.so.6:strcat) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a07df0 (libc.so.6:strncasecmp_l) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a06110 (libc.so.6:strchrnul) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a04630 (libc.so.6:bcmp) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a072a0 (libc.so.6:strcpy) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a055b0 (libc.so.6:strcasecmp_l) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a07cc0 (libc.so.6:strlen) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a07f90 (libc.so.6:strncpy) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a2bf30 (libc.so.6:wmemcmp) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a8a4e0 (libc.so.6:__memmove_chk) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+==60052== WARNING: new redirection conflicts with existing -- ignoring it
+--60052--     old: 0x04adb9d0 (__memcpy_chk_avx_una) R-> (2030.0) 0x04853dd0 __memcpy_chk
+--60052--     new: 0x04adb9d0 (__memcpy_chk_avx_una) R-> (2024.0) 0x04853740 __memmove_chk
+--60052-- REDIR: 0x4a05440 (libc.so.6:stpcpy) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a04fc0 (libc.so.6:memmove) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+==60052== Preferring higher priority redirection:
+--60052--     old: 0x04adba00 (__memcpy_avx_unalign) R-> (2018.0) 0x04851580 __memcpy_avx_unaligned_erms
+--60052--     new: 0x04adba00 (__memcpy_avx_unalign) R-> (2018.1) 0x04852d60 memmove
+--60052-- REDIR: 0x4a045b0 (libc.so.6:memchr) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a082e0 (libc.so.6:strspn) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a050e0 (libc.so.6:mempcpy) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4a07d50 (libc.so.6:strncasecmp) redirected to 0x483d1c0 (_vgnU_ifunc_wrapper)
+--60052-- REDIR: 0x4ae05f0 (libc.so.6:__strrchr_avx2) redirected to 0x484ed20 (rindex)
+--60052-- REDIR: 0x4addda0 (libc.so.6:__strchrnul_avx2) redirected to 0x48537b0 (strchrnul)
+--60052-- REDIR: 0x4adba00 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x4852d60 (memmove)
+--60052-- REDIR: 0x4a00650 (libc.so.6:malloc) redirected to 0x48467b0 (malloc)
+--60052-- REDIR: 0x4adb9c0 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x48538d0 (mempcpy)
+--60052-- REDIR: 0x4ade740 (libc.so.6:__strlen_avx2) redirected to 0x484f220 (strlen)
+--60052-- REDIR: 0x4adc400 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x4852c50 (memset)
+--60052-- REDIR: 0x4adb000 (libc.so.6:__memchr_avx2) redirected to 0x48504e0 (memchr)
+--60052-- REDIR: 0x4afaf70 (libc.so.6:__strcspn_sse42) redirected to 0x4854010 (strcspn)
+--60052-- REDIR: 0x4addf90 (libc.so.6:__strcmp_avx2) redirected to 0x4850360 (strcmp)
+--60052-- REDIR: 0x4adf820 (libc.so.6:__strncmp_avx2) redirected to 0x484fab0 (strncmp)
+--60052-- REDIR: 0x4addb60 (libc.so.6:__strchr_avx2) redirected to 0x484ef00 (index)
+--60052-- REDIR: 0x4adb9d0 (libc.so.6:__memcpy_chk_avx_unaligned_erms) redirected to 0x4853dd0 (__memcpy_chk)
+--60052-- REDIR: 0x4a00d30 (libc.so.6:free) redirected to 0x4849820 (free)
+--60052-- REDIR: 0x4a010a0 (libc.so.6:realloc) redirected to 0x484db00 (realloc)
+--60052-- REDIR: 0x4a017a0 (libc.so.6:calloc) redirected to 0x484d8a0 (calloc)
+--60052-- REDIR: 0x4adfe80 (libc.so.6:__strncpy_avx2) redirected to 0x484f4f0 (strncpy)
+--60052-- REDIR: 0x4ade4f0 (libc.so.6:__strcpy_avx2) redirected to 0x484f370 (strcpy)
+==60052== Invalid read of size 4
+==60052==    at 0x10CCED: free_spreadsheet (dS.c:567)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67488 is 8 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== Invalid read of size 4
+==60052==    at 0x10CCBE: free_spreadsheet (dS.c:568)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b6748c is 12 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== Invalid read of size 8
+==60052==    at 0x10CCCA: free_spreadsheet (dS.c:571)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67480 is 0 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== Invalid read of size 8
+==60052==    at 0x10CCDA: free_spreadsheet (dS.c:571)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67500 is 0 bytes inside a block of size 80 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD03: free_spreadsheet (dS.c:573)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C9FB: create_spreadsheet (dS.c:536)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== Invalid free() / delete / delete[] / realloc()
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CCE4: free_spreadsheet (dS.c:571)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67590 is 0 bytes inside a block of size 1,200 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CCE4: free_spreadsheet (dS.c:571)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CA45: create_spreadsheet (dS.c:538)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== Invalid read of size 8
+==60052==    at 0x10CCF9: free_spreadsheet (dS.c:573)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67480 is 0 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== Invalid free() / delete / delete[] / realloc()
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD03: free_spreadsheet (dS.c:573)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67500 is 0 bytes inside a block of size 80 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD03: free_spreadsheet (dS.c:573)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C9FB: create_spreadsheet (dS.c:536)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== Invalid free() / delete / delete[] / realloc()
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67480 is 0 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 
+==60052== HEAP SUMMARY:
+==60052==     in use at exit: 18,926 bytes in 477 blocks
+==60052==   total heap usage: 894 allocs, 429 frees, 68,508 bytes allocated
+==60052== 
+==60052== Searching for pointers to 477 not-freed blocks
+==60052== Checked 108,272 bytes
+==60052== 
+==60052== 4 bytes in 1 blocks are definitely lost in loss record 1 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x4A0735E: strdup (strdup.c:42)
+==60052==    by 0x10DAC0: parse_function (parser.c:327)
+==60052==    by 0x10DEE4: parse_formula (parser.c:421)
+==60052==    by 0x10E28B: process_command (parser.c:509)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052==    by 0x10963B: main (main.c:31)
+==60052== 
+==60052== 18 bytes in 3 blocks are definitely lost in loss record 2 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x4A0735E: strdup (strdup.c:42)
+==60052==    by 0x10E249: process_command (parser.c:503)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052==    by 0x10963B: main (main.c:31)
+==60052== 
+==60052== 32 bytes in 1 blocks are indirectly lost in loss record 3 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10D1FB: parse_range (parser.c:132)
+==60052==    by 0x10DAF9: parse_function (parser.c:329)
+==60052==    by 0x10DEE4: parse_formula (parser.c:421)
+==60052==    by 0x10E28B: process_command (parser.c:509)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052==    by 0x10963B: main (main.c:31)
+==60052== 
+==60052== 32 bytes in 1 blocks are indirectly lost in loss record 4 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10D1FB: parse_range (parser.c:132)
+==60052==    by 0x10DAF9: parse_function (parser.c:329)
+==60052==    by 0x10DEE4: parse_formula (parser.c:421)
+==60052==    by 0x10E28B: process_command (parser.c:509)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052==    by 0x10963B: main (main.c:31)
+==60052== 
+==60052== 64 bytes in 2 blocks are indirectly lost in loss record 5 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10D1FB: parse_range (parser.c:132)
+==60052==    by 0x10DAF9: parse_function (parser.c:329)
+==60052==    by 0x10DEE4: parse_formula (parser.c:421)
+==60052==    by 0x10E28B: process_command (parser.c:509)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052==    by 0x10963B: main (main.c:31)
+==60052== 
+==60052== 128 bytes in 4 blocks are indirectly lost in loss record 6 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10D1FB: parse_range (parser.c:132)
+==60052==    by 0x10DAF9: parse_function (parser.c:329)
+==60052==    by 0x10DEE4: parse_formula (parser.c:421)
+==60052==    by 0x10E28B: process_command (parser.c:509)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052== 
+==60052== 256 bytes in 8 blocks are indirectly lost in loss record 7 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10D1FB: parse_range (parser.c:132)
+==60052==    by 0x10DAF9: parse_function (parser.c:329)
+==60052==    by 0x10DEE4: parse_formula (parser.c:421)
+==60052==    by 0x10E28B: process_command (parser.c:509)
+==60052== 
+==60052== 400 bytes in 100 blocks are indirectly lost in loss record 8 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C5FE: create_cell (dS.c:455)
+==60052==    by 0x10CA63: create_spreadsheet (dS.c:539)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 512 bytes in 16 blocks are indirectly lost in loss record 9 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10D1FB: parse_range (parser.c:132)
+==60052==    by 0x10DAF9: parse_function (parser.c:329)
+==60052==    by 0x10DEE4: parse_formula (parser.c:421)
+==60052== 
+==60052== 832 bytes in 26 blocks are indirectly lost in loss record 10 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10D1FB: parse_range (parser.c:132)
+==60052== 
+==60052== 1,024 bytes in 32 blocks are indirectly lost in loss record 11 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BB29: insert (dS.c:207)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10D1FB: parse_range (parser.c:132)
+==60052==    by 0x10DAF9: parse_function (parser.c:329)
+==60052== 
+==60052== 2,880 bytes in 90 blocks are indirectly lost in loss record 12 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10B85F: create_node (dS.c:162)
+==60052==    by 0x10BAC7: insert (dS.c:201)
+==60052==    by 0x10BCD2: set_add (dS.c:240)
+==60052==    by 0x10A2E6: update_dependencies (backend.c:81)
+==60052==    by 0x10E2FA: process_command (parser.c:524)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052==    by 0x10963B: main (main.c:31)
+==60052== 
+==60052== 2,904 (24 direct, 2,880 indirect) bytes in 3 blocks are definitely lost in loss record 13 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10E263: process_command (parser.c:506)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052==    by 0x10963B: main (main.c:31)
+==60052== 
+==60052== 3,600 (720 direct, 2,880 indirect) bytes in 90 blocks are definitely lost in loss record 14 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10A2B4: update_dependencies (backend.c:78)
+==60052==    by 0x10E2FA: process_command (parser.c:524)
+==60052==    by 0x109FFF: run_ui (frontend.c:252)
+==60052==    by 0x10963B: main (main.c:31)
+==60052== 
+==60052== 12,400 (12,000 direct, 400 indirect) bytes in 100 blocks are definitely lost in loss record 15 of 15
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C5E6: create_cell (dS.c:453)
+==60052==    by 0x10CA63: create_spreadsheet (dS.c:539)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== LEAK SUMMARY:
+==60052==    definitely lost: 12,766 bytes in 197 blocks
+==60052==    indirectly lost: 6,160 bytes in 280 blocks
+==60052==      possibly lost: 0 bytes in 0 blocks
+==60052==    still reachable: 0 bytes in 0 blocks
+==60052==         suppressed: 0 bytes in 0 blocks
+==60052== 
+==60052== ERROR SUMMARY: 159 errors from 13 contexts (suppressed: 0 from 0)
+==60052== 
+==60052== 1 errors in context 1 of 13:
+==60052== Invalid free() / delete / delete[] / realloc()
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67480 is 0 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 
+==60052== 1 errors in context 2 of 13:
+==60052== Invalid free() / delete / delete[] / realloc()
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD03: free_spreadsheet (dS.c:573)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67500 is 0 bytes inside a block of size 80 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD03: free_spreadsheet (dS.c:573)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C9FB: create_spreadsheet (dS.c:536)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 
+==60052== 1 errors in context 3 of 13:
+==60052== Invalid read of size 8
+==60052==    at 0x10CCF9: free_spreadsheet (dS.c:573)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67480 is 0 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 
+==60052== 10 errors in context 4 of 13:
+==60052== Invalid free() / delete / delete[] / realloc()
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CCE4: free_spreadsheet (dS.c:571)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67590 is 0 bytes inside a block of size 1,200 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CCE4: free_spreadsheet (dS.c:571)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CA45: create_spreadsheet (dS.c:538)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 
+==60052== 10 errors in context 5 of 13:
+==60052== Invalid read of size 8
+==60052==    at 0x10CCDA: free_spreadsheet (dS.c:571)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67500 is 0 bytes inside a block of size 80 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD03: free_spreadsheet (dS.c:573)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C9FB: create_spreadsheet (dS.c:536)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 
+==60052== 10 errors in context 6 of 13:
+==60052== Invalid read of size 8
+==60052==    at 0x10CCCA: free_spreadsheet (dS.c:571)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67480 is 0 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 
+==60052== 11 errors in context 7 of 13:
+==60052== Invalid read of size 4
+==60052==    at 0x10CCED: free_spreadsheet (dS.c:567)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b67488 is 8 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== 
+==60052== 110 errors in context 8 of 13:
+==60052== Invalid read of size 4
+==60052==    at 0x10CCBE: free_spreadsheet (dS.c:568)
+==60052==    by 0x10964C: main (main.c:34)
+==60052==  Address 0x4b6748c is 12 bytes inside a block of size 64 free'd
+==60052==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10CD0F: free_spreadsheet (dS.c:574)
+==60052==    by 0x109DA0: run_ui (frontend.c:205)
+==60052==    by 0x10963B: main (main.c:31)
+==60052==  Block was alloc'd at
+==60052==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==60052==    by 0x10C94E: create_spreadsheet (dS.c:520)
+==60052==    by 0x109611: main (main.c:26)
+==60052== 
+==60052== ERROR SUMMARY: 159 errors from 13 contexts (suppressed: 0 from 0)

@@ -2,11 +2,13 @@
 #include "../Declarations/parser.h"
 #include "../Declarations/backend.h"
 #include "../Declarations/frontend.h"
+#include <errno.h>
 
-void print_cell(Cell* cell) {printf("%s%d: %d\n", cell->col, cell->row+1, cell->value);
+void print_cell(Cell* cell) {
+    printf("%s%d: %d\n", cell->col, cell->row+1, cell->value);
 }
 void print_dependents(Cell* cell){
-    printf("Dependents of %s%d: ", cell->col, cell->row+1);
+    // printf("Dependents of %s%d: ", cell->col, cell->row+1);
     if(cell->dependents != NULL){
         SetIterator it;
         set_iterator_init(&it, cell->dependents);
@@ -16,126 +18,150 @@ void print_dependents(Cell* cell){
         }
         set_iterator_free(&it);
     }
-    printf("\n");
+    // printf("\n");
 }
 
 // Function to update the dependencies of a cell: 1 -> no cycle/updated successfully, 0 -> cycle/not updated
 int update_dependencies(Cell* curr_cell, Set* new_dependencies) {
-    printf("$ Updating dependencies for cell %s%d\n", curr_cell->col, curr_cell->row+1);
+    // printf("$ Updating dependencies for cell %s%d\n", curr_cell->col, curr_cell->row+1);
     // Create a copy of the old dependencies
-    Set old_dependencies;
-    set_init(&old_dependencies);
-    if (curr_cell->dependencies != NULL) {
+    
+    // Set old_dependencies;
+    // set_init(&old_dependencies);
+    // if (curr_cell->dependencies != NULL) {
+    //     SetIterator old_it;
+    //     set_iterator_init(&old_it, curr_cell->dependencies);
+    //     while (set_iterator_has_next(&old_it)) {
+    //         Cell* dep = set_iterator_next(&old_it);
+    //         set_add(&old_dependencies, dep);
+    //     }
+    //     set_iterator_free(&old_it);
+    // }
+    
+    //(OPTIMISATION) removing copy to make it faster
+    Set *old_deps = curr_cell->dependencies; // this points to this memory block so we don't lose it
+    curr_cell->dependencies = new_dependencies; // this points to the new memory block
+
+    // Remove current cell from the dependents set of old dependencies
+    if(old_deps != NULL){
         SetIterator old_it;
-        set_iterator_init(&old_it, curr_cell->dependencies);
+        set_iterator_init(&old_it, old_deps);
         while (set_iterator_has_next(&old_it)) {
-            Cell* dep = set_iterator_next(&old_it);
-            set_add(&old_dependencies, dep);
+            Cell* old_dep = set_iterator_next(&old_it);
+            if (old_dep->dependents != NULL) set_remove(old_dep->dependents, curr_cell);
         }
         set_iterator_free(&old_it);
     }
 
-    // Remove current cell from the dependents set of old dependencies
-    SetIterator old_it;
-    set_iterator_init(&old_it, &old_dependencies);
-    while (set_iterator_has_next(&old_it)) {
-        Cell* old_dep = set_iterator_next(&old_it);
-        if (old_dep->dependents != NULL) set_remove(old_dep->dependents, curr_cell);
-    }
-    set_iterator_free(&old_it);
 
-    // Create a copy of the new dependencies
-    Set new_deps_copy;
-    set_init(&new_deps_copy);
-    SetIterator new_it;
-    set_iterator_init(&new_it, new_dependencies);
-    while (set_iterator_has_next(&new_it)) {
-        Cell* new_dep = set_iterator_next(&new_it);
-        set_add(&new_deps_copy, new_dep);
-    }
-    set_iterator_free(&new_it);
+    // // Create a copy of the new dependencies
+    // Set new_deps_copy;
+    // set_init(&new_deps_copy);
+    // SetIterator new_it;
+    // set_iterator_init(&new_it, new_dependencies);
+    // while (set_iterator_has_next(&new_it)) {
+    //     Cell* new_dep = set_iterator_next(&new_it);
+    //     set_add(&new_deps_copy, new_dep);
+    // }
+    // set_iterator_free(&new_it);
+
 
     // Add current cell to the dependents set of new dependencies
-    set_iterator_init(&new_it, &new_deps_copy);
-    printf("$ New dependencies: ");
-    while (set_iterator_has_next(&new_it)) {
-        Cell* new_dep = set_iterator_next(&new_it);
-        print_cell(new_dep);
-        if (new_dep->dependents == NULL) {
-            new_dep->dependents = (Set*)malloc(sizeof(Set));
-            set_init(new_dep->dependents);
+    if(new_dependencies != NULL){
+        SetIterator new_it;
+        set_iterator_init(&new_it, new_dependencies);
+        // printf("$ New dependencies: ");
+        while (set_iterator_has_next(&new_it)) {
+            Cell* new_dep = set_iterator_next(&new_it);
+            // print_cell(new_dep);
+            if (new_dep->dependents == NULL) {
+                new_dep->dependents = (Set*)malloc(sizeof(Set));
+                set_init(new_dep->dependents);
+            }
+            set_add(new_dep->dependents, curr_cell);
+            // print_dependents(new_dep);
         }
-        set_add(new_dep->dependents, curr_cell);
-        print_dependents(new_dep);
+        set_iterator_free(&new_it);
     }
-    set_iterator_free(&new_it);
-    printf("\n");
+    // printf("\n");
 
 
-    // change the depencies of the current cell
-    if (curr_cell->dependencies != NULL) {
-        set_free(curr_cell->dependencies);
-        free(curr_cell->dependencies);
-    }
-    curr_cell->dependencies = (Set*)malloc(sizeof(Set));
-    set_init(curr_cell->dependencies);
-    set_iterator_init(&new_it, &new_deps_copy);
-    while (set_iterator_has_next(&new_it)) {
-        Cell* new_dep = set_iterator_next(&new_it);
-        set_add(curr_cell->dependencies, new_dep);
-    }
-    set_iterator_free(&new_it);
+    // // change the depencies of the current cell
+    // Already done
+    // if (curr_cell->dependencies != NULL) {
+    //     set_free(curr_cell->dependencies);
+    //     free(curr_cell->dependencies);
+    // }
+    // curr_cell->dependencies = (Set*)malloc(sizeof(Set));
+    // set_init(curr_cell->dependencies);
+    // set_iterator_init(&new_it, &new_deps_copy);
+    // while (set_iterator_has_next(&new_it)) {
+    //     Cell* new_dep = set_iterator_next(&new_it);
+    //     set_add(curr_cell->dependencies, new_dep);
+    // }
+    // set_iterator_free(&new_it);
 
     // Check for circular dependencies
     if (check_circular_dependencies(curr_cell)) {
         // Circular dependency detected, revert changes
-        printf("Circular dependency detected. Reverting changes.\n");
+        // printf("Circular dependency detected. Reverting changes.\n");
 
         // Remove current cell from the dependents set of new dependencies
-        set_iterator_init(&new_it, &new_deps_copy);
-        while (set_iterator_has_next(&new_it)) {
-            Cell* new_dep = set_iterator_next(&new_it);
-            if (new_dep->dependents != NULL) set_remove(new_dep->dependents, curr_cell);
-        }
-        set_iterator_free(&new_it);
-        
-        // Re-add current cell to the dependents set of old dependencies
-        set_iterator_init(&old_it, &old_dependencies);
-        while (set_iterator_has_next(&old_it)) {
-            Cell* old_dep = set_iterator_next(&old_it);
-            if (old_dep->dependents == NULL) {
-                old_dep->dependents = (Set*)malloc(sizeof(Set));
-                set_init(old_dep->dependents);
+        if(new_dependencies != NULL){
+            SetIterator new_it;
+            set_iterator_init(&new_it, new_dependencies);
+            while (set_iterator_has_next(&new_it)) {
+                Cell* new_dep = set_iterator_next(&new_it);
+                if (new_dep->dependents != NULL) set_remove(new_dep->dependents, curr_cell);
             }
-            set_add(old_dep->dependents, curr_cell);
+            set_iterator_free(&new_it);
         }
-        set_iterator_free(&old_it);
+        // Re-add current cell to the dependents set of old dependencies
+        if(old_deps != NULL){
+            SetIterator old_it;
+            set_iterator_init(&old_it, old_deps);
+            while (set_iterator_has_next(&old_it)) {
+                Cell* old_dep = set_iterator_next(&old_it);
+                if (old_dep->dependents == NULL) {
+                    old_dep->dependents = (Set*)malloc(sizeof(Set));
+                    set_init(old_dep->dependents);
+                }
+                set_add(old_dep->dependents, curr_cell);
+            }
+            set_iterator_free(&old_it);
+        }
 
         // Revert the dependencies of the current cell
-        if (curr_cell->dependencies != NULL) {
-            set_free(curr_cell->dependencies);
-            free(curr_cell->dependencies);
-        }
-        curr_cell->dependencies = (Set*)malloc(sizeof(Set));
-        set_init(curr_cell->dependencies);
-        set_iterator_init(&old_it, &old_dependencies);
-        while (set_iterator_has_next(&old_it)) {
-            Cell* old_dep = set_iterator_next(&old_it);
-            set_add(curr_cell->dependencies, old_dep);
-        }
-        set_iterator_free(&old_it);
+        // if (curr_cell->dependencies != NULL) {
+            // set_free(curr_cell->dependencies);
+            // free(curr_cell->dependencies);
+        // }
+
+        // curr_cell->dependencies = (Set*)malloc(sizeof(Set));
+        // set_init(curr_cell->dependencies);
+        // set_iterator_init(&old_it, &old_dependencies);
+        // while (set_iterator_has_next(&old_it)) {
+        //     Cell* old_dep = set_iterator_next(&old_it);
+        //     set_add(curr_cell->dependencies, old_dep);
+        // }
+        // set_iterator_free(&old_it);
+
+        curr_cell->dependencies = old_deps;
 
         // Free the temporary sets
-        set_free(&old_dependencies);
-        set_free(&new_deps_copy);
-
+        // set_free(&old_dependencies);
+        // set_free(&new_deps_copy);
+        free(new_dependencies);
+        new_dependencies = NULL;
         return 0;
     }
 
     // Free the temporary sets
-    set_free(&old_dependencies);
-    set_free(&new_deps_copy);
+    // set_free(&old_dependencies);
+    // set_free(&new_deps_copy);
 
+    free(old_deps);
+    old_deps = NULL;
     // Call the function to update the cell's value based on its new dependencies
     return 1;
 }
@@ -147,7 +173,7 @@ bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack) {
     set_add(visited, curr_cell);
     set_add(recursion_stack, curr_cell);
 
-    #include <errno.h>// Visit all dependencies
+    // Visit all dependencies
     if (curr_cell->dependencies != NULL) {
         SetIterator it;
         set_iterator_init(&it, curr_cell->dependencies);
@@ -215,14 +241,14 @@ void update_dependents(Cell* curr_cell) {
     SetIterator count_it;
 
     set_iterator_init(&count_it, &affected_cells);
-    while (set_iterator_has_next(&count_it)) {
+    while (set_iterator_has_next(&count_it)) { //getting an infinite loop here somehow
         num_cells++;
-        print_cell(set_iterator_next(&count_it));
-        // set_iterator_next(&count_it);
+        //print_cell(set_iterator_next(&count_it));
+        set_iterator_next(&count_it);
     }
     set_iterator_free(&count_it);
 
-    printf("$ Number of affected cells: %d\n", num_cells);
+    // printf("$ Number of affected cells: %d\n", num_cells);
     if (num_cells == 0) {
         set_free(&affected_cells); return;
     }
@@ -274,12 +300,12 @@ void update_dependents(Cell* curr_cell) {
     // Update cells in topological order
     VectorIterator update_it;
     vector_iterator_init(&update_it, &sorted);
-    printf("$ TopoSorted: ");
+    // printf("$ TopoSorted: ");
     while (vector_iterator_has_next(&update_it)) {
         Cell* cell = vector_iterator_next(&update_it);
         printf("%s%d ", cell->col, cell->row+1);
     }
-    printf("\n");
+    // printf("\n");
 
     bool divbyzeroflag = (evaluate_cell(curr_cell) == -1);
     vector_iterator_init(&update_it, &sorted);
@@ -313,7 +339,7 @@ Set* createDependenciesSet(Vector* List){
 
 void editCell(Spreadsheet *sheet)
 {
-    printf("Enter command: ");
+    // printf("Enter command: ");
     restore_terminal();
 
     char input_line[MAX_CELL_LENGTH];

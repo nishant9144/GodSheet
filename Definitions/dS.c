@@ -336,9 +336,15 @@ void set_free(Set* set) {
     free_tree(set->root);
     set->root = NULL;
 }
-
 // Set Iterator implementation
 void set_iterator_init(SetIterator* iterator, Set* set) {
+    if(set->root == NULL){
+        iterator->top = 0;
+        iterator->stack = NULL;
+        iterator->capacity = 0;
+        return;
+    }
+
     iterator->capacity = 32; // Initial capacity
     iterator->stack = (AVLNode**)malloc(iterator->capacity * sizeof(AVLNode*));
     iterator->top = 0;
@@ -443,8 +449,8 @@ Vector topological_sort(Set* adjList, int numVertices, Cell** cell_map) {
     return result;
 }
 
-Cell* create_cell(int row, int col) {
-    Cell* cell = (Cell*)malloc(sizeof(Cell));
+void create_cell(Cell* cell, int row, int col) {
+    // Cell* cell = (Cell*)malloc(sizeof(Cell));
     cell->row = row;
     cell->col = (char *)malloc(4 * sizeof(char)); 
     if(cell->col == NULL){fprintf(stderr, "Cell allocation failed. line 458\n"); exit(1);} 
@@ -460,7 +466,7 @@ Cell* create_cell(int row, int col) {
     cell->visited = false;
     cell->in_stack = false;
     cell->is_sleep = false;
-    return cell;
+    return;
 }
 
 void free_cell(Cell* cell) {
@@ -530,7 +536,9 @@ Spreadsheet* create_spreadsheet(int rows, int cols){
     sheet->cells = (Cell**)malloc(rows* sizeof(Cell*));
     for (int i = 0; i < rows; i++) {
         sheet->cells[i] = (Cell*)malloc(cols * sizeof(Cell));
-        for (int j = 0; j < cols; j++) sheet->cells[i][j] = *create_cell(i, j);
+        for (int j = 0; j < cols; j++){
+            create_cell(&sheet->cells[i][j],i,j);
+        };
     }
     printf("Final values before returning: totalRows=%d, totalCols=%d\n",
         sheet->totalRows, sheet->totalCols);

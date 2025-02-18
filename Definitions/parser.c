@@ -525,10 +525,10 @@ void process_command(Spreadsheet *sheet, char *input)
         { // 0 -> cycle, 1 -> no cycle
             if (evaluate_cell(target_cell) == 0) sheet->last_status = STATUS_OK;
             else sheet->last_status = DIV_BY_ZERO;
-            update_dependents(target_cell);
         }
         else sheet->last_status = ERR_CIRCULAR_REFERENCE;
-        set_free(new_deps);
-        new_deps = NULL;
+        // set_free(new_deps);
+        // new_deps = NULL;
     }
+    update_dependents(target_cell);
 }

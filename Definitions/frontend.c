@@ -18,7 +18,7 @@ void configure_terminal() {
     tcgetattr(STDIN_FILENO, &original_term);
     new_term = original_term;
 
-    new_term.c_lflag &= ~(ICANON);  // Disable line buffering
+    // new_term.c_lflag &= ~(ICANON);  // Disable line buffering
     new_term.c_lflag |= ECHO;       // Enable character display
     new_term.c_cc[VMIN] = 1;        // Process input immediately
     new_term.c_cc[VTIME] = 0;       // No timeout
@@ -201,8 +201,9 @@ void run_ui(Spreadsheet *sheet) {
             continue;
 
         // Check for quit command
-        if (strcmp(input, "q") == 0)
+        if (strcmp(input, "q") == 0){
             break;
+        }
 
         // First check for full-string commands
         if (strcmp(input, "disable_output") == 0) {
