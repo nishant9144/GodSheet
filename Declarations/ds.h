@@ -93,9 +93,8 @@ struct Set{
 struct Cell {
     int value;          
     int row; // -> can fix to 3 field.
-    char* formula; 
     int col;  /// max of 3 fields
-    CellType type;     // use bits 
+    CellType type;     // use bits
     int topo_order;
 
     union {
@@ -103,18 +102,18 @@ struct Cell {
         struct {  
             Operation op;       // use bits
             int constant;      
-            Cell* operand1;     
-            Cell* operand2;
+            Cell* operand1;     // pair implementation
+            Cell* operand2;     // pair implmentation
         } arithmetic;
 
         struct {  
-            char* func_name;        
-            int range_size;     
+            char* func_name;        // char* -> char
+            int range_size;
         } function;
     } op_data;
     
     
-    Set* dependents;  
+    Set* dependents;
     Set* dependencies;
     bool is_sleep;
     bool has_error;

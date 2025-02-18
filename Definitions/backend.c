@@ -236,7 +236,7 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
             set_iterator_init(&dep_it, cell->dependencies);
             while (set_iterator_has_next(&dep_it)) {
                 Cell* dep = set_iterator_next(&dep_it);
-                // Only add edge if dependency is in affected_cells
+                // Only add edge if dependency is in affected_cells.
                 if (set_find(&affected_cells, dep->row, dep->col) != NULL) set_add(&adj_list[i], dep->row, dep->col);
             }
             set_iterator_free(&dep_it);

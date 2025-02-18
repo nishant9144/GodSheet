@@ -471,7 +471,6 @@ Cell* create_cell(int row, int col) {
     cell->topo_order = -1;
     cell->type = TYPE_CONSTANT;
     cell->value = 0; // Use 0 as initial value
-    cell->formula = NULL;
     cell->dependents = NULL;
     cell->dependencies = NULL;
     cell->has_error = false;
@@ -480,14 +479,8 @@ Cell* create_cell(int row, int col) {
 }
 
 void free_cell(Cell* cell) {
-    if(cell->formula != NULL){
-        free(cell->formula);
-        cell->formula = NULL;
-    } 
-    // if(cell->error_msg != NULL) free(cell->error_msg);
     if(cell->dependencies != NULL) set_free(cell->dependencies);
     if(cell->dependents != NULL) set_free(cell->dependents);
-    // free(cell);
 }
 
 int colNameToNumber(const char *colName) {

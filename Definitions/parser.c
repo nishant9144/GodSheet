@@ -501,24 +501,15 @@ void process_command(Spreadsheet *sheet, char *input)
 
     Cell *target_cell = &sheet->cells[row][col];
 
-    char *old_formula = target_cell->formula ? strdup(target_cell->formula) : NULL;
-    if(target_cell->formula != NULL) free(target_cell->formula); 
     int old_value = target_cell->value;
     CellType old_type = target_cell->type;
 
-    char *new_formula = strdup(formula);
-    target_cell->formula = new_formula;
 
     Set *new_deps = (Set *)malloc(sizeof(Set));
     set_init(new_deps, sheet);
     // Attempt to parse and validate the new formula
     if (parse_formula(sheet, target_cell, formula, new_deps) != 0)
     {
-        free(target_cell->formula);
-
-        target_cell->formula = old_formula;
-        free(old_formula); old_formula = NULL;
-
         target_cell->value = old_value;
         target_cell->type = old_type;
         free(new_deps);
@@ -527,31 +518,19 @@ void process_command(Spreadsheet *sheet, char *input)
     }
     
 
-    // if (new_deps != NULL)
-    // {
         if (update_dependencies(target_cell, new_deps, sheet) == 1)
         { // 0 -> cycle, 1 -> no cycle
             if (evaluate_cell(target_cell) == 0) {
                 sheet->last_status = STATUS_OK;
-                free(old_formula);
-                old_formula = NULL; 
             }else {
-                target_cell->formula = old_formula;
                 target_cell->value = old_value;
                 sheet->last_status = DIV_BY_ZERO; 
-                free(new_formula);
-                new_formula = NULL;
             }
         }
         else{
-            target_cell->formula = old_formula;
             target_cell->value = old_value;
-            free(new_formula);
-            new_formula = NULL;
             sheet->last_status = ERR_CIRCULAR_REFERENCE;
         }
         if(old_value != target_cell->value) update_dependents(target_cell, sheet);
-        // set_free(new_deps);
-        // new_deps = NULL;
-    // }
+     
 }
