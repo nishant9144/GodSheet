@@ -114,6 +114,7 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
     {
        sheet->last_status=ERR_SYNTAX;
         free(range_copy);
+        range_copy = NULL;
         return -1;
     }
 
@@ -122,6 +123,7 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
     {
         sheet->last_status = ERR_INVALID_RANGE;
         free(range_copy);
+        range_copy = NULL;
         return -1;
     }
 
@@ -134,6 +136,7 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
     }
     target_cell->op_data.function.range_size = (end_row-start_row+1)*(end_col-start_col+1);
     free(range_copy);
+    range_copy = NULL;
     return 0;
 }
 
@@ -320,6 +323,7 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
             stat = -1;
         }
         free(range_str);
+        range_str = NULL;
         return stat;
     }
 
@@ -333,6 +337,7 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     }
 
     free(range_str);
+    range_str = NULL;
     return 0;
 }
 
@@ -509,6 +514,7 @@ void process_command(Spreadsheet *sheet, char *input)
     if (parse_formula(sheet, target_cell, formula, new_deps) != 0)
     {
         free(target_cell->formula);
+        target_cell->formula = NULL;
         target_cell->formula = old_formula;
         target_cell->value = old_value;
         target_cell->type = old_type;
@@ -516,7 +522,10 @@ void process_command(Spreadsheet *sheet, char *input)
         new_deps = NULL;
         return;
     }
-    else free(old_formula);
+    else{
+        free(old_formula);
+        old_formula = NULL;
+    } 
     
 
     if (new_deps != NULL)
@@ -525,10 +534,10 @@ void process_command(Spreadsheet *sheet, char *input)
         { // 0 -> cycle, 1 -> no cycle
             if (evaluate_cell(target_cell) == 0) sheet->last_status = STATUS_OK;
             else sheet->last_status = DIV_BY_ZERO;
-            update_dependents(target_cell);
         }
         else sheet->last_status = ERR_CIRCULAR_REFERENCE;
-        set_free(new_deps);
-        new_deps = NULL;
+        // set_free(new_deps);
+        // new_deps = NULL;
     }
+    update_dependents(target_cell);
 }

@@ -28,6 +28,7 @@ void vector_push_back(Vector* vector, Cell* value) {
 
 void vector_free(Vector* vector) {
     free(vector->data);
+    vector->data = NULL;
 }
 
 // Vector iterator implementation
@@ -87,6 +88,7 @@ void queue_free(Queue* queue) {
     //     }
     // }
     free(queue->data);
+    queue->data = NULL;
 }
 
 // Queue iterator implementation
@@ -133,6 +135,7 @@ void stack_free(Stack* stack) {
     //     free_cell_copy(stack->data[i]);
     // }
     free(stack->data);
+    stack->data = NULL;
 }
 
 // Stack iterator implementation
@@ -286,6 +289,7 @@ static AVLNode* remove_node(AVLNode* root, Cell* cell) {
             } else
                 *root = *temp;
             free(temp);
+            temp = NULL;
         } else {
             AVLNode* temp = min_value_node(root->right);
             root->cell = temp->cell;
@@ -329,12 +333,12 @@ static void free_tree(AVLNode* node) {
         free_tree(node->right);
         // free_cell_copy(node->cell);  // Free the cell copy
         free(node);
+        node = NULL;
     }
 }
 
 void set_free(Set* set) {
     free_tree(set->root);
-    set->root = NULL;
 }
 
 // Set Iterator implementation
@@ -384,6 +388,7 @@ Cell* set_iterator_next(SetIterator* iterator) {
 
 void set_iterator_free(SetIterator* iterator) {
     free(iterator->stack);
+    iterator->stack = NULL;
 }
 
 
@@ -464,8 +469,14 @@ Cell* create_cell(int row, int col) {
 }
 
 void free_cell(Cell* cell) {
-    if(cell->col!=NULL) free(cell->col);
-    if(cell->formula != NULL) free(cell->formula);
+    if(cell->col!=NULL){
+        free(cell->col);
+        cell->col = NULL;
+    } 
+    if(cell->formula != NULL){
+        free(cell->formula);
+        cell->formula = NULL;
+    } 
     // if(cell->error_msg != NULL) free(cell->error_msg);
     if(cell->dependencies != NULL) set_free(cell->dependencies);
     if(cell->dependents != NULL) set_free(cell->dependents);
@@ -546,6 +557,7 @@ void print_spreadsheet(Spreadsheet* sheet){
         printf(" %s ", colname);
     }
     free(colname);
+    colname = NULL;
     printf("\n");
 
     for (int i = 0; i < sheet->totalRows; i++) {
@@ -564,7 +576,10 @@ void free_spreadsheet(Spreadsheet* sheet){
             free_cell(&(sheet->cells[i][j]));
         }
         free(sheet->cells[i]);
+        sheet->cells[i] = NULL;
     }
     free(sheet->cells);
+    sheet->cells = NULL;
     free(sheet);
+    sheet = NULL;
 }
