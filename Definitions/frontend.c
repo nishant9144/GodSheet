@@ -40,7 +40,7 @@ static void get_col_label(int col, char* buffer) {
 
 /* Display 10x10 viewport */
 void display_viewport(Spreadsheet *sheet) {
-    if (!output_enabled) return;
+    if (!sheet->output_enabled) return;
     
     // Print column headers
     printf("    ");
@@ -213,7 +213,7 @@ void run_ui(Spreadsheet *sheet) {
         // If valid, scroll to that cell.
         scroll_to(sheet, row, col);
         sheet->last_status = STATUS_OK;
-        if (output_enabled)
+        if (sheet->output_enabled)
             display_viewport(sheet);
         continue;
 
