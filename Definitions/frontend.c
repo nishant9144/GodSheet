@@ -2,31 +2,20 @@
 #include "../Declarations/frontend.h"
 #include "../Declarations/parser.h" // Add this line to include the declaration of process_command
 
-int output_enabled = 1; // Declared output_enabled variable
+// int output_enabled = 1; // Declared output_enabled variable
 static struct termios original_term;
 
-/* Terminal configuration */
-// void configure_terminal() {
-//     struct termios new_term;
-//     tcgetattr(STDIN_FILENO, &original_term);
-//     new_term = original_term;
-//     new_term.c_lflag &= ~(ICANON | ECHO);
-//     tcsetattr(STDIN_FILENO, TCSANOW, &new_term);
-// }
 void configure_terminal() {
     struct termios new_term;
     tcgetattr(STDIN_FILENO, &original_term);
     new_term = original_term;
 
- //   new_term.c_lflag &= ~(ICANON);  // Disable line buffering
     new_term.c_lflag |= ECHO;       // Enable character display
     new_term.c_cc[VMIN] = 1;        // Process input immediately
     new_term.c_cc[VTIME] = 0;       // No timeout
 
     tcsetattr(STDIN_FILENO, TCSANOW, &new_term);
 }
-
-
 
 void restore_terminal() {
     tcsetattr(STDIN_FILENO, TCSANOW, &original_term);
@@ -48,7 +37,6 @@ static void get_col_label(int col, char* buffer) {
     }
     buffer[len] = '\0';
 }
-
 
 /* Display 10x10 viewport */
 void display_viewport(Spreadsheet *sheet) {
@@ -77,34 +65,9 @@ void display_viewport(Spreadsheet *sheet) {
             printf("%-*d", CELL_WIDTH, cell->value);
         }
         printf("\n");
-    }
-
-    
+    }   
 }
 
-/* Handle scroll commands */
-// void handle_scroll(Spreadsheet *sheet, char direction) {
-//     switch(direction) {
-//         case 'w':  // Up
-//             sheet->scroll_row = (sheet->scroll_row >= 10) 
-//                               ? sheet->scroll_row - 10 
-//                               : 0;
-//             break;
-//         case 's':  // Down
-//             if(sheet->scroll_row + 10 < sheet->totalRows - VIEWPORT_ROWS)
-//                 sheet->scroll_row += 10;
-//             break;
-//         case 'a':  // Left
-//             sheet->scroll_col = (sheet->scroll_col >= 10)
-//                               ? sheet->scroll_col - 10
-//                               : 0;
-//             break;
-//         case 'd':  // Right
-//             if(sheet->scroll_col + 10 < sheet->totalCols - VIEWPORT_COLS)
-//                 sheet->scroll_col += 10;
-//             break;
-//     }
-// }
 void handle_scroll(Spreadsheet *sheet, char direction) {
     printf("Scroll command received: %c\n", direction); // Debug print
 
@@ -137,8 +100,6 @@ void handle_scroll(Spreadsheet *sheet, char direction) {
 
     printf("New Scroll Position -> Row: %d, Col: %d\n", sheet->scroll_row, sheet->scroll_col);
 }
-
-
 
 void scroll_to(Spreadsheet *sheet, int row, int col) {
     // Ensure row and col are within valid bounds
@@ -217,21 +178,20 @@ void run_ui(Spreadsheet *sheet) {
 
         // First check for full-string commands
         if (strcmp(input, "disable_output") == 0) {
-            output_enabled = 0;
+            sheet->output_enabled = 0;
             sheet->last_status = STATUS_OK;
             printf("Output disabled.\n");
             continue;
         }
 
         if (strcmp(input, "enable_output") == 0) {
-            output_enabled = 1;
+            sheet->output_enabled = 1;
             sheet->last_status = STATUS_OK;
             display_viewport(sheet); // Show UI again after enabling output
             printf("Output enabled.\n");
             continue;
         }
-
-        
+    
         if (strncmp(input, "goto ", 5) == 0) {
             char cell_ref[10];
             sscanf(input + 5, "%s", cell_ref);
@@ -242,7 +202,7 @@ void run_ui(Spreadsheet *sheet) {
             }
             col = col - 1;  // Convert to 0-based index
             int row = atoi(cell_ref + i) - 1;  // Convert to 0-based index
-            
+
             // Check if the requested cell is within bounds:
         if (row < 0 || row >= sheet->totalRows || col < 0 || col >= sheet->totalCols) {
             sheet->last_status = ERR_INVALID_CELL;
@@ -256,14 +216,14 @@ void run_ui(Spreadsheet *sheet) {
         if (output_enabled)
             display_viewport(sheet);
         continue;
+
         }
 
-        
         // If input is a single character and that character is one of "wasd", treat it as a scroll command
         if (strlen(input) == 1 && strchr("wasd", input[0]) != NULL) {
             handle_scroll(sheet, input[0]);
             sheet->last_status = STATUS_OK;
-            if (output_enabled)
+            if (sheet->output_enabled)
                 display_viewport(sheet);
             continue;
         } else {

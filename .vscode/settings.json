@@ -5,6 +5,7 @@
         "stdio.h": "c",
         "stdlib.h": "c",
         "frontend.h": "c",
-        "header.h": "c"
+        "header.h": "c",
+        "backend.h": "c"
     }
 }

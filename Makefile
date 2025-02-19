@@ -60,7 +60,7 @@
 # language: makefile
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g
+CFLAGS = -Wall -Wextra -std=c99 -g -O2
 LDFLAGS = -lm
 
 # Directories

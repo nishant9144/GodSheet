@@ -10,6 +10,7 @@ typedef struct Queue Queue;
 typedef struct Stack Stack;
 typedef struct AVLNode AVLNode;
 typedef struct Set Set;
+typedef struct Spreadsheet Spreadsheet;
 
 // Enums
 typedef enum
@@ -27,11 +28,19 @@ typedef enum
 
 typedef enum
 {
-    TYPE_EMPTY,
-    TYPE_CONSTANT,
-    TYPE_REFERENCE,  // References another cell (e.g., =A1)
-    TYPE_ARITHMETIC, // Simple arithmetic (e.g., =A1+1)
-    TYPE_FUNCTION,   // Functions like MIN, MAX, etc.
+    MIN, //->A
+    MAX, //->B
+    AVG, //->C
+    SUM, //->D
+    STDEV, //->E
+} FunctionName;
+
+typedef enum
+{
+    TYPE_CONSTANT,   // C
+    TYPE_REFERENCE,  // R
+    TYPE_ARITHMETIC, // A
+    TYPE_FUNCTION,   // F
 } CellType;
 
 typedef enum
@@ -43,167 +52,176 @@ typedef enum
     OP_DIV
 } Operation;
 
-// Data structure definitions
-struct Vector {
-    Cell** data;
+// Basic pair structure needed internally
+typedef struct {
+    short i;
+    short j;
+} Pair;
+
+// Vector implementation
+struct Vector{
     size_t size;
     size_t capacity;
+    Pair* data;
+    Spreadsheet* sheet;
 };
 
-struct Queue {
-    Cell** data;
+// Queue implementation
+struct Queue{
     size_t capacity;
-    size_t size;
     size_t front;
     size_t rear;
+    size_t size;
+    Pair* data;
+    Spreadsheet* sheet;
 };
 
-struct Stack {
-    Cell** data;
+// Stack implementation
+struct Stack{
     size_t size;
     size_t capacity;
+    Pair* data;
+    Spreadsheet* sheet;
 };
 
+// AVL Tree Node
 struct AVLNode {
-    Cell* cell;
+    Pair pair;
     struct AVLNode* left;
     struct AVLNode* right;
     int height;
 };
 
-struct Set {
+// Set implementation
+struct Set{
     AVLNode* root;
+    Spreadsheet* sheet;
+    char type;
 };
 
 // Cell structure definition
 struct Cell {
     int value;          
-    char* formula; 
-    int row; // -> can fix to 3 field.
-    char* col;  /// max of 3 fields
-    CellType type;     // use bits 
-
+    short row; // -> can fix to 3 field.
+    short col;  /// max of 3 fields
+    int topo_order;
+    bool is_sleep;
+    bool has_error;
     union {
+        Cell* ref;
         struct {  
             Operation op;       // use bits
-            Cell* operand1;     
-            Cell* operand2;
             int constant;      
+            // Cell* operand1;
+            Pair operand1;     // pair implementation
+            // Cell* operand2;
+            Pair operand2;     // pair implmentation
         } arithmetic;
 
         struct {  
-            char* func_name;    
-            // Cell** range;      
-            int range_size;     
+            char func_name;
+            int range_size;
         } function;
-        Cell* ref;
     } op_data;
     
-    bool is_sleep;
-
-    Set* dependents;  
+    Set* dependents;
     Set* dependencies;
-    
-    bool has_error;     
-    char* error_msg;    
-    
-    bool visited;      
-    bool in_stack;     
-    int topo_order;    
+    char type;     // use bits
 };
 
 // Spreadsheet structure
-typedef struct {
+struct Spreadsheet{
     Cell **cells;
     int totalRows;
     int totalCols;
     int scroll_row;
     int scroll_col;
-    int mode;
-    int cursorRow;
-    int cursorCol;
-    bool output_enabled;
-    struct timeval last_cmd_time;
-    double last_processing_time;
     CalcStatus last_status;
-} Spreadsheet;
+    struct timeval last_cmd_time;
+    bool output_enabled;
+    double last_processing_time;
+};
 
-// Iterator structures
+// Vector iterator
 typedef struct {
     Vector* vector;
     size_t index;
 } VectorIterator;
 
+
+// Queue iterator
 typedef struct {
     Queue* queue;
     size_t index;
 } QueueIterator;
 
+// Stack iterator
 typedef struct {
     Stack* stack;
     size_t index;
 } StackIterator;
 
 typedef struct {
-    AVLNode** stack;
+    Set* set;
     size_t capacity;
+    AVLNode** stack;
     size_t top;
 } SetIterator;
 
+
 // Function declarations
-void vector_init(Vector* vector);
-void vector_push_back(Vector* vector, Cell* value);
+void vector_init(Vector* vector, Spreadsheet* sheet);
+void vector_push_back(Vector* vector, short row, short col);
 void vector_free(Vector* vector);
 
 void vector_iterator_init(VectorIterator* iterator, Vector* vector);
-int vector_iterator_has_next(VectorIterator* iterator);
+bool vector_iterator_has_next(VectorIterator* iterator);
 Cell* vector_iterator_next(VectorIterator* iterator);
 
-void queue_init(Queue* queue, size_t capacity);
-int queue_is_full(Queue* queue);
-int queue_is_empty(Queue* queue);
-void queue_enqueue(Queue* queue, Cell* value);
+void queue_init(Queue* queue, size_t capacity, Spreadsheet* sheet);
+bool queue_is_full(Queue* queue);
+bool queue_is_empty(Queue* queue);
+void queue_enqueue(Queue* queue, short row, short col);
 Cell* queue_dequeue(Queue* queue);
 void queue_free(Queue* queue);
 
 void queue_iterator_init(QueueIterator* iterator, Queue* queue);
-int queue_iterator_has_next(QueueIterator* iterator);
+bool queue_iterator_has_next(QueueIterator* iterator);
 Cell* queue_iterator_next(QueueIterator* iterator);
 
-void stack_init(Stack* stack);
-void stack_push(Stack* stack, Cell* value);
+void stack_init(Stack* stack, Spreadsheet* sheet);
+void stack_push(Stack* stack, short row, short col);
 Cell* stack_pop(Stack* stack);
 void stack_free(Stack* stack);
 
 void stack_iterator_init(StackIterator* iterator, Stack* stack);
-int stack_iterator_has_next(StackIterator* iterator);
+bool stack_iterator_has_next(StackIterator* iterator);
 Cell* stack_iterator_next(StackIterator* iterator);
 
-void set_init(Set* set);
-void set_add(Set* set, Cell* cell);
-Cell* set_find(Set* set, Cell* cell);
-void set_remove(Set* set, Cell* cell);
+void set_init(Set* set, Spreadsheet* sheet);
+void set_add(Set* set, short row, short col);
+Cell* set_find(Set* set, short row, short col);
+void set_remove(Set* set, short row, short col);
 void set_free(Set* set);
 
 void set_iterator_init(SetIterator* iterator, Set* set);
-int set_iterator_has_next(SetIterator* iterator);
+bool set_iterator_has_next(SetIterator* iterator);
 Cell* set_iterator_next(SetIterator* iterator);
 void set_iterator_free(SetIterator* iterator);
 
 
 
-int compare_cells_position(Cell* cell1, Cell* cell2);
 void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted);
-Vector topological_sort(Set* adjList, int numVertices, Cell** cell_map);
+void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet);
 
 
-Cell* create_cell(int row, int col);
+void create_cell(short row, short col, Cell* Cell);
 void free_cell(Cell* cell);
 
-int colNameToNumber(const char *colName);
-void colNumberToName(int colNumber, char *colName);
+short colNameToNumber(const char *colName);
+void colNumberToName(short colNumber, char *colName);
 // void print_cell(Cell* cell);
-Spreadsheet* create_spreadsheet(int rows, int cols);
+Spreadsheet* create_spreadsheet(short rows, short cols);
 void print_spreadsheet(Spreadsheet* sheet);
 void free_spreadsheet(Spreadsheet* sheet);
 
