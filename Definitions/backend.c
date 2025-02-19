@@ -42,32 +42,97 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
 
     // Remove current cell from the dependents set of old dependencies
     if(old_deps != NULL){
-        SetIterator old_it;
-        set_iterator_init(&old_it, old_deps);
-        while (set_iterator_has_next(&old_it)) {
-            Cell* old_dep = set_iterator_next(&old_it);
-            if (old_dep->dependents != NULL) set_remove(old_dep->dependents, curr_cell->row, curr_cell->col);
+        if(curr_cell->dependencies->type == 'F'){
+            SetIterator old_it;
+            set_iterator_init(&old_it, curr_cell->dependencies);
+            Cell *temp, *dep2, *dep3;
+            bool cnt = 0;
+            while ((temp = set_iterator_next(&old_it)) != NULL)
+            {
+                if(!cnt){
+                    dep2 = temp;
+                    cnt = 1;
+                }else{
+                    dep3 = temp;
+                    break;
+                }
+            }
+            set_iterator_free(&old_it);
+
+            short r1 = dep2->row, c1 = dep2->col;
+            short r2 = dep3->row, c2 = dep3->col;
+
+            for (short i = r1; i <= r2; i++)
+            {
+                for (short j = c1; j <= c2; j++)
+                {
+                    Cell* old_dep = &sheet->cells[i][j];
+                    if (old_dep->dependents != NULL) set_remove(old_dep->dependents, curr_cell->row, curr_cell->col);
+                }
+            }
+        }else{
+            SetIterator old_it;
+            set_iterator_init(&old_it, old_deps);
+            while (set_iterator_has_next(&old_it)) {
+                Cell* old_dep = set_iterator_next(&old_it);
+                if (old_dep->dependents != NULL) set_remove(old_dep->dependents, curr_cell->row, curr_cell->col);
+            }
+            set_iterator_free(&old_it);
         }
-        set_iterator_free(&old_it);
+
     }
 
 
     // Add current cell to the dependents set of new dependencies
     if(new_dependencies != NULL){
-        SetIterator new_it;
-        set_iterator_init(&new_it, new_dependencies);
-        // printf("$ New dependencies: ");
-        while (set_iterator_has_next(&new_it)) {
-            Cell* new_dep = set_iterator_next(&new_it);
-            // print_cell(new_dep);
-            if (new_dep->dependents == NULL) {
-                new_dep->dependents = (Set*)malloc(sizeof(Set));
-                set_init(new_dep->dependents, sheet);
+        if(new_dependencies->type == 'F'){
+            SetIterator new_it;
+            set_iterator_init(&new_it, new_dependencies);
+            Cell *temp, *dep2, *dep3;
+            bool cnt = 0;
+            while ((temp = set_iterator_next(&new_it)) != NULL)
+            {
+                if(!cnt){
+                    dep2 = temp;
+                    cnt = 1;
+                }else{
+                    dep3 = temp;
+                    break;
+                }
             }
-            set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
-            // print_dependents(new_dep);
+            set_iterator_free(&new_it);
+
+            short r1 = dep2->row, c1 = dep2->col;
+            short r2 = dep3->row, c2 = dep3->col;
+
+            for (short i = r1; i <= r2; i++)
+            {
+                for (short j = c1; j <= c2; j++)
+                {
+                    Cell* new_dep = &sheet->cells[i][j];
+                    if (new_dep->dependents == NULL) {
+                        new_dep->dependents = (Set*)malloc(sizeof(Set));
+                        set_init(new_dep->dependents, sheet);
+                    }
+                    set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
+                }
+            }
+        }else{
+            SetIterator new_it;
+            set_iterator_init(&new_it, new_dependencies);
+            // printf("$ New dependencies: ");
+            while (set_iterator_has_next(&new_it)) {
+                Cell* new_dep = set_iterator_next(&new_it);
+                // print_cell(new_dep);
+                if (new_dep->dependents == NULL) {
+                    new_dep->dependents = (Set*)malloc(sizeof(Set));
+                    set_init(new_dep->dependents, sheet);
+                }
+                set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
+                // print_dependents(new_dep);
+            }
+            set_iterator_free(&new_it);
         }
-        set_iterator_free(&new_it);
     }
     // printf("\n");
 
@@ -78,27 +143,99 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
 
         // Remove current cell from the dependents set of new dependencies
         if(new_dependencies != NULL){
-            SetIterator new_it;
-            set_iterator_init(&new_it, new_dependencies);
-            while (set_iterator_has_next(&new_it)) {
-                Cell* new_dep = set_iterator_next(&new_it);
-                if (new_dep->dependents != NULL) set_remove(new_dep->dependents, curr_cell->row, curr_cell->col);
+
+            if(new_dependencies->type == 'F'){
+
+                SetIterator new_it;
+                set_iterator_init(&new_it, new_dependencies);
+                Cell *temp, *dep2, *dep3;
+                bool cnt = 0;
+                while ((temp = set_iterator_next(&new_it)) != NULL)
+                {
+                    if(!cnt){
+                        dep2 = temp;
+                        cnt = 1;
+                    }else{
+                        dep3 = temp;
+                        break;
+                    }
+                }
+                set_iterator_free(&new_it);
+
+                short r1 = dep2->row, c1 = dep2->col;
+                short r2 = dep3->row, c2 = dep3->col;
+
+                for (short i = r1; i <= r2; i++)
+                {
+                    for (short j = c1; j <= c2; j++)
+                    {
+                        Cell* new_dep = &sheet->cells[i][j];
+                        if (new_dep->dependents != NULL) set_remove(new_dep->dependents, curr_cell->row, curr_cell->col);
+                    }
+                }
+
+            }else{
+
+                SetIterator new_it;
+                set_iterator_init(&new_it, new_dependencies);
+                while (set_iterator_has_next(&new_it)) {
+                    Cell* new_dep = set_iterator_next(&new_it);
+                    if (new_dep->dependents != NULL) set_remove(new_dep->dependents, curr_cell->row, curr_cell->col);
+                }
+                set_iterator_free(&new_it);
+
             }
-            set_iterator_free(&new_it);
+
         }
         // Re-add current cell to the dependents set of old dependencies
         if(old_deps != NULL){
-            SetIterator old_it;
-            set_iterator_init(&old_it, old_deps);
-            while (set_iterator_has_next(&old_it)) {
-                Cell* old_dep = set_iterator_next(&old_it);
-                if (old_dep->dependents == NULL) {
-                    old_dep->dependents = (Set*)malloc(sizeof(Set));
-                    set_init(old_dep->dependents, sheet);
+
+            if(old_deps->type == 'F'){
+                SetIterator old_it;
+                set_iterator_init(&old_it, curr_cell->dependencies);
+                Cell *temp, *dep2, *dep3;
+                bool cnt = 0;
+                while ((temp = set_iterator_next(&old_it)) != NULL)
+                {
+                    if(!cnt){
+                        dep2 = temp;
+                        cnt = 1;
+                    }else{
+                        dep3 = temp;
+                        break;
+                    }
                 }
-                set_add(old_dep->dependents, curr_cell->row, curr_cell->col);
+                set_iterator_free(&old_it);
+
+                short r1 = dep2->row, c1 = dep2->col;
+                short r2 = dep3->row, c2 = dep3->col;
+
+                for (short i = r1; i <= r2; i++)
+                {
+                    for (short j = c1; j <= c2; j++)
+                    {
+                        Cell* old_dep = &sheet->cells[i][j];
+                        if (old_dep->dependents == NULL) {
+                            old_dep->dependents = (Set*)malloc(sizeof(Set));
+                            set_init(old_dep->dependents, sheet);
+                        }
+                        set_add(old_dep->dependents, curr_cell->row, curr_cell->col);
+                    }
+                }
+            }else{
+                SetIterator old_it;
+                set_iterator_init(&old_it, old_deps);
+                while (set_iterator_has_next(&old_it)) {
+                    Cell* old_dep = set_iterator_next(&old_it);
+                    if (old_dep->dependents == NULL) {
+                        old_dep->dependents = (Set*)malloc(sizeof(Set));
+                        set_init(old_dep->dependents, sheet);
+                    }
+                    set_add(old_dep->dependents, curr_cell->row, curr_cell->col);
+                }
+                set_iterator_free(&old_it);
             }
-            set_iterator_free(&old_it);
+
         }
 
 
@@ -119,32 +256,72 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
 }
 
 // Helper function for circular dependency check
-bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack) {
+bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack, Spreadsheet* sheet) {
     // Mark current cell as visited and add to recursion stack
     set_add(visited, curr_cell->row, curr_cell->col);
     set_add(recursion_stack, curr_cell->row, curr_cell->col);
 
     // Visit all dependencies
     if (curr_cell->dependencies != NULL) {
-        SetIterator it;
-        set_iterator_init(&it, curr_cell->dependencies);
-        while (set_iterator_has_next(&it)) {
-            Cell* dep = set_iterator_next(&it);
-            
-            // If not visited, recurse
-            if (set_find(visited, dep->row, dep->col) == NULL) {
-                if (detect_cycle_dfs(dep, visited, recursion_stack)) {
+
+        if(curr_cell->dependencies->type == 'F'){
+            SetIterator new_it;
+            set_iterator_init(&new_it, curr_cell->dependencies);
+            Cell *temp, *dep2, *dep3;
+            bool cnt = 0;
+            while ((temp = set_iterator_next(&new_it)) != NULL)
+            {
+                if(!cnt){
+                    dep2 = temp;
+                    cnt = 1;
+                }else{
+                    dep3 = temp;
+                    break;
+                }
+            }
+            set_iterator_free(&new_it);
+
+            short r1 = dep2->row, c1 = dep2->col;
+            short r2 = dep3->row, c2 = dep3->col;
+
+            for (short i = r1; i <= r2; i++)
+            {
+                for (short j = c1; j <= c2; j++)
+                {
+                    Cell * dep = &sheet->cells[i][j];
+                    
+                    if (set_find(visited, dep->row, dep->col) == NULL) {
+                        if (detect_cycle_dfs(dep, visited, recursion_stack, sheet)) {
+                            return true;
+                        }
+                    }
+                    // If already in recursion stack, we found a cycle
+                    else if (set_find(recursion_stack, dep->row, dep->col) != NULL) {
+                        return true;
+                    }                    
+                }
+            }
+        }else{
+            SetIterator it;
+            set_iterator_init(&it, curr_cell->dependencies);
+            while (set_iterator_has_next(&it)) {
+                Cell* dep = set_iterator_next(&it);
+                
+                // If not visited, recurse
+                if (set_find(visited, dep->row, dep->col) == NULL) {
+                    if (detect_cycle_dfs(dep, visited, recursion_stack, sheet)) {
+                        set_iterator_free(&it);
+                        return true;
+                    }
+                }
+                // If already in recursion stack, we found a cycle
+                else if (set_find(recursion_stack, dep->row, dep->col) != NULL) {
                     set_iterator_free(&it);
                     return true;
                 }
             }
-            // If already in recursion stack, we found a cycle
-            else if (set_find(recursion_stack, dep->row, dep->col) != NULL) {
-                set_iterator_free(&it);
-                return true;
-            }
+            set_iterator_free(&it);
         }
-        set_iterator_free(&it);
     }
 
     // Remove from recursion stack and return
@@ -157,7 +334,7 @@ bool check_circular_dependencies(Cell* curr_cell, Spreadsheet* sheet) {
     set_init(&visited, sheet);
     set_init(&recursion_stack, sheet);
 
-    bool has_cycle = detect_cycle_dfs(curr_cell, &visited, &recursion_stack);
+    bool has_cycle = detect_cycle_dfs(curr_cell, &visited, &recursion_stack, sheet);
 
     set_free(&visited);
     set_free(&recursion_stack);
@@ -238,14 +415,47 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
     for (int i = 1; i <= num_cells; i++) {
         Cell* cell = cell_map[i];
         if (cell->dependencies != NULL) {
-            SetIterator dep_it;
-            set_iterator_init(&dep_it, cell->dependencies);
-            while (set_iterator_has_next(&dep_it)) {
-                Cell* dep = set_iterator_next(&dep_it);
-                // Only add edge if dependency is in affected_cells.
-                if (set_find(&affected_cells, dep->row, dep->col) != NULL) set_add(&adj_list[i], dep->row, dep->col);
+            if(cell->dependencies->type == 'F'){
+                SetIterator dep_it;
+                set_iterator_init(&dep_it, cell->dependencies);
+                Cell *dep2, *dep3;
+                Cell *temp; bool cnt = 0;
+                while ((temp = set_iterator_next(&dep_it)) != NULL)
+                {
+                    if(!cnt){
+                        dep2 = temp;
+                        cnt = 1;
+                    }else{
+                        dep3 = temp;
+                        break;
+                    }
+                }
+                set_iterator_free(&dep_it);
+
+                short r1 = dep2->row, c1 = dep2->col;
+                short r2 = dep3->row, c2 = dep3->col;
+
+                for (short i = r1; i <= r2; i++)
+                {
+                    for (short j = c1; j <= c2; j++)
+                    {
+                        Cell* dep = &sheet->cells[i][j];
+                        // Only add edge if dependency is in affected_cells.
+                        if (set_find(&affected_cells, dep->row, dep->col) != NULL) set_add(&adj_list[i], dep->row, dep->col);
+                    }
+                }
+
+            }else{
+                SetIterator dep_it;
+                set_iterator_init(&dep_it, cell->dependencies);
+                while (set_iterator_has_next(&dep_it)) {
+                    Cell* dep = set_iterator_next(&dep_it);
+                    // Only add edge if dependency is in affected_cells.
+                    if (set_find(&affected_cells, dep->row, dep->col) != NULL) set_add(&adj_list[i], dep->row, dep->col);
+                }
+                set_iterator_free(&dep_it);
             }
-            set_iterator_free(&dep_it);
+
         }
     }
 
@@ -345,25 +555,65 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
             int min_val = INT_MAX, max_val = INT_MIN;
             double sum_sq = 0.0;
 
-            SetIterator it;
-            set_iterator_init(&it, cell->dependencies);
-            Cell *dep;
-            while ((dep = set_iterator_next(&it)) != NULL)
+            // SetIterator it;
+            // set_iterator_init(&it, cell->dependencies);
+            // Cell *dep;
+            // while ((dep = set_iterator_next(&it)) != NULL)
+            // {
+            //     int dep_val = dep->value;
+            //     if (dep->has_error)
+            //     {
+            //         cell->has_error = true;
+            //         set_iterator_free(&it);
+            //         return -1;
+            //     }
+            //     sum += dep_val;
+            //     if (dep_val < min_val) min_val = dep_val;
+            //     if (dep_val > max_val) max_val = dep_val;
+            //     sum_sq += dep_val * dep_val;
+            //     count++;
+            // }
+            // set_iterator_free(&it);
+
+
+            SetIterator it2;
+            set_iterator_init(&it2, cell->dependencies);
+            Cell *temp, *dep2, *dep3;
+            bool cnt = 0;
+            while ((temp = set_iterator_next(&it2)) != NULL)
             {
-                int dep_val = dep->value;
-                if (dep->has_error)
-                {
-                    cell->has_error = true;
-                    set_iterator_free(&it);
-                    return -1;
+                if(!cnt){
+                    dep2 = temp;
+                    cnt = 1;
+                }else{
+                    dep3 = temp;
+                    break;
                 }
-                sum += dep_val;
-                if (dep_val < min_val) min_val = dep_val;
-                if (dep_val > max_val) max_val = dep_val;
-                sum_sq += dep_val * dep_val;
-                count++;
             }
-            set_iterator_free(&it);
+            set_iterator_free(&it2);
+
+            short r1 = dep2->row, c1 = dep2->col;
+            short r2 = dep3->row, c2 = dep3->col;
+
+            for (short i = r1; i <= r2; i++)
+            {
+                for (short j = c1; j <= c2; j++)
+                {
+                    int dep_val = sheet->cells[i][j].value;
+                    if (sheet->cells[i][j].has_error)
+                    {
+                        cell->has_error = true;
+                        return -1;
+                    }
+                    sum += dep_val;
+                    if (dep_val < min_val) min_val = dep_val;
+                    if (dep_val > max_val) max_val = dep_val;
+                    sum_sq += dep_val * dep_val;
+                    count++;
+                }
+            }
+            
+            
             if (count == 0)
             {
                 cell->has_error = true; return -1;

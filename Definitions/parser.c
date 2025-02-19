@@ -127,13 +127,10 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
         return -1;
     }
 
-    for (int i = start_row; i <= end_row; i++)
-    {
-        for (int j = start_col; j <= end_col; j++)
-        {
-            set_add(new_deps, i, j);
-        }
-    }
+    set_add(new_deps, start_row, start_col);
+    set_add(new_deps, end_row, end_col);
+    new_deps->type = 'F';
+
     target_cell->op_data.function.range_size = (end_row-start_row+1)*(end_col-start_col+1);
     free(range_copy);
     range_copy = NULL;
@@ -261,6 +258,7 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
         target_cell->type = 'C';
         target_cell->value = evaluated;
     }
+    new_deps->type = 'C';
     return 0;
 }
 
@@ -444,6 +442,7 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
         cell->type = 'R';
         cell->op_data.ref = &sheet->cells[row][col];
         set_add(new_deps, row, col);
+        new_deps->type = 'C';
     }
     else
     {

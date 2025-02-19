@@ -207,6 +207,7 @@ static AVLNode* left_rotate(AVLNode* x) {
 void set_init(Set* set, Spreadsheet* sheet) {
     set->root = NULL;
     set->sheet = sheet;
+    set->type = 'C';
 }
 
 static AVLNode* insert(AVLNode* node, short row, short col) {

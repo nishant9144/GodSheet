@@ -96,6 +96,7 @@ struct AVLNode {
 struct Set{
     AVLNode* root;
     Spreadsheet* sheet;
+    char type;
 };
 
 // Cell structure definition
