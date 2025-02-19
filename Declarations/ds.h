@@ -139,6 +139,7 @@ struct Spreadsheet{
     CalcStatus last_status;
     struct timeval last_cmd_time;
     bool output_enabled;
+    double last_processing_time;
 };
 
 // Vector iterator

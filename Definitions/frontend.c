@@ -10,7 +10,6 @@ void configure_terminal() {
     tcgetattr(STDIN_FILENO, &original_term);
     new_term = original_term;
 
-    // new_term.c_lflag &= ~(ICANON);  // Disable line buffering
     new_term.c_lflag |= ECHO;       // Enable character display
     new_term.c_cc[VMIN] = 1;        // Process input immediately
     new_term.c_cc[VTIME] = 0;       // No timeout
@@ -41,8 +40,7 @@ static void get_col_label(int col, char* buffer) {
 
 /* Display 10x10 viewport */
 void display_viewport(Spreadsheet *sheet) {
-    if (!sheet->output_enabled) return;
-    printf(CLEAR_SCREEN);
+    if (!output_enabled) return;
     
     // Print column headers
     printf("    ");
@@ -130,24 +128,34 @@ void scroll_to(Spreadsheet *sheet, int row, int col) {
 void run_ui(Spreadsheet *sheet) {
     struct timeval start_time, end_time;
     char input[100];  // Fixed buffer size for input
+    sheet->last_processing_time = 0.0; //Initialize last_processing_time to 0.0
+
+    display_viewport(sheet);
+    printf("----------------------------------------------------------------------\n"); // Separator
+
     
     while(1) {
-        gettimeofday(&start_time, NULL);
         
-        // Display current view
-        display_viewport(sheet);
         
-        // Calculate elapsed time since last command
-        double elapsed = (start_time.tv_sec - sheet->last_cmd_time.tv_sec) +
-                 (start_time.tv_usec - sheet->last_cmd_time.tv_usec) / 1000000.0;
+       // Initial displ ay
+        // display_viewport(sheet);
+        
+        // // Calculate elapsed time since last command
+        // double elapsed = (start_time.tv_sec - sheet->last_cmd_time.tv_sec) +
+        //          (start_time.tv_usec - sheet->last_cmd_time.tv_usec) / 1000000.0;
 
-        // Avoid printing a huge number if uninitialized
-        if (elapsed > 10000 || elapsed < 0) {
-            elapsed = 0.0;
-        }
+        // // Avoid printing a huge number if uninitialized
+        // if (elapsed > 10000 || elapsed < 0) {
+        //     elapsed = 0.0;
+        // }
         
-        // Show prompt with status
-        printf("[%.1f] (%s) > ", elapsed, 
+        // // Show prompt with status
+        // printf("[%.1f] (%s) > ", elapsed, 
+        //        sheet->last_status == STATUS_OK ? "ok" : "error");
+        // fflush(stdout);
+
+        // Show prompt with the LAST command's processing time
+        printf("[%.1f] (%s) > ", sheet->last_processing_time,
                sheet->last_status == STATUS_OK ? "ok" : "error");
         fflush(stdout);
         
@@ -156,8 +164,10 @@ void run_ui(Spreadsheet *sheet) {
         input[strcspn(input, "\n")] = '\0';  // Remove newline
         printf("Input received: %s (ASCII: %d)\n", input, input[0]); // Debugging
 
+        // Start timing
+        gettimeofday(&start_time, NULL);
+
         
-        // Handle commands
         // Handle commands
         if (strlen(input) == 0)
             continue;
@@ -170,6 +180,7 @@ void run_ui(Spreadsheet *sheet) {
         if (strcmp(input, "disable_output") == 0) {
             sheet->output_enabled = 0;
             sheet->last_status = STATUS_OK;
+            printf("Output disabled.\n");
             continue;
         }
 
@@ -177,6 +188,7 @@ void run_ui(Spreadsheet *sheet) {
             sheet->output_enabled = 1;
             sheet->last_status = STATUS_OK;
             display_viewport(sheet); // Show UI again after enabling output
+            printf("Output enabled.\n");
             continue;
         }
     
@@ -190,14 +202,23 @@ void run_ui(Spreadsheet *sheet) {
             }
             col = col - 1;  // Convert to 0-based index
             int row = atoi(cell_ref + i) - 1;  // Convert to 0-based index
-            scroll_to(sheet, row, col);
-            sheet->last_status = STATUS_OK;
-            if (sheet->output_enabled)
-                display_viewport(sheet);
-            continue;
+
+            // Check if the requested cell is within bounds:
+        if (row < 0 || row >= sheet->totalRows || col < 0 || col >= sheet->totalCols) {
+            sheet->last_status = ERR_INVALID_CELL;
+            printf("Error: Target cell is out of bounds.\n");
+            continue; // Skip further processing of this command.
+        }
+        
+        // If valid, scroll to that cell.
+        scroll_to(sheet, row, col);
+        sheet->last_status = STATUS_OK;
+        if (output_enabled)
+            display_viewport(sheet);
+        continue;
+
         }
 
-        
         // If input is a single character and that character is one of "wasd", treat it as a scroll command
         if (strlen(input) == 1 && strchr("wasd", input[0]) != NULL) {
             handle_scroll(sheet, input[0]);
@@ -205,18 +226,34 @@ void run_ui(Spreadsheet *sheet) {
             if (sheet->output_enabled)
                 display_viewport(sheet);
             continue;
+        } else {
+            // Otherwise, process formula or other commands
+            process_command(sheet, input);
         }
 
-        // Otherwise, process formula or other commands
-        process_command(sheet, input);
         
+         // Display updated spreadsheet after command
+         display_viewport(sheet);
+         printf("----------------------------------------------------------------------\n"); // Separator
+         
         // Update last command time
         gettimeofday(&end_time, NULL);
+        // sheet->last_cmd_time = end_time;
+
+        // // Calculate and print the time taken to process the command
+        // double processing_time = (end_time.tv_sec - start_time.tv_sec) +
+        //                          (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        // printf("Processing time: %.6f seconds\n", processing_time);
+
+        
+        // Calculate processing time for THIS command
+        sheet->last_processing_time = 
+            (end_time.tv_sec - start_time.tv_sec) +
+            (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+
+        // Update last command time (if needed elsewhere)
         sheet->last_cmd_time = end_time;
 
-        // Calculate and print the time taken to process the command
-        double processing_time = (end_time.tv_sec - start_time.tv_sec) +
-                                 (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-        printf("Processing time: %.6f seconds\n", processing_time);
+       
     }
 }
