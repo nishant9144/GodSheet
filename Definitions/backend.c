@@ -45,7 +45,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
         if(curr_cell->dependencies->type == 'F'){
             SetIterator old_it;
             set_iterator_init(&old_it, curr_cell->dependencies);
-            Cell *temp, *dep2, *dep3;
+            Cell *temp = NULL, *dep2 = NULL, *dep3 = NULL;
             bool cnt = 0;
             while ((temp = set_iterator_next(&old_it)) != NULL)
             {
@@ -88,7 +88,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
         if(new_dependencies->type == 'F'){
             SetIterator new_it;
             set_iterator_init(&new_it, new_dependencies);
-            Cell *temp, *dep2, *dep3;
+            Cell *temp = NULL, *dep2 = NULL, *dep3 = NULL;
             bool cnt = 0;
             while ((temp = set_iterator_next(&new_it)) != NULL)
             {
@@ -148,7 +148,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
 
                 SetIterator new_it;
                 set_iterator_init(&new_it, new_dependencies);
-                Cell *temp, *dep2, *dep3;
+                Cell *temp = NULL, *dep2 = NULL, *dep3 = NULL;
                 bool cnt = 0;
                 while ((temp = set_iterator_next(&new_it)) != NULL)
                 {
@@ -193,7 +193,7 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
             if(old_deps->type == 'F'){
                 SetIterator old_it;
                 set_iterator_init(&old_it, curr_cell->dependencies);
-                Cell *temp, *dep2, *dep3;
+                Cell *temp = NULL, *dep2 = NULL, *dep3 = NULL;
                 bool cnt = 0;
                 while ((temp = set_iterator_next(&old_it)) != NULL)
                 {
@@ -267,7 +267,7 @@ bool detect_cycle_dfs(Cell* curr_cell, Set* visited, Set* recursion_stack, Sprea
         if(curr_cell->dependencies->type == 'F'){
             SetIterator new_it;
             set_iterator_init(&new_it, curr_cell->dependencies);
-            Cell *temp, *dep2, *dep3;
+            Cell *temp = NULL, *dep2 = NULL, *dep3 = NULL;
             bool cnt = 0;
             while ((temp = set_iterator_next(&new_it)) != NULL)
             {
@@ -418,7 +418,7 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
             if(cell->dependencies->type == 'F'){
                 SetIterator dep_it;
                 set_iterator_init(&dep_it, cell->dependencies);
-                Cell *dep2, *dep3;
+                Cell *dep2 = NULL, *dep3 = NULL;
                 Cell *temp; bool cnt = 0;
                 while ((temp = set_iterator_next(&dep_it)) != NULL)
                 {
@@ -501,9 +501,10 @@ void editCell(Spreadsheet *sheet)
     restore_terminal();
 
     char input_line[MAX_CELL_LENGTH];
-    fgets(input_line, MAX_CELL_LENGTH, stdin);
-    input_line[strcspn(input_line, "\n")] = 0;
-    if (strlen(input_line) > 0) process_command(sheet, input_line);
+    if (fgets(input_line, MAX_CELL_LENGTH, stdin) != NULL) {
+        input_line[strcspn(input_line, "\n")] = 0;
+        if (strlen(input_line) > 0) process_command(sheet, input_line);
+    }
     configure_terminal();
 }
 
@@ -555,30 +556,9 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
             int min_val = INT_MAX, max_val = INT_MIN;
             double sum_sq = 0.0;
 
-            // SetIterator it;
-            // set_iterator_init(&it, cell->dependencies);
-            // Cell *dep;
-            // while ((dep = set_iterator_next(&it)) != NULL)
-            // {
-            //     int dep_val = dep->value;
-            //     if (dep->has_error)
-            //     {
-            //         cell->has_error = true;
-            //         set_iterator_free(&it);
-            //         return -1;
-            //     }
-            //     sum += dep_val;
-            //     if (dep_val < min_val) min_val = dep_val;
-            //     if (dep_val > max_val) max_val = dep_val;
-            //     sum_sq += dep_val * dep_val;
-            //     count++;
-            // }
-            // set_iterator_free(&it);
-
-
             SetIterator it2;
             set_iterator_init(&it2, cell->dependencies);
-            Cell *temp, *dep2, *dep3;
+            Cell *temp = NULL, *dep2 = NULL, *dep3 = NULL;
             bool cnt = 0;
             while ((temp = set_iterator_next(&it2)) != NULL)
             {
