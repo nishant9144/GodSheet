@@ -2,6 +2,8 @@
 #include "../Declarations/parser.h"
 #include "../Declarations/backend.h"
 #include "../Declarations/frontend.h"
+// valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./bin/sheet 10 10
+
 
 void print_cell(Cell* cell) {
     printf("%d%d: %d\n", cell->col, cell->row+1, cell->value);
@@ -28,11 +30,12 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
     // Create a copy of the old dependencies
     if(set_find(new_dependencies, curr_cell->row, curr_cell->col) != NULL){
         // printf("Circular dependency detected. Reverting changes.\n");
+        set_free(new_dependencies);
         free(new_dependencies);
         new_dependencies = NULL;
         return 0;
     }
-    
+
     //(OPTIMISATION) removing copy to make it faster
     Set *old_deps = curr_cell->dependencies; // this points to this memory block so we don't lose it
     curr_cell->dependencies = new_dependencies; // this points to the new memory block
@@ -101,11 +104,14 @@ int update_dependencies(Cell* curr_cell, Set* new_dependencies, Spreadsheet* she
 
         curr_cell->dependencies = old_deps;
 
+        set_free(new_dependencies);
         free(new_dependencies);
         new_dependencies = NULL;
         return 0;
     }
 
+    // free(old_deps);
+    set_free(old_deps);
     free(old_deps);
     old_deps = NULL;
     // Call the function to update the cell's value based on its new dependencies
@@ -269,7 +275,7 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
         else evaluate_cell(cell, sheet);
     }
     // Cleanup
-    // vector_free(&sorted);
+    vector_free(&sorted);
     for (int i = 1; i <= num_cells; i++) set_free(&adj_list[i]);
     free(adj_list);
     free(cell_map);

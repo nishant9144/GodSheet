@@ -270,6 +270,7 @@ static AVLNode* find(AVLNode* node, short row, short col) {
 }
 
 Cell* set_find(Set* set, short row, short col) {
+    if(set->root == NULL) return NULL;
     AVLNode* result = find(set->root, row, col);
     if (!result) return NULL;
     return &(set->sheet->cells[row][col]);
@@ -338,6 +339,7 @@ static AVLNode* remove_node(AVLNode* root, short row, short col) {
 }
 
 void set_remove(Set* set, short row, short col) {
+    if(set->root == NULL) return;
     set->root = remove_node(set->root, row, col);
 }
 
@@ -350,6 +352,7 @@ static void free_tree(AVLNode* node) {
 }
 
 void set_free(Set* set) {
+    if(set == NULL) return;
     free_tree(set->root);
     set->root = NULL;
 }
@@ -461,8 +464,7 @@ void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* re
 
 }
 
-Cell* create_cell(short row, short col) {
-    Cell* cell = (Cell*)malloc(sizeof(Cell));
+void create_cell(short row, short col, Cell* cell) {
     cell->row = row;
     cell->col = col;
     cell->topo_order = -1;
@@ -472,12 +474,20 @@ Cell* create_cell(short row, short col) {
     cell->dependencies = NULL;
     cell->has_error = false;
     cell->is_sleep = false;
-    return cell;
 }
 
 void free_cell(Cell* cell) {
-    if(cell->dependencies != NULL) set_free(cell->dependencies);
-    if(cell->dependents != NULL) set_free(cell->dependents);
+    if(cell->dependencies != NULL) {
+        set_free(cell->dependencies);
+        free(cell->dependencies);
+        cell->dependencies = NULL;
+    };
+    if(cell->dependents != NULL) {
+        set_free(cell->dependents);
+        free(cell->dependents);
+        cell->dependents = NULL;
+    }
+        
 }
 
 short colNameToNumber(const char *colName) {
@@ -539,7 +549,10 @@ Spreadsheet* create_spreadsheet(short rows, short cols){
     sheet->cells = (Cell**)malloc(rows* sizeof(Cell*));
     for (int i = 0; i < rows; i++) {
         sheet->cells[i] = (Cell*)malloc(cols * sizeof(Cell));
-        for (int j = 0; j < cols; j++) sheet->cells[i][j] = *create_cell(i, j);
+        for (int j = 0; j < cols; j++) 
+        {
+            create_cell(i, j, &sheet->cells[i][j]);
+        }
     }
     printf("Final values before returning: totalRows=%d, totalCols=%d\n",
         sheet->totalRows, sheet->totalCols);

@@ -213,7 +213,7 @@ void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorte
 void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet);
 
 
-Cell* create_cell(short row, short col);
+void create_cell(short row, short col, Cell* Cell);
 void free_cell(Cell* cell);
 
 short colNameToNumber(const char *colName);
