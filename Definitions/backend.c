@@ -357,9 +357,6 @@ void collect_dependents(Cell* curr_cell, Set* affected_cells) {
     }
 }
 
-
-
-
 void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
     if(curr_cell->dependents == NULL) return;
     // Collect all affected cells
@@ -409,7 +406,8 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
         return;
     }
 
-    for (int i = 1; i <= num_cells; i++) set_init(&adj_list[i], sheet);
+    for (int i = 1; i <= num_cells; i++) 
+        set_init(&adj_list[i], sheet);
     
     // Fill adjacency list - only add edges between affected cells
     for (int i = 1; i <= num_cells; i++) {
@@ -435,11 +433,11 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
                 short r1 = dep2->row, c1 = dep2->col;
                 short r2 = dep3->row, c2 = dep3->col;
 
-                for (short i = r1; i <= r2; i++)
+                for (short rr = r1; rr <= r2; rr++)
                 {
                     for (short j = c1; j <= c2; j++)
                     {
-                        Cell* dep = &sheet->cells[i][j];
+                        Cell* dep = &sheet->cells[rr][j];
                         // Only add edge if dependency is in affected_cells.
                         if (set_find(&affected_cells, dep->row, dep->col) != NULL) set_add(&adj_list[i], dep->row, dep->col);
                     }
@@ -474,7 +472,7 @@ void update_dependents(Cell* curr_cell, Spreadsheet* sheet) {
     }
     // printf("\n");
 
-    bool divbyzeroflag = (evaluate_cell(curr_cell, sheet) == -1);
+    bool divbyzeroflag = (curr_cell->has_error == true && sheet->last_status == ERR_DIV_ZERO);
     vector_iterator_init(&update_it, &sorted);
     while (vector_iterator_has_next(&update_it)) {
         Cell* cell = vector_iterator_next(&update_it);
@@ -515,22 +513,14 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
     {        
         case 'C':
             if (cell->is_sleep && cell->value>0) sleep(cell->value);
-            return 0;
             break;
 
         case 'A':
-        {
             int left, right;
-            if(cell->op_data.arithmetic.operand1.i != SHRT_MAX){
-                left = sheet->cells[cell->op_data.arithmetic.operand1.i][cell->op_data.arithmetic.operand1.j].value;
-            }else{
-                left = cell->op_data.arithmetic.constant;
-            }
-            if(cell->op_data.arithmetic.operand2.i != SHRT_MAX){
-                right = sheet->cells[cell->op_data.arithmetic.operand2.i][cell->op_data.arithmetic.operand2.j].value;
-            }else{
-                right = cell->op_data.arithmetic.constant;
-            }
+            left = (cell->op_data.arithmetic.operand1.i != SHRT_MAX) ? sheet->cells[cell->op_data.arithmetic.operand1.i][cell->op_data.arithmetic.operand1.j].value
+                                                                     : cell->op_data.arithmetic.constant;
+            right = (cell->op_data.arithmetic.operand2.i != SHRT_MAX) ? sheet->cells[cell->op_data.arithmetic.operand2.i][cell->op_data.arithmetic.operand2.j].value
+                                                                      : cell->op_data.arithmetic.constant;
 
             switch(cell->op_data.arithmetic.op) 
             {
@@ -541,14 +531,14 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
                 case OP_MUL:
                     cell->value = left * right; return 0;
                 case OP_DIV:
-                    if (right == 0) {cell->has_error = true; return -1;}
+                    if (right == 0) {cell->has_error = true;sheet->last_status = ERR_DIV_ZERO; return -1;}
                     cell->value = left / right;
                     return 0;
                 default:
                     cell->has_error = true; return -1;
             }
             break;
-        }    
+            
         case 'F':
             if ((cell->op_data.function.range_size)<=0) {cell->has_error=true;return -1;}
 
@@ -610,9 +600,10 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
             }
             else {cell->has_error = true; return -1;}
             break;
+
         case 'R':
             cell->value = cell->op_data.ref->value;
-            if (cell->is_sleep && cell->value >0) sleep(cell->value);
+            // if (cell->is_sleep && cell->value >0) sleep(cell->value);
             break;
     }
     return 0;

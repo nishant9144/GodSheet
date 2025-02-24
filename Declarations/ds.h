@@ -112,9 +112,7 @@ struct Cell {
         struct {  
             Operation op;       // use bits
             int constant;      
-            // Cell* operand1;
             Pair operand1;     // pair implementation
-            // Cell* operand2;
             Pair operand2;     // pair implmentation
         } arithmetic;
 

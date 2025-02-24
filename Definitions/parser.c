@@ -336,11 +336,21 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     else if (strcmp(func_name, "SUM") == 0) target_cell->op_data.function.func_name = 'D';
     else if (strcmp(func_name, "STDEV") == 0) target_cell->op_data.function.func_name = 'E';
 
+    // DO NOT REMOVE IT
+
     if (!strchr(range_str, ':') || parse_range(target_cell, sheet, range_str, new_deps) != 0)
     {
         sheet->last_status = ERR_SYNTAX;
         stat = -1;
     }
+    // if (strchr(range_str, ':') == 0)
+    // {
+    //     if(parse_range(target_cell, sheet, range_str, new_deps) != 0)
+    //     {
+    //         sheet->last_status = ERR_SYNTAX;
+    //         stat = -1;
+    //     }
+    // }
 
     free(range_str);
     range_str = NULL;
@@ -521,19 +531,18 @@ void process_command(Spreadsheet *sheet, char *input)
         return;
     }
     
-
-        if (update_dependencies(target_cell, new_deps, sheet) == 1)
-        { // 0 -> cycle, 1 -> no cycle
-            if (evaluate_cell(target_cell, sheet) == 0) {
-                sheet->last_status = STATUS_OK;
-            }else {
-                target_cell->value = old_value;
-                sheet->last_status = DIV_BY_ZERO; 
-            }
-        }
-        else{
+    if (update_dependencies(target_cell, new_deps, sheet) == 1)
+    { // 0 -> cycle, 1 -> no cycle
+        if (evaluate_cell(target_cell, sheet) == 0) {
+            sheet->last_status = STATUS_OK;
+        }else {
             target_cell->value = old_value;
-            sheet->last_status = ERR_CIRCULAR_REFERENCE;
+            // sheet->last_status = DIV_BY_ZERO; 
         }
-        if(old_value != target_cell->value) update_dependents(target_cell, sheet);
+    }
+    else{
+        target_cell->value = old_value;
+        sheet->last_status = ERR_CIRCULAR_REFERENCE;
+    }
+    if(old_value != target_cell->value) update_dependents(target_cell, sheet);
 }

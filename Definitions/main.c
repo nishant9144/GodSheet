@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
     int cols = atoi(argv[2]);
 
     // Debug print to confirm argument values
-    printf("Command-line arguments: rows=%d, cols=%d\n", rows, cols);
 
     if (rows < 1 || cols < 1 || rows > MAX_ROWS || cols > MAX_COLS)
     {

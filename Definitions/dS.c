@@ -527,7 +527,6 @@ void colNumberToName(short colNumber, char *colName) { // 0 based argument
 }
 
 Spreadsheet* create_spreadsheet(short rows, short cols){
-    printf("Inside create_spreadsheet: rows=%d, cols=%d\n", rows, cols); //debug statement
 
 
     Spreadsheet* sheet = (Spreadsheet*)malloc(sizeof(Spreadsheet));
@@ -538,8 +537,6 @@ Spreadsheet* create_spreadsheet(short rows, short cols){
     sheet->totalRows = rows;
     sheet->totalCols = cols;
 
-    printf("After assigning values: totalRows=%d, totalCols=%d\n", 
-        sheet->totalRows, sheet->totalCols);
 
     sheet->scroll_row = 0;
     sheet->scroll_col = 0;
@@ -555,8 +552,6 @@ Spreadsheet* create_spreadsheet(short rows, short cols){
             create_cell(i, j, &sheet->cells[i][j]);
         }
     }
-    printf("Final values before returning: totalRows=%d, totalCols=%d\n",
-        sheet->totalRows, sheet->totalCols);
     return sheet;
 }
 
