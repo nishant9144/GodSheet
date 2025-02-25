@@ -43,6 +43,14 @@ typedef enum
     TYPE_FUNCTION,   // F
 } CellType;
 
+typedef enum 
+{
+    UNVISITED,  // U
+    VISITING,   // V
+    SAFE,       // S
+    NOT_USED    // N
+} State;
+
 typedef enum
 {
     OP_NONE,
@@ -102,9 +110,11 @@ struct Set{
 // Cell structure definition
 struct Cell {
     int value;          
-    short row; // -> can fix to 3 field.
-    short col;  /// max of 3 fields
+    short row; 
+    short col; 
     int topo_order;
+    char type; 
+    char cell_state;  
     bool is_sleep;
     bool has_error;
     union {
@@ -124,7 +134,6 @@ struct Cell {
     
     Set* dependents;
     Set* dependencies;
-    char type;     // use bits
 };
 
 // Spreadsheet structure

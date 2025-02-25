@@ -470,7 +470,8 @@ void create_cell(short row, short col, Cell* cell) {
     cell->col = col;
     cell->topo_order = -1;
     cell->type = 'C';
-    cell->value = 0; // Use 0 as initial value
+    cell->value = 0;
+    cell->cell_state = 'N';
     cell->dependents = NULL;
     cell->dependencies = NULL;
     cell->has_error = false;
