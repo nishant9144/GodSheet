@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/sheet",
-            "args": ["10", "10"],
+            "args": ["50", "50"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

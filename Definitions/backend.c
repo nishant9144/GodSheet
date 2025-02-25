@@ -30,7 +30,7 @@ int update_dependencies(Cell *curr_cell, Set *new_dependencies, Spreadsheet *she
 {
     // printf("$ Updating dependencies for cell %s%d\n", curr_cell->col, curr_cell->row+1);
     // Create a copy of the old dependencies
-    if (set_find(new_dependencies, curr_cell->row, curr_cell->col) != NULL)
+    if (new_dependencies != NULL && set_find(new_dependencies, curr_cell->row, curr_cell->col) != NULL)
     {
         // printf("Circular dependency detected. Reverting changes.\n");
         set_free(new_dependencies);
@@ -68,8 +68,14 @@ int update_dependencies(Cell *curr_cell, Set *new_dependencies, Spreadsheet *she
             set_iterator_free(&old_it);
 
             short r1 = dep2->row, c1 = dep2->col;
-            short r2 = dep3->row, c2 = dep3->col;
-
+            short r2,c2;
+            if(dep3 == NULL){
+                r2 = r1;
+                c2 = c1;
+            }else{
+                r2 = dep3->row;
+                c2 = dep3->col;
+            }
             for (short i = r1; i <= r2; i++)
             {
                 for (short j = c1; j <= c2; j++)
@@ -119,7 +125,14 @@ int update_dependencies(Cell *curr_cell, Set *new_dependencies, Spreadsheet *she
             set_iterator_free(&new_it);
 
             short r1 = dep2->row, c1 = dep2->col;
-            short r2 = dep3->row, c2 = dep3->col;
+            short r2,c2;
+            if(dep3 == NULL){
+                r2 = r1;
+                c2 = c1;
+            }else{
+                r2 = dep3->row;
+                c2 = dep3->col;
+            }
 
             for (short i = r1; i <= r2; i++)
             {
@@ -190,7 +203,14 @@ int update_dependencies(Cell *curr_cell, Set *new_dependencies, Spreadsheet *she
                 set_iterator_free(&new_it);
 
                 short r1 = dep2->row, c1 = dep2->col;
-                short r2 = dep3->row, c2 = dep3->col;
+                short r2,c2;
+                if(dep3 == NULL){
+                    r2 = r1;
+                    c2 = c1;
+                }else{
+                    r2 = dep3->row;
+                    c2 = dep3->col;
+                }
 
                 for (short i = r1; i <= r2; i++)
                 {
@@ -223,7 +243,7 @@ int update_dependencies(Cell *curr_cell, Set *new_dependencies, Spreadsheet *she
             if (old_deps->type == 'F')
             {
                 SetIterator old_it;
-                set_iterator_init(&old_it, curr_cell->dependencies);
+                set_iterator_init(&old_it, old_deps);
                 Cell *temp = NULL, *dep2 = NULL, *dep3 = NULL;
                 bool cnt = 0;
                 while ((temp = set_iterator_next(&old_it)) != NULL)
@@ -242,7 +262,14 @@ int update_dependencies(Cell *curr_cell, Set *new_dependencies, Spreadsheet *she
                 set_iterator_free(&old_it);
 
                 short r1 = dep2->row, c1 = dep2->col;
-                short r2 = dep3->row, c2 = dep3->col;
+                short r2,c2;
+                if(dep3 == NULL){
+                    r2 = r1;
+                    c2 = c1;
+                }else{
+                    r2 = dep3->row;
+                    c2 = dep3->col;
+                }
 
                 for (short i = r1; i <= r2; i++)
                 {
@@ -309,48 +336,44 @@ bool detect_cycle_dfs(Cell *cell, Spreadsheet *sheet, Vector *bin)
     {
         if (cell->dependencies->type == 'F')
         {
-            // Handle range dependencies (e.g., cell ranges like A1:B5)
-            Cell *dep1 = NULL, *dep2 = NULL;
-
-            // Extract the range boundaries more efficiently
             SetIterator range_it;
             set_iterator_init(&range_it, cell->dependencies);
-
-            // Get the first two cells defining the range
-            dep1 = set_iterator_next(&range_it);
-            dep2 = set_iterator_next(&range_it);
+            Cell *temp = NULL, *dep2 = NULL, *dep3 = NULL;
+            bool cnt = 0;
+            while ((temp = set_iterator_next(&range_it)) != NULL)
+            {
+                if (!cnt)
+                {
+                    dep2 = temp;
+                    cnt = 1;
+                }
+                else
+                {
+                    dep3 = temp;
+                    break;
+                }
+            }
             set_iterator_free(&range_it);
 
-            if (dep1 && dep2)
+            short r1 = dep2->row, c1 = dep2->col;
+            short r2,c2;
+            if(dep3 == NULL){
+                r2 = r1;
+                c2 = c1;
+            }else{
+                r2 = dep3->row;
+                c2 = dep3->col;
+            }
+
+            for (short i = r1; i <= r2; i++)
             {
-                short r1 = dep1->row, c1 = dep1->col;
-                short r2 = dep2->row, c2 = dep2->col;
-
-                // Ensure r1,c1 is the top-left and r2,c2 is the bottom-right
-                if (r1 > r2)
+                for (short j = c1; j <= c2; j++)
                 {
-                    short temp = r1;
-                    r1 = r2;
-                    r2 = temp;
-                }
-                if (c1 > c2)
-                {
-                    short temp = c1;
-                    c1 = c2;
-                    c2 = temp;
-                }
-
-                // Traverse the range
-                for (short i = r1; i <= r2; i++)
-                {
-                    for (short j = c1; j <= c2; j++)
+                    Cell *dep = &sheet->cells[i][j];
+                    vector_push_back(bin, dep->row, dep->col);
+                    if (detect_cycle_dfs(dep, sheet, bin))
                     {
-                        Cell *dep = &sheet->cells[i][j];
-                        vector_push_back(bin, dep->row, dep->col);
-                        if (detect_cycle_dfs(dep, sheet, bin))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -622,7 +645,14 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
                 set_iterator_free(&dep_it);
 
                 short r1 = dep2->row, c1 = dep2->col;
-                short r2 = dep3->row, c2 = dep3->col;
+                short r2,c2;
+                if(dep3 == NULL){
+                    r2 = r1;
+                    c2 = c1;
+                }else{
+                    r2 = dep3->row;
+                    c2 = dep3->col;
+                }
 
                 for (short rr = r1; rr <= r2; rr++)
                 {
@@ -667,7 +697,7 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     }
     // printf("\n");
 
-    bool divbyzeroflag = (curr_cell->has_error == true && sheet->last_status == ERR_DIV_ZERO);
+    bool divbyzeroflag = (curr_cell->has_error == true);
     vector_iterator_init(&update_it, &sorted);
     while (vector_iterator_has_next(&update_it))
     {
@@ -781,7 +811,14 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
         set_iterator_free(&it2);
 
         short r1 = dep2->row, c1 = dep2->col;
-        short r2 = dep3->row, c2 = dep3->col;
+        short r2,c2;
+        if(dep3 == NULL){
+            r2 = r1;
+            c2 = c1;
+        }else{
+            r2 = dep3->row;
+            c2 = dep3->col;
+        }
 
         for (short i = r1; i <= r2; i++)
         {
