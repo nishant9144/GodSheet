@@ -428,113 +428,6 @@ bool check_circular_dependencies(Cell *cell, Spreadsheet *sheet)
     return hascycle;
 }
 
-// // ORIGINAL
-// bool detect_cycle_dfs(Cell *curr_cell, Set *visited, Set *recursion_stack, Spreadsheet *sheet)
-// {
-//     // If cell is already in recursion stack, we found a cycle
-//     if (set_find(recursion_stack, curr_cell->row, curr_cell->col) != NULL)
-//     {
-//         return true;
-//     }
-
-//     // If cell was already visited and not in recursion stack, no cycle through this path
-//     if (set_find(visited, curr_cell->row, curr_cell->col) != NULL)
-//     {
-//         return false;
-//     }
-
-//     // Mark current cell as visited and add to recursion stack
-//     set_add(visited, curr_cell->row, curr_cell->col);
-//     set_add(recursion_stack, curr_cell->row, curr_cell->col);
-
-//     // Check dependencies only if they exist
-//     if (curr_cell->dependencies != NULL)
-//     {
-//         if (curr_cell->dependencies->type == 'F')
-//         {
-//             // Handle range dependencies (e.g., cell ranges like A1:B5)
-//             Cell *dep1 = NULL, *dep2 = NULL;
-
-//             // Extract the range boundaries more efficiently
-//             SetIterator range_it;
-//             set_iterator_init(&range_it, curr_cell->dependencies);
-
-//             // Get the first two cells defining the range
-//             dep1 = set_iterator_next(&range_it);
-//             dep2 = set_iterator_next(&range_it);
-//             set_iterator_free(&range_it);
-
-//             if (dep1 && dep2)
-//             {
-//                 short r1 = dep1->row, c1 = dep1->col;
-//                 short r2 = dep2->row, c2 = dep2->col;
-
-//                 // Ensure r1,c1 is the top-left and r2,c2 is the bottom-right
-//                 if (r1 > r2)
-//                 {
-//                     short temp = r1;
-//                     r1 = r2;
-//                     r2 = temp;
-//                 }
-//                 if (c1 > c2)
-//                 {
-//                     short temp = c1;
-//                     c1 = c2;
-//                     c2 = temp;
-//                 }
-
-//                 // Traverse the range
-//                 for (short i = r1; i <= r2; i++)
-//                 {
-//                     for (short j = c1; j <= c2; j++)
-//                     {
-//                         Cell *dep = &sheet->cells[i][j];
-
-//                         if (detect_cycle_dfs(dep, visited, recursion_stack, sheet))
-//                         {
-//                             return true;
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//         else
-//         {
-//             // Handle direct dependencies
-//             SetIterator it;
-//             set_iterator_init(&it, curr_cell->dependencies);
-
-//             while (set_iterator_has_next(&it))
-//             {
-//                 Cell *dep = set_iterator_next(&it);
-
-//                 if (detect_cycle_dfs(dep, visited, recursion_stack, sheet))
-//                 {
-//                     set_iterator_free(&it);
-//                     return true;
-//                 }
-//             }
-//             set_iterator_free(&it);
-//         }
-//     }
-
-//     // Remove from recursion stack before returning
-//     set_remove(recursion_stack, curr_cell->row, curr_cell->col);
-//     return false;
-// }
-
-// bool check_circular_dependencies(Cell *curr_cell, Spreadsheet *sheet)
-// {
-//     Set visited, recursion_stack;
-//     set_init(&visited, sheet);
-//     set_init(&recursion_stack, sheet);
-
-//     bool has_cycle = detect_cycle_dfs(curr_cell, &visited, &recursion_stack, sheet);
-
-//     set_free(&visited);
-//     set_free(&recursion_stack);
-//     return has_cycle;
-// }
 
 // Helper function to collect all dependent cells for topological sort
 void collect_dependents(Cell *curr_cell, Set *affected_cells)
@@ -697,7 +590,6 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     }
     // printf("\n");
 
-    bool divbyzeroflag = (curr_cell->has_error == true);
     vector_iterator_init(&update_it, &sorted);
     while (vector_iterator_has_next(&update_it))
     {
@@ -705,10 +597,7 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
         // Recalculate cell value
         // Note: This is where you'd call your cell evaluation function
         // For now, we'll just check for division by zero
-        if (divbyzeroflag)
-            cell->has_error = true;
-        else
-            evaluate_cell(cell, sheet);
+        evaluate_cell(cell, sheet);
     }
     // Cleanup
     vector_free(&sorted);
@@ -875,6 +764,10 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
         break;
 
     case 'R':
+        if(cell->op_data.ref->has_error){
+            cell->has_error = true;
+            return -1;
+        }
         cell->value = cell->op_data.ref->value;
         if (cell->is_sleep && cell->value > 0)
             sleep(cell->value);

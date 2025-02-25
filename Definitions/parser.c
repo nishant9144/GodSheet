@@ -443,17 +443,14 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
 
     /*                                      Check if the value is a single constant                                        */
     bool is_numeric = true;
-    int i = 0;
+    // int i = 0;
     // Allow a leading '-' for negative numbers
-    if (formula[0] == '-')
-        i = 1;
-    for (; formula[i] != '\0'; i++)
+    // if (formula[0] == '-')
+    //     i = 1;
+
+    if (!is_number(formula))
     {
-        if (!isdigit((unsigned char)formula[i]))
-        {
-            is_numeric = false;
-            break;
-        }
+        is_numeric = false;
     }
 
     if (is_numeric)
