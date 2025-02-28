@@ -126,9 +126,15 @@ void scroll_to(Spreadsheet *sheet, int row, int col) {
 void run_ui(Spreadsheet *sheet) {
     struct timeval start_time, end_time;
     char input[100];  // Fixed buffer size for input
-    sheet->last_processing_time = 0.0; //Initialize last_processing_time to 0.0
 
+    gettimeofday(&start_time, NULL);
     display_viewport(sheet);
+    gettimeofday(&end_time, NULL);
+
+    sheet->last_processing_time = 
+            (end_time.tv_sec - start_time.tv_sec) +
+            (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+    sheet->last_cmd_time = end_time;
 
     
     while(1) {
@@ -209,7 +215,7 @@ void run_ui(Spreadsheet *sheet) {
 
         
          // Display updated spreadsheet after command
-         display_viewport(sheet);
+        display_viewport(sheet);
          
         // Update last command time
         gettimeofday(&end_time, NULL);
@@ -221,6 +227,5 @@ void run_ui(Spreadsheet *sheet) {
         // Update last command time (if needed elsewhere)
         sheet->last_cmd_time = end_time;
 
-       
     }
 }

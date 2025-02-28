@@ -39,7 +39,6 @@ static int col_label_to_index(const char *label)
 
 static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, int *col)
 {
-
     regex_t regex;
     const char *pattern = "^[A-Z]+[0-9]+$";
     if (regcomp(&regex, pattern, REG_EXTENDED) != 0)
@@ -73,11 +72,6 @@ static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, 
 
     // Convert column to index
     *col = col_label_to_index(col_part);
-    // if (*col < 0 || *col > MAX_COLS)
-    // {
-    //     sheet->last_status = ERR_SYNTAX;
-    //     return -1;
-    // }
 
     *row = 0;
     while (isdigit(**input))
@@ -85,17 +79,11 @@ static int parse_cell_address(Spreadsheet *sheet, const char **input, int *row, 
         *row = *row * 10 + (**input - '0');
         (*input)++;
     }
-    // if (*row <= 0 || *row > MAX_ROWS)
-    // {
-    //     sheet->last_status = ERR_SYNTAX;
-    //     return -1;
-    // }
     *row -= 1;
     if(*row >= sheet->totalRows || *col >= sheet->totalCols || *row < 0 || *col < 0){
         sheet->last_status = ERR_INVALID_RANGE;
         return -1;
     }
-    // should also make curr_cell->op_data.ref = &sheet->cells[row][col];
     return 0;
 }
 
@@ -117,7 +105,7 @@ static int is_valid_formula(const char *formula)
 }
 
 // Parse a range (e.g., "A1:B2") and store cells in the range array
-static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_str, Set *new_deps)
+static int parse_range(Spreadsheet *sheet, const char *range_str, bool *need_new_dep, PairOfPair *new_pairs)
 {
     char *colon = strchr(range_str, ':');
     // Split the range into start and end
@@ -134,7 +122,6 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
     if (parse_cell_address(sheet, &start_ptr, &start_row, &start_col) != 0 ||
         parse_cell_address(sheet, &end_ptr, &end_row, &end_col) != 0)
     {
-        // sheet->last_status=ERR_SYNTAX;
         free(range_copy);
         range_copy = NULL;
         return -1;
@@ -148,31 +135,24 @@ static int parse_range(Cell* target_cell, Spreadsheet *sheet, const char *range_
         range_copy = NULL;
         return -1;
     }
+    new_pairs->first.i = start_row;
+    new_pairs->first.j = start_col;
 
-    // when a single cell is passed in both the arguments of the range, then only one will go into the dependencies
-    // that case is handled as well at the required places.
-    set_add(new_deps, start_row, start_col);
-    set_add(new_deps, end_row, end_col);
-    new_deps->type = 'F';
+    new_pairs->second.i = end_row;
+    new_pairs->second.j = end_col;
 
-    target_cell->op_data.function.range_size = (end_row-start_row+1)*(end_col-start_col+1);
+    *need_new_dep = true;
+
     free(range_copy);
     range_copy = NULL;
     return 0;
 }
 
 // Parse arithmetic expression (e.g., "A1+2" or "B2*C3")
-static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set *new_deps)
+static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *formula, bool *need_new_dep, PairOfPair *new_pairs)
 {
     regex_t regex;
     const char *pattern = "^([-+]?[0-9]+|[A-Z]+[0-9]+)([+*/-])([-+]?[0-9]+|[A-Z]+[0-9]+)$";
-    //   ^\s*                         : start of string, optional whitespace
-    //   ([-+]?[0-9]+|[A-Z]+[0-9]+)    : operand1 (a constant with optional sign or a cell reference)
-    //   \s*                          : optional whitespace
-    //   ([+\-*/])                   : operator: one of +, -, *, or /
-    //   \s*                          : optional whitespace
-    //   ([-+]?[0-9]+|[A-Z]+[0-9]+)    : operand2 (again, a constant or a cell reference)
-    //   \s*$                         : optional whitespace until end of string
     if (regcomp(&regex, pattern, REG_EXTENDED) != 0)
     {
         sheet->last_status = ERR_SYNTAX;
@@ -216,16 +196,15 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     if (type1 == 0)
     {
         // Operand is a numeric constant.
-        target_cell->op_data.arithmetic.operand1.i = SHRT_MAX;
-        target_cell->op_data.arithmetic.constant += value1;
+        new_pairs->first.i = -1;
+        new_pairs->first.j = -1;
+        target_cell->op_data.arithmetic.constant = value1;
     }
     else if (type1 == 1)
     {
         // Operand is a cell reference.
-        // target_cell->op_data.arithmetic.operand1 = (Pair*)malloc(sizeof(Pair));
-        target_cell->op_data.arithmetic.operand1.i = row1;
-        target_cell->op_data.arithmetic.operand1.j = col1;
-        set_add(new_deps, row1, col1);
+        new_pairs->first.i = row1;
+        new_pairs->first.j = col1;
     }
     else
     {
@@ -238,14 +217,16 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
     type2 = check_constant_or_cell_address(operand2, &value2, &row2, &col2, sheet);
     if (type2 == 0)
     {
-        target_cell->op_data.arithmetic.operand2.i = SHRT_MAX;
-        target_cell->op_data.arithmetic.constant += value2;
+        new_pairs->second.i = -1;
+        new_pairs->second.j = -1;
+
+        target_cell->op_data.arithmetic.constant = value2;
     }
     else if (type2 == 1)
     {
-        target_cell->op_data.arithmetic.operand2.i = row2;
-        target_cell->op_data.arithmetic.operand2.j = col2;
-        set_add(new_deps, row2, col2);
+        new_pairs->second.i = row2;
+        new_pairs->second.j = col2;
+
     }
     else
     {
@@ -281,8 +262,11 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
         }
         target_cell->type = 'C';
         target_cell->value = evaluated;
+        *need_new_dep = false;
+        return 0;
     }
-    new_deps->type = 'C';
+    *need_new_dep = true;
+    // new_deps->type = 'C';
     return 0;
 }
 
@@ -304,7 +288,7 @@ static bool is_number(const char *str) {
 }
 
 // Parse function call (e.g., "SUM(A1:B2)")
-static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *formula, Set *new_deps)
+static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *formula, bool *need_new_dep, PairOfPair *new_pairs)
 {
     // Extract function name
     char func_name[10] = {0};
@@ -316,11 +300,6 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     }
     // Find closing parenthesis
     const char *close_paren = strchr(p, ')');
-    if (!close_paren)
-    {
-        sheet->last_status = ERR_SYNTAX;
-        return -1;
-    }
     // Extract range/value
     int range_len = close_paren - p - 1;
     char *range_str = malloc(range_len + 1);
@@ -336,15 +315,19 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
         if (parse_cell_address(sheet, &ptr, &row, &col) == 0)
         {
             target_cell->type='R';
-            target_cell->op_data.ref= &sheet->cells[row][col];
+            new_pairs->first.i = row;
+            new_pairs->first.j = col;
+
+            new_pairs->second.i = -1;
+            new_pairs->second.j = -1;
+
+            *need_new_dep = true;
         }
         else if (is_number(ptr))
         {
             target_cell->type='C';
             target_cell->value= atoi(ptr);
-            set_free(new_deps);
-            free(new_deps);
-            new_deps = NULL;
+            *need_new_dep = false;
         }
         else{
             sheet->last_status = ERR_SYNTAX;
@@ -365,23 +348,12 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
 
     // DO NOT REMOVE IT
 
-    if (!strchr(range_str, ':') || parse_range(target_cell, sheet, range_str, new_deps) != 0)
-    {
-        // sheet->last_status = ERR_SYNTAX;
+    if (!strchr(range_str, ':') || parse_range(sheet, range_str, need_new_dep, new_pairs) != 0)
         stat = -1;
-    }
-    // if (strchr(range_str, ':') == 0)
-    // {
-    //     if(parse_range(target_cell, sheet, range_str, new_deps) != 0)
-    //     {
-    //         sheet->last_status = ERR_SYNTAX;
-    //         stat = -1;
-    //     }
-    // }
 
     free(range_str);
     range_str = NULL;
-    return stat; // CHANGE 0 TO stat
+    return stat; 
 }
 
 int check_constant_or_cell_address(const char *str, int *constant_value, int *row, int *col, Spreadsheet* sheet)
@@ -437,41 +409,34 @@ static bool match_formula(const char *formula) {
     return (ret == 0);
 }
 
-int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_deps)
+int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, bool *need_new_dep, PairOfPair *new_pairs)
 {
     cell->has_error = false;
 
     /*                                      Check if the value is a single constant                                        */
     bool is_numeric = true;
-    // int i = 0;
-    // Allow a leading '-' for negative numbers
-    // if (formula[0] == '-')
-    //     i = 1;
-
     if (!is_number(formula))
-    {
         is_numeric = false;
-    }
 
-    if (is_numeric)
-    {
+    if (is_numeric){
         int value = atoi(formula);
         cell->type = 'C';
         cell->value = value;
+        *need_new_dep = false;
         return 0;
     }
 
     /*                                      Check if the input is a formula                                                      */
-    if (is_valid_formula(formula)) // min,max,stddev, etc.
+    if (is_valid_formula(formula))
     {
-        if (parse_function(sheet, cell, formula, new_deps) != 0) return -1;
-        new_deps->type = 'F';
+        if (parse_function(sheet, cell, formula, need_new_dep, new_pairs) != 0) 
+            return -1;
     }
     /*                                      Check if it's an arithmetic expression                                                */
     else if (match_formula(formula))
     {
-        if (parse_arithmetic(sheet, cell, formula, new_deps) != 0) return -1;
-        new_deps->type = 'C';
+        if (parse_arithmetic(sheet, cell, formula, need_new_dep, new_pairs) != 0) 
+            return -1;
     }
     // Must be a cell reference
     else if (isalpha(formula[0]))
@@ -480,9 +445,10 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
         const char *ptr = formula;
         if (parse_cell_address(sheet, &ptr, &row, &col) != 0) return -1;
         cell->type = 'R';
-        cell->op_data.ref = &sheet->cells[row][col];
-        set_add(new_deps, row, col);
-        new_deps->type = 'C';
+        new_pairs->first.i = row; new_pairs->first.j = col;
+        new_pairs->second.i = -1; new_pairs->second.j = -1;
+        *need_new_dep = true;
+
     }
     else
     {
@@ -491,7 +457,6 @@ int parse_formula(Spreadsheet *sheet, Cell *cell, const char *formula, Set *new_
     }
     return 0;
 }
-
 
 static void deep_copy_cell(Cell *dest, const Cell *src) {
     dest->value = src->value;
@@ -502,37 +467,15 @@ static void deep_copy_cell(Cell *dest, const Cell *src) {
     dest->cell_state = src->cell_state;
     dest->is_sleep = src->is_sleep;
     dest->has_error = src->has_error;
-
-    // not copying these because this will be handled by update_dependencies
-
-    // if(src->dependencies == NULL){
-    //     dest->dependencies = NULL;
-    // }else{
-    //     dest->dependencies = (Set *)malloc(sizeof(Set));
-    //     set_init(dest->dependencies, sheet);
-    //     deep_copy_set(dest->dependencies, src->dependencies);
-    // }
-
-    // if(src->dependents == NULL){
-    //     dest->dependents = NULL;
-    // }else{
-    //     dest->dependents = (Set *)malloc(sizeof(Set));
-    //     set_init(dest->dependents, sheet);
-    //     deep_copy_set(dest->dependents, src->dependents);
-    // }
+    dest->dependencies = src->dependencies;
 
     // Deep copy op_data based on the type
     if (src->type == 'A') {
         dest->op_data.arithmetic.op = src->op_data.arithmetic.op;
         dest->op_data.arithmetic.constant = src->op_data.arithmetic.constant;
-        dest->op_data.arithmetic.operand1 = src->op_data.arithmetic.operand1;
-        dest->op_data.arithmetic.operand2 = src->op_data.arithmetic.operand2;
     } else if (src->type == 'F') {
         dest->op_data.function.func_name = src->op_data.function.func_name;
-        dest->op_data.function.range_size = src->op_data.function.range_size;
-    } else if (src->type == 'R') {
-        dest->op_data.ref = src->op_data.ref;
-    }
+    } 
 }
 
 void process_command(Spreadsheet *sheet, char *input)
@@ -563,14 +506,9 @@ void process_command(Spreadsheet *sheet, char *input)
     int row, col;
     const char *cellRefPtr = cellRef;
     if (parse_cell_address(sheet, &cellRefPtr, &row, &col) != 0)
-    {
-        sheet->last_status = ERR_SYNTAX;
         return;
-    }
 
-    // THis maybe not needed as we checked while parsing the cell
-    if (row >= sheet->totalRows || col >= sheet->totalCols)
-    {
+    if (row >= sheet->totalRows || col >= sheet->totalCols){
         sheet->last_status = ERR_INVALID_CELL;
         return;
     }
@@ -591,36 +529,21 @@ void process_command(Spreadsheet *sheet, char *input)
     Cell cellcopy;
     deep_copy_cell(&cellcopy, target_cell);
 
-    int old_value = target_cell->value;
-    CellType old_type = target_cell->type;
+    bool need_new_dep;
+    PairOfPair new_pairs;
 
-
-    Set *new_deps = (Set *)malloc(sizeof(Set));
-    set_init(new_deps, sheet);
     // Attempt to parse and validate the new formula
-    if (parse_formula(sheet, target_cell, formula, new_deps) != 0)
-    {
-        target_cell->value = old_value;
-        target_cell->type = old_type;
-        free(new_deps);
-        new_deps = NULL;
+    if (parse_formula(sheet, target_cell, formula, &need_new_dep, &new_pairs) != 0)
         return;
-    }
     
-    if (update_dependencies(target_cell, new_deps, sheet) == 1)
+    if (update_dependencies(target_cell, need_new_dep, &new_pairs, sheet, cellcopy) == 1 && evaluate_cell(target_cell, sheet) == 0)
     { // 0 -> cycle, 1 -> no cycle
-        if (evaluate_cell(target_cell, sheet) == 0) {
-            sheet->last_status = STATUS_OK;
-        }else {
-            target_cell->value = old_value;
-            // sheet->last_status = DIV_BY_ZERO; 
-        }
+        sheet->last_status = STATUS_OK;
     }
     else{
         deep_copy_cell(target_cell, &cellcopy);
-        // target_cell->type = old_type;
-        // target_cell->value = old_value;
         sheet->last_status = ERR_CIRCULAR_REFERENCE;
     }
-    if(old_value != target_cell->value) update_dependents(target_cell, sheet);
+    if(cellcopy.value != target_cell->value) update_dependents(target_cell, sheet);
+    return;
 }
