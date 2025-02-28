@@ -473,17 +473,17 @@ void create_cell(short row, short col, Cell* cell) {
     cell->value = 0;
     cell->cell_state = 'N';
     cell->dependents = NULL;
-    cell->dependencies = NULL;
+    // cell->dependencies = NULL;
     cell->has_error = false;
     cell->is_sleep = false;
 }
 
 void free_cell(Cell* cell) {
-    if(cell->dependencies != NULL) {
-        set_free(cell->dependencies);
-        free(cell->dependencies);
-        cell->dependencies = NULL;
-    };
+    // if(cell->dependencies != NULL) {
+    //     set_free(cell->dependencies);
+    //     free(cell->dependencies);
+    //     cell->dependencies = NULL;
+    // };
     if(cell->dependents != NULL) {
         set_free(cell->dependents);
         free(cell->dependents);

@@ -107,6 +107,12 @@ struct Set{
     char type;
 };
 
+// Pair of Pair structure
+typedef struct {
+    Pair first;
+    Pair second;
+} PairOfPair;
+
 // Cell structure definition
 struct Cell {
     int value;          
@@ -118,22 +124,18 @@ struct Cell {
     bool is_sleep;
     bool has_error;
     union {
-        Cell* ref;
         struct {  
-            Operation op;       // use bits
-            int constant;      
-            Pair operand1;     // pair implementation
-            Pair operand2;     // pair implmentation
+            Operation op;
+            int constant;
         } arithmetic;
 
         struct {  
             char func_name;
-            int range_size;
         } function;
     } op_data;
     
     Set* dependents;
-    Set* dependencies;
+    PairOfPair dependencies;
 };
 
 // Spreadsheet structure

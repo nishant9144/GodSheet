@@ -1,6 +1,7 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g
+FASTER = -O3
+CFLAGS = -Wall -Wextra -std=c99 -g #$(FASTER)
 LDFLAGS = -lm
 
 # Directories
