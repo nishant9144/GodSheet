@@ -534,27 +534,27 @@ void process_command(Spreadsheet *sheet, char *input)
 
 
 
-    FILE* fp = fopen("log.txt", "a");
-    fprintf(fp, "---------------------------------------------\n");
-    fprintf(fp, "Command: %s\n", input);
+    // FILE* fp = fopen("log.txt", "a");
+    // fprintf(fp, "---------------------------------------------\n");
+    // fprintf(fp, "Command: %s\n", input);
 
-    struct timeval start_time, end_time;
-    gettimeofday(&start_time, NULL);
+    // struct timeval start_time, end_time;
+    // gettimeofday(&start_time, NULL);
 
 
     // Attempt to parse and validate the new formula
     if (parse_formula(sheet, target_cell, formula, &need_new_dep, &new_pairs) != 0){
-        gettimeofday(&end_time, NULL);
-        double tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-        fprintf(fp, "Time taken in parsing: [%.1f]\n", tempprocessingtime);
-        fclose(fp);
+        // gettimeofday(&end_time, NULL);
+        // double tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        // fprintf(fp, "Time taken in parsing: [%.1f]\n", tempprocessingtime);
+        // fclose(fp);
         return;
     }
 
-    gettimeofday(&end_time, NULL);
-    double tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-    fprintf(fp, "Time taken in parsing: [%.1f]\n", tempprocessingtime);
-    gettimeofday(&start_time, NULL);
+    // gettimeofday(&end_time, NULL);
+    // double tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+    // fprintf(fp, "Time taken in parsing: [%.1f]\n", tempprocessingtime);
+    // gettimeofday(&start_time, NULL);
     if (update_dependencies(target_cell, need_new_dep, &new_pairs, sheet, cellcopy) == 1 && evaluate_cell(target_cell, sheet) == 0)
     { // 0 -> cycle, 1 -> no cycle
         sheet->last_status = STATUS_OK;
@@ -563,14 +563,14 @@ void process_command(Spreadsheet *sheet, char *input)
         deep_copy_cell(target_cell, &cellcopy);
         sheet->last_status = ERR_CIRCULAR_REFERENCE;
     }
-    gettimeofday(&end_time, NULL);
-    tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-    fprintf(fp, "Time taken in updating dependencies: [%.1f]\n", tempprocessingtime);
-    gettimeofday(&start_time, NULL);
+    // gettimeofday(&end_time, NULL);
+    // tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+    // fprintf(fp, "Time taken in updating dependencies: [%.1f]\n", tempprocessingtime);
+    // gettimeofday(&start_time, NULL);
     if((cellcopy.value != target_cell->value) || (target_cell->is_sleep != cellcopy.is_sleep)) update_dependents(target_cell, sheet);
-    gettimeofday(&end_time, NULL);
-    tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-    fprintf(fp, "Time taken in updating dependents: [%.1f]\n", tempprocessingtime);
-    fclose(fp);
+    // gettimeofday(&end_time, NULL);
+    // tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+    // fprintf(fp, "Time taken in updating dependents: [%.1f]\n", tempprocessingtime);
+    // fclose(fp);
     return;
 }

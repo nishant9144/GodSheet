@@ -71,7 +71,7 @@ struct Vector{
     size_t size;
     size_t capacity;
     Pair* data;
-    Spreadsheet* sheet;
+    // Spreadsheet* sheet;
 };
 
 // Queue implementation
@@ -81,7 +81,7 @@ struct Queue{
     size_t rear;
     size_t size;
     Pair* data;
-    Spreadsheet* sheet;
+    // Spreadsheet* sheet;
 };
 
 // Stack implementation
@@ -89,7 +89,7 @@ struct Stack{
     size_t size;
     size_t capacity;
     Pair* data;
-    Spreadsheet* sheet;
+    // Spreadsheet* sheet;
 };
 
 // AVL Tree Node
@@ -103,7 +103,7 @@ struct AVLNode {
 // Set implementation
 struct Set{
     AVLNode* root;
-    Spreadsheet* sheet;
+    // Spreadsheet* sheet;
     char type;
 };
 
@@ -179,48 +179,48 @@ typedef struct {
 
 
 // Function declarations
-void vector_init(Vector* vector, Spreadsheet* sheet);
+void vector_init(Vector* vector);
 void vector_push_back(Vector* vector, short row, short col);
 void vector_free(Vector* vector);
 
 void vector_iterator_init(VectorIterator* iterator, Vector* vector);
 bool vector_iterator_has_next(VectorIterator* iterator);
-Cell* vector_iterator_next(VectorIterator* iterator);
+Pair* vector_iterator_next(VectorIterator* iterator);
 
-void queue_init(Queue* queue, size_t capacity, Spreadsheet* sheet);
+void queue_init(Queue* queue, size_t capacity);
 bool queue_is_full(Queue* queue);
 bool queue_is_empty(Queue* queue);
 void queue_enqueue(Queue* queue, short row, short col);
-Cell* queue_dequeue(Queue* queue);
+Pair* queue_dequeue(Queue* queue);
 void queue_free(Queue* queue);
 
 void queue_iterator_init(QueueIterator* iterator, Queue* queue);
 bool queue_iterator_has_next(QueueIterator* iterator);
-Cell* queue_iterator_next(QueueIterator* iterator);
+Pair* queue_iterator_next(QueueIterator* iterator);
 
-void stack_init(Stack* stack, Spreadsheet* sheet);
+void stack_init(Stack* stack);
 void stack_push(Stack* stack, short row, short col);
-Cell* stack_pop(Stack* stack);
+Pair* stack_pop(Stack* stack);
 void stack_free(Stack* stack);
 
 void stack_iterator_init(StackIterator* iterator, Stack* stack);
 bool stack_iterator_has_next(StackIterator* iterator);
-Cell* stack_iterator_next(StackIterator* iterator);
+Pair* stack_iterator_next(StackIterator* iterator);
 
-void set_init(Set* set, Spreadsheet* sheet);
+void set_init(Set* set);
 void set_add(Set* set, short row, short col);
-Cell* set_find(Set* set, short row, short col);
+Pair* set_find(Set* set, short row, short col);
 void set_remove(Set* set, short row, short col);
 void set_free(Set* set);
 
 void set_iterator_init(SetIterator* iterator, Set* set);
 bool set_iterator_has_next(SetIterator* iterator);
-Cell* set_iterator_next(SetIterator* iterator);
+Pair* set_iterator_next(SetIterator* iterator);
 void set_iterator_free(SetIterator* iterator);
 
 
 
-void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted);
+void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted, Spreadsheet *sheet);
 void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet);
 
 

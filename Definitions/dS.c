@@ -10,11 +10,11 @@ static short compare_pairs(Pair a, Pair b) {
     return a.j - b.j;
 }
 
-void vector_init(Vector* vector, Spreadsheet* sheet) {
+void vector_init(Vector* vector) {
     vector->size = 0;
     vector->capacity = 4;
     vector->data = (Pair*)malloc(vector->capacity * sizeof(Pair));
-    vector->sheet = sheet;
+    // vector->sheet = sheet;
 }
 
 void vector_push_back(Vector* vector, short row, short col) {
@@ -47,19 +47,19 @@ bool vector_iterator_has_next(VectorIterator* iterator) {
     return iterator->index < iterator->vector->size;
 }
 
-Cell* vector_iterator_next(VectorIterator* iterator) {
+Pair* vector_iterator_next(VectorIterator* iterator) {
     if (!vector_iterator_has_next(iterator)) return NULL;
-    Pair pos = iterator->vector->data[iterator->index++];
-    return &(iterator->vector->sheet->cells[pos.i][pos.j]);
+    return &(iterator->vector->data[iterator->index++]);
+    // return &(iterator->vector->sheet->cells[pos.i][pos.j]);
 }
 
 
-void queue_init(Queue* queue, size_t capacity, Spreadsheet* sheet) {
+void queue_init(Queue* queue, size_t capacity) {
     queue->capacity = capacity;
     queue->front = queue->size = 0;
     queue->rear = capacity - 1;
     queue->data = (Pair*)malloc(queue->capacity * sizeof(Pair));
-    queue->sheet = sheet;
+    // queue->sheet = sheet;
 }
 
 bool queue_is_full(Queue* queue) {
@@ -78,12 +78,13 @@ void queue_enqueue(Queue* queue, short row, short col) {
     queue->size++;
 }
 
-Cell* queue_dequeue(Queue* queue) {
+Pair* queue_dequeue(Queue* queue) {
     if (queue_is_empty(queue)) return NULL;
-    Pair pos = queue->data[queue->front];
+    Pair* pos = &(queue->data[queue->front]);
     queue->front = (queue->front + 1) % queue->capacity;
     queue->size--;
-    return &(queue->sheet->cells[pos.i][pos.j]);
+    return pos;
+    // return &(queue->sheet->cells[pos.i][pos.j]);
 }
 
 void queue_free(Queue* queue) {
@@ -104,20 +105,19 @@ bool queue_iterator_has_next(QueueIterator* iterator) {
     return iterator->index != (iterator->queue->rear + 1) % iterator->queue->capacity;
 }
 
-Cell* queue_iterator_next(QueueIterator* iterator) {
+Pair* queue_iterator_next(QueueIterator* iterator) {
     if (!queue_iterator_has_next(iterator)) return NULL;
-    Cell* value = &(iterator->queue->sheet->cells[iterator->queue->data[iterator->index].i]
-                                                [iterator->queue->data[iterator->index].j]);
+    Pair* value = &(iterator->queue->data[iterator->index]);
     iterator->index = (iterator->index + 1) % iterator->queue->capacity;
     return value;
 }
 
 
-void stack_init(Stack* stack, Spreadsheet* sheet) {
+void stack_init(Stack* stack) {
     stack->size = 0;
     stack->capacity = 4;
     stack->data = (Pair*)malloc(stack->capacity * sizeof(Pair));
-    stack->sheet = sheet;
+    // stack->sheet = sheet;
 }
 
 void stack_push(Stack* stack, short row, short col) {
@@ -130,10 +130,10 @@ void stack_push(Stack* stack, short row, short col) {
     stack->size++;
 }
 
-Cell* stack_pop(Stack* stack) {
+Pair* stack_pop(Stack* stack) {
     if (stack->size == 0) return NULL;
     stack->size--;
-    return &(stack->sheet->cells[stack->data[stack->size].i][stack->data[stack->size].j]);
+    return &(stack->data[stack->size]);
 }
 
 void stack_free(Stack* stack) {
@@ -154,11 +154,10 @@ bool stack_iterator_has_next(StackIterator* iterator) {
     return iterator->index > 0;
 }
 
-Cell* stack_iterator_next(StackIterator* iterator) {
+Pair* stack_iterator_next(StackIterator* iterator) {
     if (!stack_iterator_has_next(iterator)) return NULL;
     iterator->index--;
-    return &(iterator->stack->sheet->cells[iterator->stack->data[iterator->index].i]
-                                        [iterator->stack->data[iterator->index].j]);
+    return &(iterator->stack->data[iterator->index]);
 }
 
 
@@ -204,9 +203,9 @@ static AVLNode* left_rotate(AVLNode* x) {
 }
 
 
-void set_init(Set* set, Spreadsheet* sheet) {
+void set_init(Set* set) {
     set->root = NULL;
-    set->sheet = sheet;
+    // set->sheet = sheet;
     set->type = 'C';
 }
 
@@ -270,11 +269,11 @@ static AVLNode* find(AVLNode* node, short row, short col) {
         return node;
 }
 
-Cell* set_find(Set* set, short row, short col) {
+Pair* set_find(Set* set, short row, short col) {
     if(set->root == NULL) return NULL;
     AVLNode* result = find(set->root, row, col);
     if (!result) return NULL;
-    return &(set->sheet->cells[row][col]);
+    return &(result->pair);
 }
 
 static AVLNode* min_value_node(AVLNode* node) {
@@ -382,12 +381,12 @@ bool set_iterator_has_next(SetIterator* iterator) {
     return iterator->top > 0;
 }
 
-Cell* set_iterator_next(SetIterator* iterator) {
+Pair* set_iterator_next(SetIterator* iterator) {
     if (!set_iterator_has_next(iterator))
         return NULL;
 
     AVLNode* node = iterator->stack[--iterator->top];
-    Cell* cell = &(iterator->set->sheet->cells[node->pair.i][node->pair.j]);
+    Pair* pp = &(node->pair);
 
     // Push all left nodes of the right subtree
     AVLNode* current = node->right;
@@ -401,7 +400,7 @@ Cell* set_iterator_next(SetIterator* iterator) {
         current = current->left;
     }
 
-    return cell;
+    return pp;
 }
 
 void set_iterator_free(SetIterator* iterator) {
@@ -411,7 +410,7 @@ void set_iterator_free(SetIterator* iterator) {
 
 
 
-void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted) {
+void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted, Spreadsheet *sheet) {
     // Mark current cell as visited
     set_add(visited, cell->row, cell->col);
     
@@ -420,10 +419,10 @@ void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorte
     set_iterator_init(&it, &adjList[cell->topo_order]);
     
     while (set_iterator_has_next(&it)) {
-        Cell* adj_cell = set_iterator_next(&it);
+        Pair* p = set_iterator_next(&it);
         // Only process if not already visited
-        if (set_find(visited, adj_cell->row, adj_cell->col) == NULL) {
-            topological_sort_util(adj_cell, adjList, visited, sorted);
+        if (set_find(visited, p->i, p->j) == NULL) {
+            topological_sort_util(&(sheet->cells[p->i][p->j]), adjList, visited, sorted, sheet);
         }
     }
     set_iterator_free(&it);
@@ -435,11 +434,11 @@ void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorte
 void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet) {
     // Initialize visited set to track processed cells
     Set visited;
-    set_init(&visited, sheet);
+    set_init(&visited);
 
     // Initialize result vector
     Vector sorted;
-    vector_init(&sorted, sheet);
+    vector_init(&sorted);
 
     // Process all vertices
     for (int i = 1; i <= numVertices; i++) {
@@ -447,12 +446,12 @@ void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* re
         Cell* current = cell_map[i];
         // If it hasn't been visited, process it
         if (current != NULL && set_find(&visited, current->row, current->col) == NULL) {
-            topological_sort_util(current, adjList, &visited, &sorted);
+            topological_sort_util(current, adjList, &visited, &sorted, sheet);
         }
     }
 
     // Create result vector for topo order
-    vector_init(result, sheet);
+    vector_init(result);
     
     // Reverse the order (as DFS gives reverse topological sort)
     for (size_t i = 0; i < sorted.size; i++) {

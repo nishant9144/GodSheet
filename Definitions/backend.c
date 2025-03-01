@@ -4,25 +4,6 @@
 #include "../Declarations/frontend.h"
 // valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./bin/sheet 10 10
 
-void print_cell(Cell *cell)
-{
-    printf("%d%d: %d\n", cell->col, cell->row + 1, cell->value);
-}
-void print_dependents(Cell *cell)
-{
-    // printf("Dependents of %s%d: ", cell->col, cell->row+1);
-    if (cell->dependents != NULL)
-    {
-        SetIterator it;
-        set_iterator_init(&it, cell->dependents);
-        while (set_iterator_has_next(&it))
-        {
-            Cell *dep = set_iterator_next(&it);
-            printf("%d%d ", dep->col, dep->row + 1);
-        }
-        set_iterator_free(&it);
-    }
-}
 
 // Function to update the dependencies of a cell: 1 -> no cycle/updated successfully, 0 -> cycle/not updated
 int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pairs, Spreadsheet *sheet, Cell cellcopy)
@@ -98,7 +79,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                     if (new_dep->dependents == NULL)
                     {
                         new_dep->dependents = (Set *)malloc(sizeof(Set));
-                        set_init(new_dep->dependents, sheet);
+                        set_init(new_dep->dependents);
                     }
                     set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
                 }
@@ -115,7 +96,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 if (new_dep->dependents == NULL)
                 {
                     new_dep->dependents = (Set *)malloc(sizeof(Set));
-                    set_init(new_dep->dependents, sheet);
+                    set_init(new_dep->dependents);
                 }
                 set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
             }
@@ -128,7 +109,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 if (new_dep->dependents == NULL)
                 {
                     new_dep->dependents = (Set *)malloc(sizeof(Set));
-                    set_init(new_dep->dependents, sheet);
+                    set_init(new_dep->dependents);
                 }
                 set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
             }
@@ -142,7 +123,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
             if (new_dep->dependents == NULL)
             {
                 new_dep->dependents = (Set *)malloc(sizeof(Set));
-                set_init(new_dep->dependents, sheet);
+                set_init(new_dep->dependents);
             }
             set_add(new_dep->dependents, curr_cell->row, curr_cell->col);            
         }
@@ -210,7 +191,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                         if (old_dep->dependents == NULL)
                         {
                             old_dep->dependents = (Set *)malloc(sizeof(Set));
-                            set_init(old_dep->dependents, sheet);
+                            set_init(old_dep->dependents);
                         }
                         set_add(old_dep->dependents, curr_cell->row, curr_cell->col);
                     }
@@ -227,7 +208,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                     if (old_deps->dependents == NULL)
                     {
                         old_deps->dependents = (Set *)malloc(sizeof(Set));
-                        set_init(old_deps->dependents, sheet);
+                        set_init(old_deps->dependents);
                     }
                     set_add(old_deps->dependents, curr_cell->row, curr_cell->col);
                 }
@@ -241,7 +222,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                     if (old_deps->dependents == NULL)
                     {
                         old_deps->dependents = (Set *)malloc(sizeof(Set));
-                        set_init(old_deps->dependents, sheet);
+                        set_init(old_deps->dependents);
                     }
                     set_add(old_deps->dependents, curr_cell->row, curr_cell->col);
                 }
@@ -256,7 +237,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 if (old_deps->dependents == NULL)
                 {
                     old_deps->dependents = (Set *)malloc(sizeof(Set));
-                    set_init(old_deps->dependents, sheet);
+                    set_init(old_deps->dependents);
                 }
                 set_add(old_deps->dependents, curr_cell->row, curr_cell->col);
             }
@@ -337,7 +318,7 @@ bool detect_cycle_dfs(Cell *cell, Spreadsheet *sheet, Vector *bin)
     return false;
 }
 
-void revertChanges(Vector *bins)
+void revertChanges(Vector *bins, Spreadsheet * sheet)
 {
     if (bins == NULL)
         return;
@@ -346,25 +327,25 @@ void revertChanges(Vector *bins)
     vector_iterator_init(&it, bins);
     while (vector_iterator_has_next(&it))
     {
-        Cell *cell = vector_iterator_next(&it);
-        cell->cell_state = 'U';
+        Pair* p = vector_iterator_next(&it);
+        sheet->cells[p->i][p->j].cell_state = 'U';
     }
 }
 
 bool check_circular_dependencies(Cell *cell, Spreadsheet *sheet)
 {
     Vector bin;
-    vector_init(&bin, sheet);
+    vector_init(&bin);
     vector_push_back(&bin, cell->row, cell->col);
     bool hascycle = detect_cycle_dfs(cell, sheet, &bin);
-    revertChanges(&bin);
+    revertChanges(&bin, sheet);
     vector_free(&bin);
     return hascycle;
 }
 
 
 // Helper function to collect all dependent cells for topological sort
-void collect_dependents(Cell *curr_cell, Set *affected_cells)
+void collect_dependents(Cell *curr_cell, Set *affected_cells, Spreadsheet* sheet)
 {
     if (curr_cell->dependents != NULL)
     {
@@ -372,11 +353,11 @@ void collect_dependents(Cell *curr_cell, Set *affected_cells)
         set_iterator_init(&it, curr_cell->dependents);
         while (set_iterator_has_next(&it))
         {
-            Cell *dep = set_iterator_next(&it);
-            if (set_find(affected_cells, dep->row, dep->col) == NULL)
+            Pair *dep = set_iterator_next(&it);
+            if (set_find(affected_cells, dep->i, dep->j) == NULL)
             {
-                set_add(affected_cells, dep->row, dep->col);
-                collect_dependents(dep, affected_cells);
+                set_add(affected_cells, dep->i, dep->j);
+                collect_dependents(&(sheet->cells[dep->i][dep->j]), affected_cells, sheet);
             }
         }
         set_iterator_free(&it);
@@ -389,8 +370,8 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
         return;
     // Collect all affected cells
     Set affected_cells;
-    set_init(&affected_cells, sheet);
-    collect_dependents(curr_cell, &affected_cells);
+    set_init(&affected_cells);
+    collect_dependents(curr_cell, &affected_cells, sheet);
 
     // Create cell mapping and adjacency matrix for topological sort
     int num_cells = 0;
@@ -422,9 +403,9 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     set_iterator_init(&map_it, &affected_cells);
     while (set_iterator_has_next(&map_it))
     {
-        Cell *cell = set_iterator_next(&map_it);
-        cell->topo_order = index;
-        cell_map[index++] = cell;
+        Pair *p = set_iterator_next(&map_it);
+        sheet->cells[p->i][p->j].topo_order = index;
+        cell_map[index++] = &sheet->cells[p->i][p->j];
     }
     set_iterator_free(&map_it);
     // Create adjacency matrix
@@ -439,7 +420,7 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     }
 
     for (int i = 1; i <= num_cells; i++)
-        set_init(&adj_list[i], sheet);
+        set_init(&adj_list[i]);
 
     // Fill adjacency list - only add edges between affected cells
     for (int i = 1; i <= num_cells; i++)
@@ -504,11 +485,11 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     vector_iterator_init(&update_it, &sorted);
     while (vector_iterator_has_next(&update_it))
     {
-        Cell *cell = vector_iterator_next(&update_it);
+        Pair* p = vector_iterator_next(&update_it);
         // Recalculate cell value
         // Note: This is where you'd call your cell evaluation function
         // For now, we'll just check for division by zero
-        evaluate_cell(cell, sheet);
+        evaluate_cell(&(sheet->cells[p->i][p->j]), sheet);
     }
     // Cleanup
     vector_free(&sorted);
