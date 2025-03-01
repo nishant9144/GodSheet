@@ -28,7 +28,7 @@ void print_dependents(Cell *cell)
 int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pairs, Spreadsheet *sheet, Cell cellcopy)
 {
     if(curr_cell->type == cellcopy.type){
-        if(curr_cell->dependencies.first.i == cellcopy.dependencies.first.i && curr_cell->dependencies.first.j == cellcopy.dependencies.first.j && curr_cell->dependencies.second.i == cellcopy.dependencies.second.i && curr_cell->dependencies.second.j == cellcopy.dependencies.second.j){
+        if(new_pairs->first.i == cellcopy.dependencies.first.i && new_pairs->first.j == cellcopy.dependencies.first.j && new_pairs->second.i == cellcopy.dependencies.second.i && new_pairs->second.j == cellcopy.dependencies.second.j){
             return 1;
         }
     }
@@ -38,8 +38,8 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
     curr_cell->dependencies = *new_pairs;
     if (cellcopy.type == 'F')
     {
-        short r1 = curr_cell->dependencies.first.i, c1 = curr_cell->dependencies.first.j;
-        short r2 = curr_cell->dependencies.second.i, c2 = curr_cell->dependencies.second.j;
+        short r1 = cellcopy.dependencies.first.i, c1 = cellcopy.dependencies.first.j;
+        short r2 = cellcopy.dependencies.second.i, c2 = cellcopy.dependencies.second.j;
 
         for (short i = r1; i <= r2; i++)
         {
@@ -47,39 +47,39 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
             {
                 Cell *old_dep = &sheet->cells[i][j];
                 if (old_dep->dependents != NULL)
-                    set_remove(old_dep->dependents, curr_cell->row, curr_cell->col);
+                    set_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
             }
         }
     }
     else if (cellcopy.type == 'A')
     {
         
-        short r = curr_cell->dependencies.first.i;
-        short c = curr_cell->dependencies.first.j;
+        short r = cellcopy.dependencies.first.i;
+        short c = cellcopy.dependencies.first.j;
 
         if (r != -1 && c != -1)
         {  
             Cell *old_dep = &sheet->cells[r][c];
-            set_remove(old_dep->dependents, curr_cell->row, curr_cell->col);
+            set_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
         }
 
-        r = curr_cell->dependencies.second.i;
-        c = curr_cell->dependencies.second.j;
+        r = cellcopy.dependencies.second.i;
+        c = cellcopy.dependencies.second.j;
 
         if (r != -1 && c != -1)
         {
             Cell *old_dep = &sheet->cells[r][c];
-            set_remove(old_dep->dependents, curr_cell->row, curr_cell->col);
+            set_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
         }
 
     }
     else if (cellcopy.type == 'R')
     {
-        short r = curr_cell->dependencies.first.i;
-        short c = curr_cell->dependencies.first.j;
+        short r = cellcopy.dependencies.first.i;
+        short c = cellcopy.dependencies.first.j;
 
         Cell *old_dep = &sheet->cells[r][c];
-        set_remove(old_dep->dependents, curr_cell->row, curr_cell->col);
+        set_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
     }
 
     // Add current cell to the dependents set of new dependencies

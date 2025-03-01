@@ -527,6 +527,7 @@ void process_command(Spreadsheet *sheet, char *input)
 
     Cell cellcopy;
     deep_copy_cell(&cellcopy, target_cell);
+    target_cell->is_sleep = false;
 
     bool need_new_dep;
     PairOfPair new_pairs;
@@ -566,7 +567,7 @@ void process_command(Spreadsheet *sheet, char *input)
     tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
     fprintf(fp, "Time taken in updating dependencies: [%.1f]\n", tempprocessingtime);
     gettimeofday(&start_time, NULL);
-    if(cellcopy.value != target_cell->value) update_dependents(target_cell, sheet);
+    if((cellcopy.value != target_cell->value) || (target_cell->is_sleep != cellcopy.is_sleep)) update_dependents(target_cell, sheet);
     gettimeofday(&end_time, NULL);
     tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
     fprintf(fp, "Time taken in updating dependents: [%.1f]\n", tempprocessingtime);
