@@ -1,0 +1,1703 @@
+desc: (none)
+cmd: ./bin/sheet 10 10
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=247381
+mem_heap_B=64
+mem_heap_extra_B=8
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=249381
+mem_heap_B=1744
+mem_heap_extra_B=48
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=251897
+mem_heap_B=3344
+mem_heap_extra_B=80
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=254393
+mem_heap_B=5168
+mem_heap_extra_B=104
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=5
+#-----------
+time=356428
+mem_heap_B=6192
+mem_heap_extra_B=112
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=6
+#-----------
+time=358418
+mem_heap_B=8240
+mem_heap_extra_B=184
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=7
+#-----------
+time=361377
+mem_heap_B=8240
+mem_heap_extra_B=184
+mem_stacks_B=0
+heap_tree=detailed
+n8: 8240 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n1: 968 0x4A54B6B: create_token_tree (regcomp.c:3828)
+  n1: 968 0x4A54B6B: parse_expression (regcomp.c:2385)
+   n1: 968 0x4A553FD: parse_branch (regcomp.c:2206)
+    n1: 968 0x4A55569: parse_reg_exp (regcomp.c:2158)
+     n1: 968 0x4A55C6D: parse (regcomp.c:2126)
+      n1: 968 0x4A55C6D: re_compile_internal (regcomp.c:791)
+       n1: 968 0x4A57770: regcomp (regcomp.c:491)
+        n1: 968 0x10E106: parse_cell_address (parser.c:44)
+         n1: 968 0x10F4CD: process_command (parser.c:507)
+          n1: 968 0x109F55: run_ui (frontend.c:213)
+           n0: 968 0x109603: main (main.c:30)
+ n1: 256 0x4A5585E: init_dfa (regcomp.c:867)
+  n1: 256 0x4A5585E: re_compile_internal (regcomp.c:759)
+   n1: 256 0x4A57770: regcomp (regcomp.c:491)
+    n1: 256 0x10E106: parse_cell_address (parser.c:44)
+     n1: 256 0x10F4CD: process_command (parser.c:507)
+      n1: 256 0x109F55: run_ui (frontend.c:213)
+       n0: 256 0x109603: main (main.c:30)
+ n1: 256 0x4A57707: regcomp (regcomp.c:472)
+  n1: 256 0x10E106: parse_cell_address (parser.c:44)
+   n1: 256 0x10F4CD: process_command (parser.c:507)
+    n1: 256 0x109F55: run_ui (frontend.c:213)
+     n0: 256 0x109603: main (main.c:30)
+ n0: 248 in 4 places, all below massif's threshold (1.00%)
+ n1: 240 0x4A55823: init_dfa (regcomp.c:860)
+  n1: 240 0x4A55823: re_compile_internal (regcomp.c:759)
+   n1: 240 0x4A57770: regcomp (regcomp.c:491)
+    n1: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10F4CD: process_command (parser.c:507)
+      n1: 240 0x109F55: run_ui (frontend.c:213)
+       n0: 240 0x109603: main (main.c:30)
+ n1: 224 0x4A56D37: re_compile_internal (regcomp.c:751)
+  n1: 224 0x4A57770: regcomp (regcomp.c:491)
+   n1: 224 0x10E106: parse_cell_address (parser.c:44)
+    n1: 224 0x10F4CD: process_command (parser.c:507)
+     n1: 224 0x109F55: run_ui (frontend.c:213)
+      n0: 224 0x109603: main (main.c:30)
+#-----------
+snapshot=8
+#-----------
+time=364817
+mem_heap_B=8200
+mem_heap_extra_B=176
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=9
+#-----------
+time=367853
+mem_heap_B=8804
+mem_heap_extra_B=236
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=10
+#-----------
+time=369581
+mem_heap_B=8876
+mem_heap_extra_B=396
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=11
+#-----------
+time=371563
+mem_heap_B=9100
+mem_heap_extra_B=556
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=12
+#-----------
+time=373812
+mem_heap_B=8504
+mem_heap_extra_B=760
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=13
+#-----------
+time=378664
+mem_heap_B=8508
+mem_heap_extra_B=780
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=14
+#-----------
+time=380594
+mem_heap_B=10720
+mem_heap_extra_B=856
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=15
+#-----------
+time=382938
+mem_heap_B=13256
+mem_heap_extra_B=1024
+mem_stacks_B=0
+heap_tree=detailed
+n13: 13256 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4096 0x4A4CF88: build_trtable (regexec.c:3367)
+  n1: 4096 0x4A51153: transit_state (regexec.c:2257)
+   n1: 4096 0x4A51153: check_matching (regexec.c:1120)
+    n1: 4096 0x4A51153: re_search_internal (regexec.c:792)
+     n1: 4096 0x4A57AE8: regexec@@GLIBC_2.3.4 (regexec.c:219)
+      n1: 4096 0x10E144: parse_cell_address (parser.c:51)
+       n1: 4096 0x10F4CD: process_command (parser.c:507)
+        n1: 4096 0x109F55: run_ui (frontend.c:213)
+         n0: 4096 0x109603: main (main.c:30)
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n0: 784 in 22 places, all below massif's threshold (1.00%)
+ n1: 528 0x4A4BC1A: create_cd_newstate (regex_internal.c:1687)
+  n1: 528 0x4A4BC1A: re_acquire_state_context (regex_internal.c:1562)
+   n0: 528 in 6 places, all below massif's threshold (1.00%)
+ n1: 256 0x4A5585E: init_dfa (regcomp.c:867)
+  n1: 256 0x4A5585E: re_compile_internal (regcomp.c:759)
+   n1: 256 0x4A57770: regcomp (regcomp.c:491)
+    n1: 256 0x10E106: parse_cell_address (parser.c:44)
+     n1: 256 0x10F4CD: process_command (parser.c:507)
+      n1: 256 0x109F55: run_ui (frontend.c:213)
+       n0: 256 0x109603: main (main.c:30)
+ n1: 256 0x4A57707: regcomp (regcomp.c:472)
+  n1: 256 0x10E106: parse_cell_address (parser.c:44)
+   n1: 256 0x10F4CD: process_command (parser.c:507)
+    n1: 256 0x109F55: run_ui (frontend.c:213)
+     n0: 256 0x109603: main (main.c:30)
+ n1: 240 0x4A55823: init_dfa (regcomp.c:860)
+  n1: 240 0x4A55823: re_compile_internal (regcomp.c:759)
+   n1: 240 0x4A57770: regcomp (regcomp.c:491)
+    n1: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10F4CD: process_command (parser.c:507)
+      n1: 240 0x109F55: run_ui (frontend.c:213)
+       n0: 240 0x109603: main (main.c:30)
+ n1: 240 0x4A55F86: analyze (regcomp.c:1172)
+  n1: 240 0x4A55F86: re_compile_internal (regcomp.c:796)
+   n1: 240 0x4A57770: regcomp (regcomp.c:491)
+    n1: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10F4CD: process_command (parser.c:507)
+      n1: 240 0x109F55: run_ui (frontend.c:213)
+       n0: 240 0x109603: main (main.c:30)
+ n1: 240 0x4A55F99: analyze (regcomp.c:1173)
+  n1: 240 0x4A55F99: re_compile_internal (regcomp.c:796)
+   n1: 240 0x4A57770: regcomp (regcomp.c:491)
+    n1: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10F4CD: process_command (parser.c:507)
+      n1: 240 0x109F55: run_ui (frontend.c:213)
+       n0: 240 0x109603: main (main.c:30)
+ n1: 224 0x4A56D37: re_compile_internal (regcomp.c:751)
+  n1: 224 0x4A57770: regcomp (regcomp.c:491)
+   n1: 224 0x10E106: parse_cell_address (parser.c:44)
+    n1: 224 0x10F4CD: process_command (parser.c:507)
+     n1: 224 0x109F55: run_ui (frontend.c:213)
+      n0: 224 0x109603: main (main.c:30)
+ n1: 176 0x4A4CCBC: create_cd_newstate (regex_internal.c:1687)
+  n1: 176 0x4A4CCBC: re_acquire_state_context (regex_internal.c:1562)
+   n1: 176 0x4A4CCBC: build_trtable (regexec.c:3331)
+    n1: 176 0x4A51153: transit_state (regexec.c:2257)
+     n1: 176 0x4A51153: check_matching (regexec.c:1120)
+      n1: 176 0x4A51153: re_search_internal (regexec.c:792)
+       n1: 176 0x4A57AE8: regexec@@GLIBC_2.3.4 (regexec.c:219)
+        n1: 176 0x10E144: parse_cell_address (parser.c:51)
+         n1: 176 0x10F4CD: process_command (parser.c:507)
+          n1: 176 0x109F55: run_ui (frontend.c:213)
+           n0: 176 0x109603: main (main.c:30)
+ n1: 168 0x4A456C4: re_node_set_merge (regex_internal.c:1205)
+  n0: 168 in 2 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=16
+#-----------
+time=385667
+mem_heap_B=12152
+mem_heap_extra_B=640
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=17
+#-----------
+time=388763
+mem_heap_B=8304
+mem_heap_extra_B=144
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=18
+#-----------
+time=391300
+mem_heap_B=10240
+mem_heap_extra_B=176
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=19
+#-----------
+time=393244
+mem_heap_B=11208
+mem_heap_extra_B=192
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=20
+#-----------
+time=395028
+mem_heap_B=12176
+mem_heap_extra_B=208
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=21
+#-----------
+time=397857
+mem_heap_B=13696
+mem_heap_extra_B=256
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=22
+#-----------
+time=404074
+mem_heap_B=13700
+mem_heap_extra_B=276
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=23
+#-----------
+time=405866
+mem_heap_B=13748
+mem_heap_extra_B=372
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=24
+#-----------
+time=407815
+mem_heap_B=15908
+mem_heap_extra_B=492
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=25
+#-----------
+time=409376
+mem_heap_B=15976
+mem_heap_extra_B=536
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=26
+#-----------
+time=411278
+mem_heap_B=16184
+mem_heap_extra_B=616
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=27
+#-----------
+time=413678
+mem_heap_B=16428
+mem_heap_extra_B=796
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=28
+#-----------
+time=415280
+mem_heap_B=16564
+mem_heap_extra_B=932
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=29
+#-----------
+time=417348
+mem_heap_B=16780
+mem_heap_extra_B=1148
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=30
+#-----------
+time=419310
+mem_heap_B=17052
+mem_heap_extra_B=1292
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=31
+#-----------
+time=422186
+mem_heap_B=17316
+mem_heap_extra_B=1364
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=32
+#-----------
+time=424825
+mem_heap_B=17860
+mem_heap_extra_B=1484
+mem_stacks_B=0
+heap_tree=detailed
+n16: 17860 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n1: 1936 0x4A44A59: create_token_tree (regcomp.c:3828)
+  n1: 1936 0x4A55464: create_tree (regcomp.c:3818)
+   n2: 1936 0x4A55464: parse_branch (regcomp.c:2222)
+    n1: 968 0x4A55569: parse_reg_exp (regcomp.c:2158)
+     n1: 968 0x4A55C6D: parse (regcomp.c:2126)
+      n1: 968 0x4A55C6D: re_compile_internal (regcomp.c:791)
+       n1: 968 0x4A57770: regcomp (regcomp.c:491)
+        n1: 968 0x10E352: is_valid_formula (parser.c:96)
+         n1: 968 0x10F18C: parse_formula (parser.c:429)
+          n1: 968 0x10F5EA: process_command (parser.c:546)
+           n1: 968 0x109F55: run_ui (frontend.c:213)
+            n0: 968 0x109603: main (main.c:30)
+    n1: 968 0x4A555DB: parse_reg_exp (regcomp.c:2170)
+     n1: 968 0x4A53EC9: parse_sub_exp (regcomp.c:2495)
+      n1: 968 0x4A53EC9: parse_expression (regcomp.c:2281)
+       n1: 968 0x4A554A7: parse_branch (regcomp.c:2213)
+        n1: 968 0x4A55569: parse_reg_exp (regcomp.c:2158)
+         n1: 968 0x4A55C6D: parse (regcomp.c:2126)
+          n1: 968 0x4A55C6D: re_compile_internal (regcomp.c:791)
+           n1: 968 0x4A57770: regcomp (regcomp.c:491)
+            n1: 968 0x10E352: is_valid_formula (parser.c:96)
+             n1: 968 0x10F18C: parse_formula (parser.c:429)
+              n1: 968 0x10F5EA: process_command (parser.c:546)
+               n1: 968 0x109F55: run_ui (frontend.c:213)
+                n0: 968 0x109603: main (main.c:30)
+ n1: 1216 0x4A463A6: re_dfa_add_node (regex_internal.c:1429)
+  n1: 1216 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 1216 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 1216 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 1216 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 1216 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 1216 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 1216 0x4A57770: regcomp (regcomp.c:491)
+            n1: 1216 0x10E352: is_valid_formula (parser.c:96)
+             n1: 1216 0x10F18C: parse_formula (parser.c:429)
+              n1: 1216 0x10F5EA: process_command (parser.c:546)
+               n1: 1216 0x109F55: run_ui (frontend.c:213)
+                n0: 1216 0x109603: main (main.c:30)
+ n1: 1216 0x4A463E7: re_dfa_add_node (regex_internal.c:1435)
+  n1: 1216 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 1216 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 1216 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 1216 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 1216 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 1216 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 1216 0x4A57770: regcomp (regcomp.c:491)
+            n1: 1216 0x10E352: is_valid_formula (parser.c:96)
+             n1: 1216 0x10F18C: parse_formula (parser.c:429)
+              n1: 1216 0x10F5EA: process_command (parser.c:546)
+               n1: 1216 0x109F55: run_ui (frontend.c:213)
+                n0: 1216 0x109603: main (main.c:30)
+ n1: 1216 0x4A463F7: re_dfa_add_node (regex_internal.c:1436)
+  n1: 1216 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 1216 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 1216 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 1216 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 1216 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 1216 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 1216 0x4A57770: regcomp (regcomp.c:491)
+            n1: 1216 0x10E352: is_valid_formula (parser.c:96)
+             n1: 1216 0x10F18C: parse_formula (parser.c:429)
+              n1: 1216 0x10F5EA: process_command (parser.c:546)
+               n1: 1216 0x109F55: run_ui (frontend.c:213)
+                n0: 1216 0x109603: main (main.c:30)
+ n0: 1028 in 28 places, all below massif's threshold (1.00%)
+ n1: 1024 0x4A5585E: init_dfa (regcomp.c:867)
+  n1: 1024 0x4A5585E: re_compile_internal (regcomp.c:759)
+   n2: 1024 0x4A57770: regcomp (regcomp.c:491)
+    n1: 1024 0x10E352: is_valid_formula (parser.c:96)
+     n1: 1024 0x10F18C: parse_formula (parser.c:429)
+      n1: 1024 0x10F5EA: process_command (parser.c:546)
+       n1: 1024 0x109F55: run_ui (frontend.c:213)
+        n0: 1024 0x109603: main (main.c:30)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 968 0x4A54B6B: create_token_tree (regcomp.c:3828)
+  n1: 968 0x4A54B6B: parse_expression (regcomp.c:2385)
+   n1: 968 0x4A553FD: parse_branch (regcomp.c:2206)
+    n1: 968 0x4A55569: parse_reg_exp (regcomp.c:2158)
+     n1: 968 0x4A55C6D: parse (regcomp.c:2126)
+      n1: 968 0x4A55C6D: re_compile_internal (regcomp.c:791)
+       n2: 968 0x4A57770: regcomp (regcomp.c:491)
+        n1: 968 0x10E352: is_valid_formula (parser.c:96)
+         n1: 968 0x10F18C: parse_formula (parser.c:429)
+          n1: 968 0x10F5EA: process_command (parser.c:546)
+           n1: 968 0x109F55: run_ui (frontend.c:213)
+            n0: 968 0x109603: main (main.c:30)
+        n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 968 0x4A55349: create_token_tree (regcomp.c:3828)
+  n1: 968 0x4A55349: parse_expression (regcomp.c:2254)
+   n1: 968 0x4A554A7: parse_branch (regcomp.c:2213)
+    n1: 968 0x4A555DB: parse_reg_exp (regcomp.c:2170)
+     n1: 968 0x4A53EC9: parse_sub_exp (regcomp.c:2495)
+      n1: 968 0x4A53EC9: parse_expression (regcomp.c:2281)
+       n1: 968 0x4A554A7: parse_branch (regcomp.c:2213)
+        n1: 968 0x4A55569: parse_reg_exp (regcomp.c:2158)
+         n1: 968 0x4A55C6D: parse (regcomp.c:2126)
+          n1: 968 0x4A55C6D: re_compile_internal (regcomp.c:791)
+           n1: 968 0x4A57770: regcomp (regcomp.c:491)
+            n1: 968 0x10E352: is_valid_formula (parser.c:96)
+             n1: 968 0x10F18C: parse_formula (parser.c:429)
+              n1: 968 0x10F5EA: process_command (parser.c:546)
+               n1: 968 0x109F55: run_ui (frontend.c:213)
+                n0: 968 0x109603: main (main.c:30)
+ n2: 800 0x4A456C4: re_node_set_merge (regex_internal.c:1205)
+  n2: 800 0x4A49E66: calc_eclosure_iter (regcomp.c:1747)
+   n1: 480 0x4A564B2: calc_eclosure (regcomp.c:1678)
+    n1: 480 0x4A564B2: analyze (regcomp.c:1205)
+     n1: 480 0x4A564B2: re_compile_internal (regcomp.c:796)
+      n2: 480 0x4A57770: regcomp (regcomp.c:491)
+       n1: 480 0x10E352: is_valid_formula (parser.c:96)
+        n1: 480 0x10F18C: parse_formula (parser.c:429)
+         n1: 480 0x10F5EA: process_command (parser.c:546)
+          n1: 480 0x109F55: run_ui (frontend.c:213)
+           n0: 480 0x109603: main (main.c:30)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+   n2: 320 0x4A49ECE: calc_eclosure_iter (regcomp.c:1740)
+    n1: 224 0x4A49ECE: calc_eclosure_iter (regcomp.c:1740)
+     n0: 224 in 2 places, all below massif's threshold (1.00%)
+    n0: 96 in 1 place, below massif's threshold (1.00%)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 352 0x4A4BC1A: create_cd_newstate (regex_internal.c:1687)
+  n1: 352 0x4A4BC1A: re_acquire_state_context (regex_internal.c:1562)
+   n0: 352 in 6 places, all below massif's threshold (1.00%)
+ n1: 304 0x4A463C7: re_dfa_add_node (regex_internal.c:1433)
+  n1: 304 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 304 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 304 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 304 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 304 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 304 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 304 0x4A57770: regcomp (regcomp.c:491)
+            n1: 304 0x10E352: is_valid_formula (parser.c:96)
+             n1: 304 0x10F18C: parse_formula (parser.c:429)
+              n1: 304 0x10F5EA: process_command (parser.c:546)
+               n1: 304 0x109F55: run_ui (frontend.c:213)
+                n0: 304 0x109603: main (main.c:30)
+ n1: 304 0x4A463D7: re_dfa_add_node (regex_internal.c:1434)
+  n1: 304 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 304 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 304 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 304 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 304 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 304 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 304 0x4A57770: regcomp (regcomp.c:491)
+            n1: 304 0x10E352: is_valid_formula (parser.c:96)
+             n1: 304 0x10F18C: parse_formula (parser.c:429)
+              n1: 304 0x10F5EA: process_command (parser.c:546)
+               n1: 304 0x109F55: run_ui (frontend.c:213)
+                n0: 304 0x109603: main (main.c:30)
+ n2: 256 0x4A57707: regcomp (regcomp.c:472)
+  n1: 256 0x10E352: is_valid_formula (parser.c:96)
+   n1: 256 0x10F18C: parse_formula (parser.c:429)
+    n1: 256 0x10F5EA: process_command (parser.c:546)
+     n1: 256 0x109F55: run_ui (frontend.c:213)
+      n0: 256 0x109603: main (main.c:30)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 224 0x4A56D37: re_compile_internal (regcomp.c:751)
+  n2: 224 0x4A57770: regcomp (regcomp.c:491)
+   n1: 224 0x10E352: is_valid_formula (parser.c:96)
+    n1: 224 0x10F18C: parse_formula (parser.c:429)
+     n1: 224 0x10F5EA: process_command (parser.c:546)
+      n1: 224 0x109F55: run_ui (frontend.c:213)
+       n0: 224 0x109603: main (main.c:30)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+#-----------
+snapshot=33
+#-----------
+time=426492
+mem_heap_B=13640
+mem_heap_extra_B=1424
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=34
+#-----------
+time=428623
+mem_heap_B=13896
+mem_heap_extra_B=1584
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=35
+#-----------
+time=430090
+mem_heap_B=16048
+mem_heap_extra_B=1616
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=36
+#-----------
+time=432820
+mem_heap_B=18532
+mem_heap_extra_B=1868
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=37
+#-----------
+time=435231
+mem_heap_B=22760
+mem_heap_extra_B=1968
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=38
+#-----------
+time=438051
+mem_heap_B=25396
+mem_heap_extra_B=2276
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=39
+#-----------
+time=444791
+mem_heap_B=25396
+mem_heap_extra_B=2276
+mem_stacks_B=0
+heap_tree=peak
+n12: 25396 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 10240 0x4A4CF88: build_trtable (regexec.c:3367)
+  n1: 10240 0x4A51153: transit_state (regexec.c:2257)
+   n1: 10240 0x4A51153: check_matching (regexec.c:1120)
+    n1: 10240 0x4A51153: re_search_internal (regexec.c:792)
+     n2: 10240 0x4A57AE8: regexec@@GLIBC_2.3.4 (regexec.c:219)
+      n1: 10240 0x10E382: is_valid_formula (parser.c:102)
+       n1: 10240 0x10F18C: parse_formula (parser.c:429)
+        n1: 10240 0x10F5EA: process_command (parser.c:546)
+         n1: 10240 0x109F55: run_ui (frontend.c:213)
+          n0: 10240 0x109603: main (main.c:30)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n0: 1964 in 33 places, all below massif's threshold (1.00%)
+ n1: 1216 0x4A463A6: re_dfa_add_node (regex_internal.c:1429)
+  n1: 1216 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 1216 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 1216 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 1216 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 1216 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 1216 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 1216 0x4A57770: regcomp (regcomp.c:491)
+            n1: 1216 0x10E352: is_valid_formula (parser.c:96)
+             n1: 1216 0x10F18C: parse_formula (parser.c:429)
+              n1: 1216 0x10F5EA: process_command (parser.c:546)
+               n1: 1216 0x109F55: run_ui (frontend.c:213)
+                n0: 1216 0x109603: main (main.c:30)
+ n1: 1216 0x4A463E7: re_dfa_add_node (regex_internal.c:1435)
+  n1: 1216 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 1216 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 1216 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 1216 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 1216 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 1216 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 1216 0x4A57770: regcomp (regcomp.c:491)
+            n1: 1216 0x10E352: is_valid_formula (parser.c:96)
+             n1: 1216 0x10F18C: parse_formula (parser.c:429)
+              n1: 1216 0x10F5EA: process_command (parser.c:546)
+               n1: 1216 0x109F55: run_ui (frontend.c:213)
+                n0: 1216 0x109603: main (main.c:30)
+ n1: 1216 0x4A463F7: re_dfa_add_node (regex_internal.c:1436)
+  n1: 1216 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 1216 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 1216 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 1216 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 1216 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 1216 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 1216 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 1216 0x4A57770: regcomp (regcomp.c:491)
+            n1: 1216 0x10E352: is_valid_formula (parser.c:96)
+             n1: 1216 0x10F18C: parse_formula (parser.c:429)
+              n1: 1216 0x10F5EA: process_command (parser.c:546)
+               n1: 1216 0x109F55: run_ui (frontend.c:213)
+                n0: 1216 0x109603: main (main.c:30)
+ n1: 1024 0x4A5585E: init_dfa (regcomp.c:867)
+  n1: 1024 0x4A5585E: re_compile_internal (regcomp.c:759)
+   n2: 1024 0x4A57770: regcomp (regcomp.c:491)
+    n1: 1024 0x10E352: is_valid_formula (parser.c:96)
+     n1: 1024 0x10F18C: parse_formula (parser.c:429)
+      n1: 1024 0x10F5EA: process_command (parser.c:546)
+       n1: 1024 0x109F55: run_ui (frontend.c:213)
+        n0: 1024 0x109603: main (main.c:30)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 848 0x4A456C4: re_node_set_merge (regex_internal.c:1205)
+  n2: 800 0x4A49E66: calc_eclosure_iter (regcomp.c:1747)
+   n1: 480 0x4A564B2: calc_eclosure (regcomp.c:1678)
+    n1: 480 0x4A564B2: analyze (regcomp.c:1205)
+     n1: 480 0x4A564B2: re_compile_internal (regcomp.c:796)
+      n2: 480 0x4A57770: regcomp (regcomp.c:491)
+       n1: 480 0x10E352: is_valid_formula (parser.c:96)
+        n1: 480 0x10F18C: parse_formula (parser.c:429)
+         n1: 480 0x10F5EA: process_command (parser.c:546)
+          n1: 480 0x109F55: run_ui (frontend.c:213)
+           n0: 480 0x109603: main (main.c:30)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+   n1: 320 0x4A49ECE: calc_eclosure_iter (regcomp.c:1740)
+    n0: 320 in 2 places, all below massif's threshold (1.00%)
+  n0: 48 in 1 place, below massif's threshold (1.00%)
+ n1: 792 0x4A4CCBC: create_cd_newstate (regex_internal.c:1687)
+  n1: 792 0x4A4CCBC: re_acquire_state_context (regex_internal.c:1562)
+   n1: 792 0x4A4CCBC: build_trtable (regexec.c:3331)
+    n1: 792 0x4A51153: transit_state (regexec.c:2257)
+     n1: 792 0x4A51153: check_matching (regexec.c:1120)
+      n1: 792 0x4A51153: re_search_internal (regexec.c:792)
+       n2: 792 0x4A57AE8: regexec@@GLIBC_2.3.4 (regexec.c:219)
+        n1: 792 0x10E382: is_valid_formula (parser.c:102)
+         n1: 792 0x10F18C: parse_formula (parser.c:429)
+          n1: 792 0x10F5EA: process_command (parser.c:546)
+           n1: 792 0x109F55: run_ui (frontend.c:213)
+            n0: 792 0x109603: main (main.c:30)
+        n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 528 0x4A4BC1A: create_cd_newstate (regex_internal.c:1687)
+  n1: 528 0x4A4BC1A: re_acquire_state_context (regex_internal.c:1562)
+   n0: 528 in 6 places, all below massif's threshold (1.00%)
+ n1: 304 0x4A463C7: re_dfa_add_node (regex_internal.c:1433)
+  n1: 304 0x4A49C9B: duplicate_node (regcomp.c:1615)
+   n1: 304 0x4A49C9B: duplicate_node_closure (regcomp.c:1557)
+    n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+     n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+      n1: 304 0x4A49D2F: duplicate_node_closure (regcomp.c:1563)
+       n1: 304 0x4A49F9B: calc_eclosure_iter (regcomp.c:1717)
+        n1: 304 0x4A564B2: calc_eclosure (regcomp.c:1678)
+         n1: 304 0x4A564B2: analyze (regcomp.c:1205)
+          n1: 304 0x4A564B2: re_compile_internal (regcomp.c:796)
+           n1: 304 0x4A57770: regcomp (regcomp.c:491)
+            n1: 304 0x10E352: is_valid_formula (parser.c:96)
+             n1: 304 0x10F18C: parse_formula (parser.c:429)
+              n1: 304 0x10F5EA: process_command (parser.c:546)
+               n1: 304 0x109F55: run_ui (frontend.c:213)
+                n0: 304 0x109603: main (main.c:30)
+#-----------
+snapshot=40
+#-----------
+time=446614
+mem_heap_B=24852
+mem_heap_extra_B=1972
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=41
+#-----------
+time=449050
+mem_heap_B=24004
+mem_heap_extra_B=1196
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=42
+#-----------
+time=451737
+mem_heap_B=13400
+mem_heap_extra_B=696
+mem_stacks_B=0
+heap_tree=detailed
+n12: 13400 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4096 0x4A4CF88: build_trtable (regexec.c:3367)
+  n1: 4096 0x4A51153: transit_state (regexec.c:2257)
+   n1: 4096 0x4A51153: check_matching (regexec.c:1120)
+    n1: 4096 0x4A51153: re_search_internal (regexec.c:792)
+     n2: 4096 0x4A57AE8: regexec@@GLIBC_2.3.4 (regexec.c:219)
+      n1: 4096 0x10E382: is_valid_formula (parser.c:102)
+       n1: 4096 0x10F18C: parse_formula (parser.c:429)
+        n1: 4096 0x10F5EA: process_command (parser.c:546)
+         n1: 4096 0x109F55: run_ui (frontend.c:213)
+          n0: 4096 0x109603: main (main.c:30)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n1: 1024 0x4A5585E: init_dfa (regcomp.c:867)
+  n1: 1024 0x4A5585E: re_compile_internal (regcomp.c:759)
+   n2: 1024 0x4A57770: regcomp (regcomp.c:491)
+    n1: 1024 0x10E352: is_valid_formula (parser.c:96)
+     n1: 1024 0x10F18C: parse_formula (parser.c:429)
+      n1: 1024 0x10F5EA: process_command (parser.c:546)
+       n1: 1024 0x109F55: run_ui (frontend.c:213)
+        n0: 1024 0x109603: main (main.c:30)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 528 0x4A4BC1A: create_cd_newstate (regex_internal.c:1687)
+  n1: 528 0x4A4BC1A: re_acquire_state_context (regex_internal.c:1562)
+   n0: 528 in 6 places, all below massif's threshold (1.00%)
+ n0: 436 in 33 places, all below massif's threshold (1.00%)
+ n2: 256 0x4A57707: regcomp (regcomp.c:472)
+  n1: 256 0x10E352: is_valid_formula (parser.c:96)
+   n1: 256 0x10F18C: parse_formula (parser.c:429)
+    n1: 256 0x10F5EA: process_command (parser.c:546)
+     n1: 256 0x109F55: run_ui (frontend.c:213)
+      n0: 256 0x109603: main (main.c:30)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 232 0x4A4BC52: re_node_set_init_copy (regex_internal.c:1034)
+  n1: 232 0x4A4BC52: create_cd_newstate (regex_internal.c:1690)
+   n1: 232 0x4A4BC52: re_acquire_state_context (regex_internal.c:1562)
+    n0: 232 in 6 places, all below massif's threshold (1.00%)
+ n1: 232 0x4A4BEF3: re_node_set_init_copy (regex_internal.c:1034)
+  n1: 232 0x4A4BEF3: create_cd_newstate (regex_internal.c:1729)
+   n1: 232 0x4A4BEF3: re_acquire_state_context (regex_internal.c:1562)
+    n0: 232 in 6 places, all below massif's threshold (1.00%)
+ n1: 224 0x4A56D37: re_compile_internal (regcomp.c:751)
+  n2: 224 0x4A57770: regcomp (regcomp.c:491)
+   n1: 224 0x10E352: is_valid_formula (parser.c:96)
+    n1: 224 0x10F18C: parse_formula (parser.c:429)
+     n1: 224 0x10F5EA: process_command (parser.c:546)
+      n1: 224 0x109F55: run_ui (frontend.c:213)
+       n0: 224 0x109603: main (main.c:30)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 176 0x4A4CCBC: create_cd_newstate (regex_internal.c:1687)
+  n1: 176 0x4A4CCBC: re_acquire_state_context (regex_internal.c:1562)
+   n1: 176 0x4A4CCBC: build_trtable (regexec.c:3331)
+    n1: 176 0x4A51153: transit_state (regexec.c:2257)
+     n1: 176 0x4A51153: check_matching (regexec.c:1120)
+      n1: 176 0x4A51153: re_search_internal (regexec.c:792)
+       n2: 176 0x4A57AE8: regexec@@GLIBC_2.3.4 (regexec.c:219)
+        n1: 176 0x10E382: is_valid_formula (parser.c:102)
+         n1: 176 0x10F18C: parse_formula (parser.c:429)
+          n1: 176 0x10F5EA: process_command (parser.c:546)
+           n1: 176 0x109F55: run_ui (frontend.c:213)
+            n0: 176 0x109603: main (main.c:30)
+        n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 148 0x4A44AC5: re_node_set_alloc (regex_internal.c:973)
+  n1: 148 0x4A44AC5: register_state (regex_internal.c:1583)
+   n0: 148 in 2 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=43
+#-----------
+time=454173
+mem_heap_B=6448
+mem_heap_extra_B=120
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=44
+#-----------
+time=455667
+mem_heap_B=8182
+mem_heap_extra_B=202
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=45
+#-----------
+time=458684
+mem_heap_B=8182
+mem_heap_extra_B=202
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=46
+#-----------
+time=462124
+mem_heap_B=8214
+mem_heap_extra_B=210
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=47
+#-----------
+time=465160
+mem_heap_B=8818
+mem_heap_extra_B=270
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=48
+#-----------
+time=468492
+mem_heap_B=8994
+mem_heap_extra_B=534
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=49
+#-----------
+time=470972
+mem_heap_B=9554
+mem_heap_extra_B=838
+mem_stacks_B=0
+heap_tree=detailed
+n12: 9554 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n1: 968 0x4A54B6B: create_token_tree (regcomp.c:3828)
+  n1: 968 0x4A54B6B: parse_expression (regcomp.c:2385)
+   n1: 968 0x4A553FD: parse_branch (regcomp.c:2206)
+    n1: 968 0x4A55569: parse_reg_exp (regcomp.c:2158)
+     n1: 968 0x4A55C6D: parse (regcomp.c:2126)
+      n1: 968 0x4A55C6D: re_compile_internal (regcomp.c:791)
+       n2: 968 0x4A57770: regcomp (regcomp.c:491)
+        n2: 968 0x10E106: parse_cell_address (parser.c:44)
+         n1: 968 0x10E468: parse_range (parser.c:122)
+          n1: 968 0x10EDE7: parse_function (parser.c:350)
+           n1: 968 0x10F1AF: parse_formula (parser.c:431)
+            n1: 968 0x10F5EA: process_command (parser.c:546)
+             n1: 968 0x109F55: run_ui (frontend.c:213)
+              n0: 968 0x109603: main (main.c:30)
+         n0: 0 in 1 place, below massif's threshold (1.00%)
+        n0: 0 in 1 place, below massif's threshold (1.00%)
+ n0: 610 in 35 places, all below massif's threshold (1.00%)
+ n1: 352 0x4A4BC1A: create_cd_newstate (regex_internal.c:1687)
+  n1: 352 0x4A4BC1A: re_acquire_state_context (regex_internal.c:1562)
+   n0: 352 in 6 places, all below massif's threshold (1.00%)
+ n1: 256 0x4A5585E: init_dfa (regcomp.c:867)
+  n1: 256 0x4A5585E: re_compile_internal (regcomp.c:759)
+   n2: 256 0x4A57770: regcomp (regcomp.c:491)
+    n2: 256 0x10E106: parse_cell_address (parser.c:44)
+     n1: 256 0x10E468: parse_range (parser.c:122)
+      n1: 256 0x10EDE7: parse_function (parser.c:350)
+       n1: 256 0x10F1AF: parse_formula (parser.c:431)
+        n1: 256 0x10F5EA: process_command (parser.c:546)
+         n1: 256 0x109F55: run_ui (frontend.c:213)
+          n0: 256 0x109603: main (main.c:30)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 256 0x4A57707: regcomp (regcomp.c:472)
+  n2: 256 0x10E106: parse_cell_address (parser.c:44)
+   n1: 256 0x10E468: parse_range (parser.c:122)
+    n1: 256 0x10EDE7: parse_function (parser.c:350)
+     n1: 256 0x10F1AF: parse_formula (parser.c:431)
+      n1: 256 0x10F5EA: process_command (parser.c:546)
+       n1: 256 0x109F55: run_ui (frontend.c:213)
+        n0: 256 0x109603: main (main.c:30)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 240 0x4A55823: init_dfa (regcomp.c:860)
+  n1: 240 0x4A55823: re_compile_internal (regcomp.c:759)
+   n2: 240 0x4A57770: regcomp (regcomp.c:491)
+    n2: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10E468: parse_range (parser.c:122)
+      n1: 240 0x10EDE7: parse_function (parser.c:350)
+       n1: 240 0x10F1AF: parse_formula (parser.c:431)
+        n1: 240 0x10F5EA: process_command (parser.c:546)
+         n1: 240 0x109F55: run_ui (frontend.c:213)
+          n0: 240 0x109603: main (main.c:30)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 240 0x4A55F86: analyze (regcomp.c:1172)
+  n1: 240 0x4A55F86: re_compile_internal (regcomp.c:796)
+   n2: 240 0x4A57770: regcomp (regcomp.c:491)
+    n2: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10E468: parse_range (parser.c:122)
+      n1: 240 0x10EDE7: parse_function (parser.c:350)
+       n1: 240 0x10F1AF: parse_formula (parser.c:431)
+        n1: 240 0x10F5EA: process_command (parser.c:546)
+         n1: 240 0x109F55: run_ui (frontend.c:213)
+          n0: 240 0x109603: main (main.c:30)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 240 0x4A55F99: analyze (regcomp.c:1173)
+  n1: 240 0x4A55F99: re_compile_internal (regcomp.c:796)
+   n2: 240 0x4A57770: regcomp (regcomp.c:491)
+    n2: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10E468: parse_range (parser.c:122)
+      n1: 240 0x10EDE7: parse_function (parser.c:350)
+       n1: 240 0x10F1AF: parse_formula (parser.c:431)
+        n1: 240 0x10F5EA: process_command (parser.c:546)
+         n1: 240 0x109F55: run_ui (frontend.c:213)
+          n0: 240 0x109603: main (main.c:30)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 224 0x4A56D37: re_compile_internal (regcomp.c:751)
+  n2: 224 0x4A57770: regcomp (regcomp.c:491)
+   n2: 224 0x10E106: parse_cell_address (parser.c:44)
+    n1: 224 0x10E468: parse_range (parser.c:122)
+     n1: 224 0x10EDE7: parse_function (parser.c:350)
+      n1: 224 0x10F1AF: parse_formula (parser.c:431)
+       n1: 224 0x10F5EA: process_command (parser.c:546)
+        n1: 224 0x109F55: run_ui (frontend.c:213)
+         n0: 224 0x109603: main (main.c:30)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 120 0x4A456C4: re_node_set_merge (regex_internal.c:1205)
+  n1: 120 0x4A49E66: calc_eclosure_iter (regcomp.c:1747)
+   n0: 120 in 2 places, all below massif's threshold (1.00%)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+#-----------
+snapshot=50
+#-----------
+time=475971
+mem_heap_B=8522
+mem_heap_extra_B=814
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=51
+#-----------
+time=477535
+mem_heap_B=10682
+mem_heap_extra_B=862
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=52
+#-----------
+time=479149
+mem_heap_B=11022
+mem_heap_extra_B=978
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=53
+#-----------
+time=481386
+mem_heap_B=13222
+mem_heap_extra_B=1050
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=54
+#-----------
+time=482878
+mem_heap_B=12198
+mem_heap_extra_B=690
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=55
+#-----------
+time=484367
+mem_heap_B=9382
+mem_heap_extra_B=370
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=56
+#-----------
+time=485860
+mem_heap_B=7182
+mem_heap_extra_B=178
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=57
+#-----------
+time=489399
+mem_heap_B=8182
+mem_heap_extra_B=202
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=58
+#-----------
+time=492839
+mem_heap_B=8214
+mem_heap_extra_B=210
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=59
+#-----------
+time=495875
+mem_heap_B=8818
+mem_heap_extra_B=270
+mem_stacks_B=0
+heap_tree=detailed
+n10: 8818 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n1: 968 0x4A54B6B: create_token_tree (regcomp.c:3828)
+  n1: 968 0x4A54B6B: parse_expression (regcomp.c:2385)
+   n1: 968 0x4A553FD: parse_branch (regcomp.c:2206)
+    n1: 968 0x4A55569: parse_reg_exp (regcomp.c:2158)
+     n1: 968 0x4A55C6D: parse (regcomp.c:2126)
+      n1: 968 0x4A55C6D: re_compile_internal (regcomp.c:791)
+       n2: 968 0x4A57770: regcomp (regcomp.c:491)
+        n2: 968 0x10E106: parse_cell_address (parser.c:44)
+         n1: 968 0x10E484: parse_range (parser.c:123)
+          n1: 968 0x10EDE7: parse_function (parser.c:350)
+           n1: 968 0x10F1AF: parse_formula (parser.c:431)
+            n1: 968 0x10F5EA: process_command (parser.c:546)
+             n1: 968 0x109F55: run_ui (frontend.c:213)
+              n0: 968 0x109603: main (main.c:30)
+         n0: 0 in 2 places, all below massif's threshold (1.00%)
+        n0: 0 in 1 place, below massif's threshold (1.00%)
+ n0: 346 in 37 places, all below massif's threshold (1.00%)
+ n1: 256 0x4A5585E: init_dfa (regcomp.c:867)
+  n1: 256 0x4A5585E: re_compile_internal (regcomp.c:759)
+   n2: 256 0x4A57770: regcomp (regcomp.c:491)
+    n2: 256 0x10E106: parse_cell_address (parser.c:44)
+     n1: 256 0x10E484: parse_range (parser.c:123)
+      n1: 256 0x10EDE7: parse_function (parser.c:350)
+       n1: 256 0x10F1AF: parse_formula (parser.c:431)
+        n1: 256 0x10F5EA: process_command (parser.c:546)
+         n1: 256 0x109F55: run_ui (frontend.c:213)
+          n0: 256 0x109603: main (main.c:30)
+     n0: 0 in 2 places, all below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 256 0x4A57707: regcomp (regcomp.c:472)
+  n2: 256 0x10E106: parse_cell_address (parser.c:44)
+   n1: 256 0x10E484: parse_range (parser.c:123)
+    n1: 256 0x10EDE7: parse_function (parser.c:350)
+     n1: 256 0x10F1AF: parse_formula (parser.c:431)
+      n1: 256 0x10F5EA: process_command (parser.c:546)
+       n1: 256 0x109F55: run_ui (frontend.c:213)
+        n0: 256 0x109603: main (main.c:30)
+   n0: 0 in 2 places, all below massif's threshold (1.00%)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 240 0x4A55823: init_dfa (regcomp.c:860)
+  n1: 240 0x4A55823: re_compile_internal (regcomp.c:759)
+   n2: 240 0x4A57770: regcomp (regcomp.c:491)
+    n2: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10E484: parse_range (parser.c:123)
+      n1: 240 0x10EDE7: parse_function (parser.c:350)
+       n1: 240 0x10F1AF: parse_formula (parser.c:431)
+        n1: 240 0x10F5EA: process_command (parser.c:546)
+         n1: 240 0x109F55: run_ui (frontend.c:213)
+          n0: 240 0x109603: main (main.c:30)
+     n0: 0 in 2 places, all below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 240 0x4A55F86: analyze (regcomp.c:1172)
+  n1: 240 0x4A55F86: re_compile_internal (regcomp.c:796)
+   n2: 240 0x4A57770: regcomp (regcomp.c:491)
+    n2: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10E484: parse_range (parser.c:123)
+      n1: 240 0x10EDE7: parse_function (parser.c:350)
+       n1: 240 0x10F1AF: parse_formula (parser.c:431)
+        n1: 240 0x10F5EA: process_command (parser.c:546)
+         n1: 240 0x109F55: run_ui (frontend.c:213)
+          n0: 240 0x109603: main (main.c:30)
+     n0: 0 in 2 places, all below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 240 0x4A55F99: analyze (regcomp.c:1173)
+  n1: 240 0x4A55F99: re_compile_internal (regcomp.c:796)
+   n2: 240 0x4A57770: regcomp (regcomp.c:491)
+    n2: 240 0x10E106: parse_cell_address (parser.c:44)
+     n1: 240 0x10E484: parse_range (parser.c:123)
+      n1: 240 0x10EDE7: parse_function (parser.c:350)
+       n1: 240 0x10F1AF: parse_formula (parser.c:431)
+        n1: 240 0x10F5EA: process_command (parser.c:546)
+         n1: 240 0x109F55: run_ui (frontend.c:213)
+          n0: 240 0x109603: main (main.c:30)
+     n0: 0 in 2 places, all below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 224 0x4A56D37: re_compile_internal (regcomp.c:751)
+  n2: 224 0x4A57770: regcomp (regcomp.c:491)
+   n2: 224 0x10E106: parse_cell_address (parser.c:44)
+    n1: 224 0x10E484: parse_range (parser.c:123)
+     n1: 224 0x10EDE7: parse_function (parser.c:350)
+      n1: 224 0x10F1AF: parse_formula (parser.c:431)
+       n1: 224 0x10F5EA: process_command (parser.c:546)
+        n1: 224 0x109F55: run_ui (frontend.c:213)
+         n0: 224 0x109603: main (main.c:30)
+    n0: 0 in 2 places, all below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+#-----------
+snapshot=60
+#-----------
+time=497352
+mem_heap_B=8886
+mem_heap_extra_B=410
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=61
+#-----------
+time=498852
+mem_heap_B=8982
+mem_heap_extra_B=498
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=62
+#-----------
+time=500401
+mem_heap_B=9250
+mem_heap_extra_B=670
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=63
+#-----------
+time=506686
+mem_heap_B=8522
+mem_heap_extra_B=814
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=64
+#-----------
+time=508248
+mem_heap_B=10682
+mem_heap_extra_B=862
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=65
+#-----------
+time=509862
+mem_heap_B=11022
+mem_heap_extra_B=978
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=66
+#-----------
+time=512099
+mem_heap_B=13222
+mem_heap_extra_B=1050
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=67
+#-----------
+time=513779
+mem_heap_B=15266
+mem_heap_extra_B=1038
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=68
+#-----------
+time=515282
+mem_heap_B=14230
+mem_heap_extra_B=690
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=69
+#-----------
+time=516783
+mem_heap_B=9382
+mem_heap_extra_B=362
+mem_stacks_B=0
+heap_tree=detailed
+n8: 9382 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n1: 2048 0x4A4CF88: build_trtable (regexec.c:3367)
+  n1: 2048 0x4A51153: transit_state (regexec.c:2257)
+   n1: 2048 0x4A51153: check_matching (regexec.c:1120)
+    n1: 2048 0x4A51153: re_search_internal (regexec.c:792)
+     n2: 2048 0x4A57AE8: regexec@@GLIBC_2.3.4 (regexec.c:219)
+      n2: 2048 0x10E144: parse_cell_address (parser.c:51)
+       n1: 2048 0x10E484: parse_range (parser.c:123)
+        n1: 2048 0x10EDE7: parse_function (parser.c:350)
+         n1: 2048 0x10F1AF: parse_formula (parser.c:431)
+          n1: 2048 0x10F5EA: process_command (parser.c:546)
+           n1: 2048 0x109F55: run_ui (frontend.c:213)
+            n0: 2048 0x109603: main (main.c:30)
+       n0: 0 in 2 places, all below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+ n0: 374 in 39 places, all below massif's threshold (1.00%)
+ n1: 256 0x4A5585E: init_dfa (regcomp.c:867)
+  n1: 256 0x4A5585E: re_compile_internal (regcomp.c:759)
+   n2: 256 0x4A57770: regcomp (regcomp.c:491)
+    n2: 256 0x10E106: parse_cell_address (parser.c:44)
+     n1: 256 0x10E484: parse_range (parser.c:123)
+      n1: 256 0x10EDE7: parse_function (parser.c:350)
+       n1: 256 0x10F1AF: parse_formula (parser.c:431)
+        n1: 256 0x10F5EA: process_command (parser.c:546)
+         n1: 256 0x109F55: run_ui (frontend.c:213)
+          n0: 256 0x109603: main (main.c:30)
+     n0: 0 in 2 places, all below massif's threshold (1.00%)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 256 0x4A57707: regcomp (regcomp.c:472)
+  n2: 256 0x10E106: parse_cell_address (parser.c:44)
+   n1: 256 0x10E484: parse_range (parser.c:123)
+    n1: 256 0x10EDE7: parse_function (parser.c:350)
+     n1: 256 0x10F1AF: parse_formula (parser.c:431)
+      n1: 256 0x10F5EA: process_command (parser.c:546)
+       n1: 256 0x109F55: run_ui (frontend.c:213)
+        n0: 256 0x109603: main (main.c:30)
+   n0: 0 in 2 places, all below massif's threshold (1.00%)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 224 0x4A56D37: re_compile_internal (regcomp.c:751)
+  n2: 224 0x4A57770: regcomp (regcomp.c:491)
+   n2: 224 0x10E106: parse_cell_address (parser.c:44)
+    n1: 224 0x10E484: parse_range (parser.c:123)
+     n1: 224 0x10EDE7: parse_function (parser.c:350)
+      n1: 224 0x10F1AF: parse_formula (parser.c:431)
+       n1: 224 0x10F5EA: process_command (parser.c:546)
+        n1: 224 0x109F55: run_ui (frontend.c:213)
+         n0: 224 0x109603: main (main.c:30)
+    n0: 0 in 2 places, all below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 176 0x4A4BC1A: create_cd_newstate (regex_internal.c:1687)
+  n1: 176 0x4A4BC1A: re_acquire_state_context (regex_internal.c:1562)
+   n0: 176 in 6 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=70
+#-----------
+time=518259
+mem_heap_B=6240
+mem_heap_extra_B=128
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=71
+#-----------
+time=519827
+mem_heap_B=6624
+mem_heap_extra_B=256
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=72
+#-----------
+time=521298
+mem_heap_B=6976
+mem_heap_extra_B=376
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=73
+#-----------
+time=522791
+mem_heap_B=7344
+mem_heap_extra_B=496
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=74
+#-----------
+time=524262
+mem_heap_B=7696
+mem_heap_extra_B=616
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=75
+#-----------
+time=525755
+mem_heap_B=8064
+mem_heap_extra_B=736
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=76
+#-----------
+time=527226
+mem_heap_B=8416
+mem_heap_extra_B=856
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=77
+#-----------
+time=528707
+mem_heap_B=8784
+mem_heap_extra_B=976
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=78
+#-----------
+time=530178
+mem_heap_B=9136
+mem_heap_extra_B=1096
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=79
+#-----------
+time=531671
+mem_heap_B=9504
+mem_heap_extra_B=1216
+mem_stacks_B=0
+heap_tree=detailed
+n5: 9504 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 4000 0x1095D9: main (main.c:25)
+ n1: 2208 0x10CAB0: create_node (dS.c:173)
+  n1: 2208 0x10CD3B: insert (dS.c:214)
+   n1: 2208 0x10CF5C: set_add (dS.c:255)
+    n1: 2208 0x10A47C: update_dependencies (backend.c:84)
+     n1: 2208 0x10F645: process_command (parser.c:558)
+      n1: 2208 0x109F55: run_ui (frontend.c:213)
+       n0: 2208 0x109603: main (main.c:30)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n1: 1104 0x10A433: update_dependencies (backend.c:81)
+  n1: 1104 0x10F645: process_command (parser.c:558)
+   n1: 1104 0x109F55: run_ui (frontend.c:213)
+    n0: 1104 0x109603: main (main.c:30)
+ n0: 144 in 44 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=80
+#-----------
+time=533142
+mem_heap_B=9856
+mem_heap_extra_B=1336
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=81
+#-----------
+time=534635
+mem_heap_B=10224
+mem_heap_extra_B=1456
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=82
+#-----------
+time=536447
+mem_heap_B=10544
+mem_heap_extra_B=1560
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=83
+#-----------
+time=539750
+mem_heap_B=10768
+mem_heap_extra_B=1560
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=84
+#-----------
+time=543403
+mem_heap_B=11024
+mem_heap_extra_B=1560
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=85
+#-----------
+time=553334
+mem_heap_B=10512
+mem_heap_extra_B=1552
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=86
+#-----------
+time=660717
+mem_heap_B=10480
+mem_heap_extra_B=1544
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=87
+#-----------
+time=662209
+mem_heap_B=9648
+mem_heap_extra_B=1392
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=88
+#-----------
+time=663701
+mem_heap_B=8816
+mem_heap_extra_B=1240
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=89
+#-----------
+time=665193
+mem_heap_B=7984
+mem_heap_extra_B=1088
+mem_stacks_B=0
+heap_tree=detailed
+n5: 7984 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 2800 0x10DCF0: create_spreadsheet (dS.c:549)
+  n0: 2800 0x1095D9: main (main.c:25)
+ n1: 2048 0x49CF1B4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 2048 0x49DF523: _IO_doallocbuf (genops.c:347)
+   n1: 1024 0x49DC883: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n1: 1024 0x49DF5D1: _IO_default_uflow (genops.c:362)
+     n1: 1024 0x49D0F79: _IO_getline_info (iogetline.c:60)
+      n1: 1024 0x49CFBD3: fgets (iofgets.c:53)
+       n1: 1024 0x109C86: run_ui (frontend.c:146)
+        n0: 1024 0x109603: main (main.c:30)
+   n1: 1024 0x49DCF8F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 1024 0x49DDAAE: _IO_new_file_xsputn (fileops.c:1244)
+     n1: 1024 0x49DDAAE: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 1024 0x49AACC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 1024 0x49AACC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n1: 1024 0x49B5742: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 1024 0x49AA1B2: printf (printf.c:33)
+          n1: 1024 0x10984B: display_viewport (frontend.c:46)
+           n1: 1024 0x109BAE: run_ui (frontend.c:131)
+            n0: 1024 0x109603: main (main.c:30)
+ n1: 1984 0x10CAB0: create_node (dS.c:173)
+  n1: 1984 0x10CD3B: insert (dS.c:214)
+   n1: 1984 0x10CF5C: set_add (dS.c:255)
+    n1: 1984 0x10A47C: update_dependencies (backend.c:84)
+     n1: 1984 0x10F645: process_command (parser.c:558)
+      n1: 1984 0x109F55: run_ui (frontend.c:213)
+       n0: 1984 0x109603: main (main.c:30)
+ n1: 1008 0x10A433: update_dependencies (backend.c:81)
+  n1: 1008 0x10F645: process_command (parser.c:558)
+   n1: 1008 0x109F55: run_ui (frontend.c:213)
+    n0: 1008 0x109603: main (main.c:30)
+ n0: 144 in 46 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=90
+#-----------
+time=666685
+mem_heap_B=7152
+mem_heap_extra_B=936
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=91
+#-----------
+time=668177
+mem_heap_B=6320
+mem_heap_extra_B=784
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=92
+#-----------
+time=669669
+mem_heap_B=5488
+mem_heap_extra_B=632
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=93
+#-----------
+time=671161
+mem_heap_B=4656
+mem_heap_extra_B=480
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=94
+#-----------
+time=672653
+mem_heap_B=3824
+mem_heap_extra_B=328
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=95
+#-----------
+time=674145
+mem_heap_B=2992
+mem_heap_extra_B=176
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=96
+#-----------
+time=678746
+mem_heap_B=1024
+mem_heap_extra_B=8
+mem_stacks_B=0
+heap_tree=empty

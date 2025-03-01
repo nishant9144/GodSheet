@@ -555,7 +555,8 @@ void process_command(Spreadsheet *sheet, char *input)
     // double tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
     // fprintf(fp, "Time taken in parsing: [%.1f]\n", tempprocessingtime);
     // gettimeofday(&start_time, NULL);
-    if (update_dependencies(target_cell, need_new_dep, &new_pairs, sheet, cellcopy) == 1 && evaluate_cell(target_cell, sheet) == 0)
+    if (update_dependencies(target_cell, need_new_dep, &new_pairs, sheet, cellcopy) == 1 && 
+        evaluate_cell(target_cell, sheet) == 0)
     { // 0 -> cycle, 1 -> no cycle
         sheet->last_status = STATUS_OK;
     }

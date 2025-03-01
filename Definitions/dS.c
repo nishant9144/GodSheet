@@ -161,280 +161,253 @@ Pair* stack_iterator_next(StackIterator* iterator) {
 }
 
 
-static int height(AVLNode* node) {
+
+// // AVL Node structure - direct without Set wrapper
+// typedef struct AVLNode {
+//     Pair pair;
+//     struct AVLNode* left;
+//     struct AVLNode* right;
+//     unsigned char height;
+// } AVLNode;
+
+
+
+
+// Get height with null check
+static inline unsigned char height(AVLNode* node) {
     return node ? node->height : 0;
 }
-
-static int get_balance(AVLNode* node) {
+// Get size with null check
+// static inline size_t size(AVLNode* node) {
+//     return node ? node->size : 0;
+// }
+// Get balance factor
+static inline int get_balance(AVLNode* node) {
     return node ? height(node->left) - height(node->right) : 0;
 }
-
-static AVLNode* create_node(short row, short col) {
+// Update height and size of a node
+static inline void update_node(AVLNode* node) {
+    unsigned char h_left = height(node->left);
+    unsigned char h_right = height(node->right);
+    node->height = 1 + (h_left > h_right ? h_left : h_right);
+}
+// Create a new AVL node
+AVLNode* avl_create_node(short row, short col) {
     AVLNode* node = (AVLNode*)malloc(sizeof(AVLNode));
+    if (!node) return NULL;
+    
     node->pair.i = row;
     node->pair.j = col;
     node->left = node->right = NULL;
     node->height = 1;
     return node;
 }
-
+// Right rotation
 static AVLNode* right_rotate(AVLNode* y) {
     AVLNode* x = y->left;
     AVLNode* T2 = x->right;
+    
     x->right = y;
     y->left = T2;
-    y->height = 1 + (height(y->left) > height(y->right) ? 
-                     height(y->left) : height(y->right));
-    x->height = 1 + (height(x->left) > height(x->right) ? 
-                     height(x->left) : height(x->right));
+    
+    update_node(y);
+    update_node(x);
+    
     return x;
 }
-
+// Left rotation
 static AVLNode* left_rotate(AVLNode* x) {
     AVLNode* y = x->right;
     AVLNode* T2 = y->left;
+    
     y->left = x;
     x->right = T2;
-    x->height = 1 + (height(x->left) > height(x->right) ? 
-                     height(x->left) : height(x->right));
-    y->height = 1 + (height(y->left) > height(y->right) ? 
-                     height(y->left) : height(y->right));
+    
+    update_node(x);
+    update_node(y);
+    
     return y;
 }
-
-
-void set_init(Set* set) {
-    set->root = NULL;
-    // set->sheet = sheet;
-    set->type = 'C';
-}
-
-static AVLNode* insert(AVLNode* node, short row, short col) {
-    if (!node)
-        return create_node(row, col);
+// AVL tree node insertion - returns new root
+AVLNode* avl_insert(AVLNode* root, short row, short col) {
+    if (!root)
+        return avl_create_node(row, col);
 
     Pair new_pair = {row, col};
-    short cmp = compare_pairs(new_pair, node->pair);
+    short cmp = compare_pairs(new_pair, root->pair);
     
     if (cmp < 0)
-        node->left = insert(node->left, row, col);
+        root->left = avl_insert(root->left, row, col);
     else if (cmp > 0)
-        node->right = insert(node->right, row, col);
+        root->right = avl_insert(root->right, row, col);
     else
-        return node;
-
-    node->height = 1 + (height(node->left) > height(node->right) ? 
-                       height(node->left) : height(node->right));
-
-    int balance = get_balance(node);
-
+        return root; // No duplicates
+    
+    update_node(root);
+    
+    int balance = get_balance(root);
+    
     // Left Left Case
-    if (balance > 1 && compare_pairs(new_pair, node->left->pair) < 0)
-        return right_rotate(node);
-
+    if (balance > 1 && compare_pairs(new_pair, root->left->pair) < 0)
+        return right_rotate(root);
+    
     // Right Right Case
-    if (balance < -1 && compare_pairs(new_pair, node->right->pair) > 0)
-        return left_rotate(node);
-
+    if (balance < -1 && compare_pairs(new_pair, root->right->pair) > 0)
+        return left_rotate(root);
+    
     // Left Right Case
-    if (balance > 1 && compare_pairs(new_pair, node->left->pair) > 0) {
-        node->left = left_rotate(node->left);
-        return right_rotate(node);
+    if (balance > 1 && compare_pairs(new_pair, root->left->pair) > 0) {
+        root->left = left_rotate(root->left);
+        return right_rotate(root);
     }
-
+    
     // Right Left Case
-    if (balance < -1 && compare_pairs(new_pair, node->right->pair) < 0) {
-        node->right = right_rotate(node->right);
-        return left_rotate(node);
+    if (balance < -1 && compare_pairs(new_pair, root->right->pair) < 0) {
+        root->right = right_rotate(root->right);
+        return left_rotate(root);
     }
-
-    return node;
+    
+    return root;
 }
-
-void set_add(Set* set, short row, short col) {
-    set->root = insert(set->root, row, col);
-}
-
-static AVLNode* find(AVLNode* node, short row, short col) {
-    if (!node) return NULL;
-
+// Find a pair in the AVL tree
+AVLNode* find_node(AVLNode* root, short row, short col) {
+    if (!root) return NULL;
+    
     Pair search_pair = {row, col};
-    short cmp = compare_pairs(search_pair, node->pair);
+    short cmp = compare_pairs(search_pair, root->pair);
     
     if (cmp < 0)
-        return find(node->left, row, col);
+        return find_node(root->left, row, col);
     else if (cmp > 0)
-        return find(node->right, row, col);
+        return find_node(root->right, row, col);
     else
-        return node;
+        return root;
 }
-
-Pair* set_find(Set* set, short row, short col) {
-    if(set->root == NULL) return NULL;
-    AVLNode* result = find(set->root, row, col);
-    if (!result) return NULL;
-    return &(result->pair);
+// Find a pair - returns pointer to the pair or NULL if not found
+Pair* avl_find(AVLNode* root, short row, short col) {
+    AVLNode* node = find_node(root, row, col);
+    return node ? &(node->pair) : NULL;
 }
-
+// Find minimum value node
 static AVLNode* min_value_node(AVLNode* node) {
     AVLNode* current = node;
-    while (current->left != NULL)
+    while (current->left)
         current = current->left;
     return current;
 }
-
-static AVLNode* remove_node(AVLNode* root, short row, short col) {
-    if (!root) return root;
-
+// Remove a node from AVL tree
+AVLNode* avl_remove(AVLNode* root, short row, short col) {
+    if (!root) return NULL;
+    
     Pair remove_pair = {row, col};
     short cmp = compare_pairs(remove_pair, root->pair);
     
     if (cmp < 0)
-        root->left = remove_node(root->left, row, col);
+        root->left = avl_remove(root->left, row, col);
     else if (cmp > 0)
-        root->right = remove_node(root->right, row, col);
+        root->right = avl_remove(root->right, row, col);
     else {
+        // Node with only one child or no child
         if (!root->left || !root->right) {
             AVLNode* temp = root->left ? root->left : root->right;
+            
             if (!temp) {
+                // No child case
                 temp = root;
                 root = NULL;
-            } else
-                *root = *temp;
+            } else {
+                // One child case
+                *root = *temp; // Copy contents
+            }
+            
             free(temp);
         } else {
+            // Node with two children
             AVLNode* temp = min_value_node(root->right);
             root->pair = temp->pair;
-            root->right = remove_node(root->right, temp->pair.i, temp->pair.j);
+            root->right = avl_remove(root->right, temp->pair.i, temp->pair.j);
         }
     }
-
-    if (!root) return root;
-
-    root->height = 1 + (height(root->left) > height(root->right) ? 
-                       height(root->left) : height(root->right));
+    
+    if (!root) return NULL;
+    
+    update_node(root);
+    
     int balance = get_balance(root);
-
+    
     // Left Left Case
     if (balance > 1 && get_balance(root->left) >= 0)
         return right_rotate(root);
-
+    
     // Left Right Case
     if (balance > 1 && get_balance(root->left) < 0) {
         root->left = left_rotate(root->left);
         return right_rotate(root);
     }
-
+    
     // Right Right Case
     if (balance < -1 && get_balance(root->right) <= 0)
         return left_rotate(root);
-
+    
     // Right Left Case
     if (balance < -1 && get_balance(root->right) > 0) {
         root->right = right_rotate(root->right);
         return left_rotate(root);
     }
-
+    
     return root;
 }
-
-void set_remove(Set* set, short row, short col) {
-    if(set->root == NULL) return;
-    set->root = remove_node(set->root, row, col);
-}
-
-static void free_tree(AVLNode* node) {
-    if (node) {
-        free_tree(node->left);
-        free_tree(node->right);
-        free(node);
+// Free the entire AVL tree
+void avl_free(AVLNode* root) {
+    if (root) {
+        avl_free(root->left);
+        avl_free(root->right);
+        free(root);
     }
 }
 
-void set_free(Set* set) {
-    if(set == NULL) return;
-    free_tree(set->root);
-    set->root = NULL;
-}
 
-// Set Iterator implementation
-void set_iterator_init(SetIterator* iterator, Set* set) {
-    iterator->set = set;
-    iterator->capacity = 32; // Initial capacity
-    iterator->stack = (AVLNode**)malloc(iterator->capacity * sizeof(AVLNode*));
-    iterator->top = 0;
 
-    // Push all left nodes onto stack for inorder traversal
-    AVLNode* current = set->root;
-    while (current) {
-        if (iterator->top == iterator->capacity) {
-            iterator->capacity *= 2;
-            iterator->stack = (AVLNode**)realloc(iterator->stack, 
-                                               iterator->capacity * sizeof(AVLNode*));
-        }
-        iterator->stack[iterator->top++] = current;
-        current = current->left;
-    }
-}
 
-bool set_iterator_has_next(SetIterator* iterator) {
-    return iterator->top > 0;
-}
 
-Pair* set_iterator_next(SetIterator* iterator) {
-    if (!set_iterator_has_next(iterator))
-        return NULL;
 
-    AVLNode* node = iterator->stack[--iterator->top];
-    Pair* pp = &(node->pair);
 
-    // Push all left nodes of the right subtree
-    AVLNode* current = node->right;
-    while (current) {
-        if (iterator->top == iterator->capacity) {
-            iterator->capacity *= 2;
-            iterator->stack = (AVLNode**)realloc(iterator->stack, 
-                                               iterator->capacity * sizeof(AVLNode*));
-        }
-        iterator->stack[iterator->top++] = current;
-        current = current->left;
+
+void collect_traverse_avl_tree(AVLNode* node, Cell* current_cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet) {
+    if (node == NULL) return;
+
+    // In-order traversal: left, current, right
+    collect_traverse_avl_tree(node->left, current_cell, adjList, visited, sorted, sheet);
+
+    // Process the current node
+    Pair p = node->pair;
+
+    // Only process if not already visited
+    if (avl_find(*visited, p.i, p.j) == NULL) {
+        // Process this cell recursively
+        Cell* dep_cell = &(sheet->cells[p.i][p.j]);
+        collect_traverse_topo(dep_cell, adjList, visited, sorted, sheet);
     }
 
-    return pp;
+    // Continue with right subtree
+    collect_traverse_avl_tree(node->right, current_cell, adjList, visited, sorted, sheet);
 }
 
-void set_iterator_free(SetIterator* iterator) {
-    free(iterator->stack);
-    iterator->stack = NULL;
-}
-
-
-
-void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted, Spreadsheet *sheet) {
+void collect_traverse_topo(Cell* cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet) {
+    if(cell == NULL) return;
     // Mark current cell as visited
-    set_add(visited, cell->row, cell->col);
-    
-    // Process all adjacent cells (dependencies)
-    SetIterator it;
-    set_iterator_init(&it, &adjList[cell->topo_order]);
-    
-    while (set_iterator_has_next(&it)) {
-        Pair* p = set_iterator_next(&it);
-        // Only process if not already visited
-        if (set_find(visited, p->i, p->j) == NULL) {
-            topological_sort_util(&(sheet->cells[p->i][p->j]), adjList, visited, sorted, sheet);
-        }
-    }
-    set_iterator_free(&it);
+    *visited = avl_insert(*visited, cell->row, cell->col);
+
+    // Use recursive traversal instead of iterators to process adjacency list
+    collect_traverse_avl_tree((*adjList)[cell->topo_order], cell, adjList, visited, sorted, sheet);
 
     // Add current cell to sorted list after processing all dependencies
     vector_push_back(sorted, cell->row, cell->col);
 }
 
-void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet) {
+void topological_sort(AVLNode*** adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet) {
     // Initialize visited set to track processed cells
-    Set visited;
-    set_init(&visited);
+    AVLNode* visited = NULL;
 
     // Initialize result vector
     Vector sorted;
@@ -445,21 +418,21 @@ void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* re
         // The cell that has this topo_order
         Cell* current = cell_map[i];
         // If it hasn't been visited, process it
-        if (current != NULL && set_find(&visited, current->row, current->col) == NULL) {
-            topological_sort_util(current, adjList, &visited, &sorted, sheet);
+        if (current != NULL && avl_find(visited, current->row, current->col) == NULL) {
+            collect_traverse_topo(current, adjList, &visited, &sorted, sheet);
         }
     }
 
     // Create result vector for topo order
     vector_init(result);
     
-    // Reverse the order (as DFS gives reverse topological sort)
+    // TODO: REMOVE THIS Reverse the order (as DFS gives reverse topological sort)
     for (size_t i = 0; i < sorted.size; i++) {
         vector_push_back(result, sorted.data[i].i, sorted.data[i].j);
     }
 
     // Clean up
-    set_free(&visited);
+    avl_free(visited);
     vector_free(&sorted);
 
 }
@@ -484,11 +457,9 @@ void free_cell(Cell* cell) {
     //     cell->dependencies = NULL;
     // };
     if(cell->dependents != NULL) {
-        set_free(cell->dependents);
-        free(cell->dependents);
+        avl_free(cell->dependents);
         cell->dependents = NULL;
     }
-        
 }
 
 short colNameToNumber(const char *colName) {

@@ -100,12 +100,12 @@ struct AVLNode {
     int height;
 };
 
-// Set implementation
-struct Set{
-    AVLNode* root;
-    // Spreadsheet* sheet;
-    char type;
-};
+// // Set implementation
+// struct Set{
+//     AVLNode* root;
+//     // Spreadsheet* sheet;
+//     char type;
+// };
 
 // Pair of Pair structure
 typedef struct {
@@ -134,7 +134,7 @@ struct Cell {
         } function;
     } op_data;
     
-    Set* dependents;
+    AVLNode* dependents;
     PairOfPair dependencies;
 };
 
@@ -170,12 +170,12 @@ typedef struct {
     size_t index;
 } StackIterator;
 
-typedef struct {
-    Set* set;
-    size_t capacity;
-    AVLNode** stack;
-    size_t top;
-} SetIterator;
+// typedef struct {
+//     Set* set;
+//     size_t capacity;
+//     AVLNode** stack;
+//     size_t top;
+// } SetIterator;
 
 
 // Function declarations
@@ -207,22 +207,28 @@ void stack_iterator_init(StackIterator* iterator, Stack* stack);
 bool stack_iterator_has_next(StackIterator* iterator);
 Pair* stack_iterator_next(StackIterator* iterator);
 
-void set_init(Set* set);
-void set_add(Set* set, short row, short col);
-Pair* set_find(Set* set, short row, short col);
-void set_remove(Set* set, short row, short col);
-void set_free(Set* set);
+// void set_init(Set* set);
+// void set_add(Set* set, short row, short col);
+// Pair* set_find(Set* set, short row, short col);
+// void set_remove(Set* set, short row, short col);
+// void set_free(Set* set);
 
-void set_iterator_init(SetIterator* iterator, Set* set);
-bool set_iterator_has_next(SetIterator* iterator);
-Pair* set_iterator_next(SetIterator* iterator);
-void set_iterator_free(SetIterator* iterator);
+// void set_iterator_init(SetIterator* iterator, Set* set);
+// bool set_iterator_has_next(SetIterator* iterator);
+// Pair* set_iterator_next(SetIterator* iterator);
+// void set_iterator_free(SetIterator* iterator);
 
 
+AVLNode* avl_create_node(short row, short col);
+AVLNode* avl_insert(AVLNode* root, short row, short col);
+Pair* avl_find(AVLNode* root, short row, short col);
+AVLNode* avl_remove(AVLNode* root, short row, short col);
+void avl_free(AVLNode* root);
 
-void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted, Spreadsheet *sheet);
-void topological_sort(Set* adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet);
-
+// void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted, Spreadsheet *sheet);
+void collect_traverse_avl_tree(AVLNode* node, Cell* current_cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet);
+void collect_traverse_topo(Cell* cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet);
+void topological_sort(AVLNode*** adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet);
 
 void create_cell(short row, short col, Cell* Cell);
 void free_cell(Cell* cell);

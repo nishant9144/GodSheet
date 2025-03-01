@@ -3,7 +3,8 @@
 #include "../Declarations/backend.h"
 #include "../Declarations/frontend.h"
 // valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./bin/sheet 10 10
-
+// valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --trace-malloc=yes --trace-children=yes --tool=memcheck --log-file=valgrind-out.txt ./bin/sheet 10 10
+// valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --keep-stacktraces=alloc-and-free --verbose --trace-malloc=yes --trace-children=yes --tool=memcheck --log-file=valgrind-out.txt ./bin/sheet 10 10
 
 // Function to update the dependencies of a cell: 1 -> no cycle/updated successfully, 0 -> cycle/not updated
 int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pairs, Spreadsheet *sheet, Cell cellcopy)
@@ -27,8 +28,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
             for (short j = c1; j <= c2; j++)
             {
                 Cell *old_dep = &sheet->cells[i][j];
-                if (old_dep->dependents != NULL)
-                    set_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
+                old_dep->dependents = avl_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
             }
         }
     }
@@ -41,7 +41,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
         if (r != -1 && c != -1)
         {  
             Cell *old_dep = &sheet->cells[r][c];
-            set_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
+            old_dep->dependents = avl_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
         }
 
         r = cellcopy.dependencies.second.i;
@@ -50,7 +50,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
         if (r != -1 && c != -1)
         {
             Cell *old_dep = &sheet->cells[r][c];
-            set_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
+            old_dep->dependents = avl_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
         }
 
     }
@@ -60,7 +60,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
         short c = cellcopy.dependencies.first.j;
 
         Cell *old_dep = &sheet->cells[r][c];
-        set_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
+        old_dep->dependents = avl_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
     }
 
     // Add current cell to the dependents set of new dependencies
@@ -76,12 +76,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 for (short j = c1; j <= c2; j++)
                 {
                     Cell *new_dep = &sheet->cells[i][j];
-                    if (new_dep->dependents == NULL)
-                    {
-                        new_dep->dependents = (Set *)malloc(sizeof(Set));
-                        set_init(new_dep->dependents);
-                    }
-                    set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
+                    new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);
                 }
             }
         }
@@ -93,12 +88,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
             if (r != -1 && c != -1)
             {  
                 Cell *new_dep = &sheet->cells[r][c];
-                if (new_dep->dependents == NULL)
-                {
-                    new_dep->dependents = (Set *)malloc(sizeof(Set));
-                    set_init(new_dep->dependents);
-                }
-                set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
+                new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);
             }
             r = new_pairs->second.i;
             c = new_pairs->second.j;
@@ -106,12 +96,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
             if (r != -1 && c != -1)
             {
                 Cell *new_dep = &sheet->cells[r][c];
-                if (new_dep->dependents == NULL)
-                {
-                    new_dep->dependents = (Set *)malloc(sizeof(Set));
-                    set_init(new_dep->dependents);
-                }
-                set_add(new_dep->dependents, curr_cell->row, curr_cell->col);
+                new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);
             }
         }
         else if (curr_cell->type == 'R')
@@ -120,12 +105,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
             short c = new_pairs->first.j;
 
             Cell *new_dep = &sheet->cells[r][c];
-            if (new_dep->dependents == NULL)
-            {
-                new_dep->dependents = (Set *)malloc(sizeof(Set));
-                set_init(new_dep->dependents);
-            }
-            set_add(new_dep->dependents, curr_cell->row, curr_cell->col);            
+            new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);            
         }
     
         // Check for circular dependencies
@@ -144,7 +124,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                     {
                         Cell *new_dep = &sheet->cells[i][j];
                         if (new_dep->dependents != NULL)
-                            set_remove(new_dep->dependents, curr_cell->row, curr_cell->col);
+                            new_dep->dependents = avl_remove(new_dep->dependents, curr_cell->row, curr_cell->col);
                     }
                 }
             }
@@ -156,7 +136,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 if (r != -1 && c != -1)
                 {  
                     Cell *new_deps = &sheet->cells[r][c];
-                    set_remove(new_deps->dependents, curr_cell->row, curr_cell->col);
+                    new_deps->dependents = avl_remove(new_deps->dependents, curr_cell->row, curr_cell->col);
                 }
 
                 r = curr_cell->dependencies.second.i;
@@ -165,7 +145,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 if (r != -1 && c != -1)
                 {
                     Cell *new_deps = &sheet->cells[r][c];
-                    set_remove(new_deps->dependents, curr_cell->row, curr_cell->col);
+                    new_deps->dependents = avl_remove(new_deps->dependents, curr_cell->row, curr_cell->col);
                 }
             }
             else if (curr_cell->type == 'R')
@@ -174,7 +154,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 short c = curr_cell->dependencies.first.j;
 
                 Cell *new_deps = &sheet->cells[r][c];
-                set_remove(new_deps->dependents, curr_cell->row, curr_cell->col);
+                new_deps->dependents = avl_remove(new_deps->dependents, curr_cell->row, curr_cell->col);
             }
 
             // Add to dependents of the old dependencies
@@ -188,12 +168,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                     for (short j = c1; j <= c2; j++)
                     {
                         Cell *old_dep = &sheet->cells[i][j];
-                        if (old_dep->dependents == NULL)
-                        {
-                            old_dep->dependents = (Set *)malloc(sizeof(Set));
-                            set_init(old_dep->dependents);
-                        }
-                        set_add(old_dep->dependents, curr_cell->row, curr_cell->col);
+                        old_dep->dependents = avl_insert(old_dep->dependents, curr_cell->row, curr_cell->col);
                     }
                 }
             }
@@ -205,12 +180,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 if (r != -1 && c != -1)
                 {  
                     Cell *old_deps = &sheet->cells[r][c];
-                    if (old_deps->dependents == NULL)
-                    {
-                        old_deps->dependents = (Set *)malloc(sizeof(Set));
-                        set_init(old_deps->dependents);
-                    }
-                    set_add(old_deps->dependents, curr_cell->row, curr_cell->col);
+                    old_deps->dependents = avl_insert(old_deps->dependents, curr_cell->row, curr_cell->col);
                 }
 
                 r = cellcopy.dependencies.second.i;
@@ -220,11 +190,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 {
                     Cell *old_deps = &sheet->cells[r][c];
                     if (old_deps->dependents == NULL)
-                    {
-                        old_deps->dependents = (Set *)malloc(sizeof(Set));
-                        set_init(old_deps->dependents);
-                    }
-                    set_add(old_deps->dependents, curr_cell->row, curr_cell->col);
+                    old_deps->dependents = avl_insert(old_deps->dependents, curr_cell->row, curr_cell->col);
                 }
 
             }
@@ -234,12 +200,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
                 short c = cellcopy.dependencies.first.j;
 
                 Cell *old_deps = &sheet->cells[r][c];
-                if (old_deps->dependents == NULL)
-                {
-                    old_deps->dependents = (Set *)malloc(sizeof(Set));
-                    set_init(old_deps->dependents);
-                }
-                set_add(old_deps->dependents, curr_cell->row, curr_cell->col);
+                old_deps->dependents = avl_insert(old_deps->dependents, curr_cell->row, curr_cell->col);
             }
             return 0;
         }
@@ -344,50 +305,54 @@ bool check_circular_dependencies(Cell *cell, Spreadsheet *sheet)
 }
 
 
-// Helper function to collect all dependent cells for topological sort
-void collect_dependents(Cell *curr_cell, Set *affected_cells, Spreadsheet* sheet)
-{
-    if (curr_cell->dependents != NULL)
-    {
-        SetIterator it;
-        set_iterator_init(&it, curr_cell->dependents);
-        while (set_iterator_has_next(&it))
-        {
-            Pair *dep = set_iterator_next(&it);
-            if (set_find(affected_cells, dep->i, dep->j) == NULL)
-            {
-                set_add(affected_cells, dep->i, dep->j);
-                collect_dependents(&(sheet->cells[dep->i][dep->j]), affected_cells, sheet);
-            }
-        }
-        set_iterator_free(&it);
+static AVLNode* collect_traverse_avl_tree_backend(AVLNode* node, AVLNode** affected_cells, Spreadsheet* sheet, int *num_cells) {
+    if (node == NULL) return *affected_cells;
+    
+    // In-order traversal: left, current, right
+    *affected_cells = collect_traverse_avl_tree_backend(node->left, affected_cells, sheet, num_cells);
+    
+    // Process the current node
+    Pair p = node->pair;
+    // Only process if not already visited
+    if (avl_find(*affected_cells, p.i, p.j) == NULL) {
+        *affected_cells = avl_insert(*affected_cells, node->pair.i, node->pair.j);
+        (*num_cells)++;
+        *affected_cells = collect_traverse_avl_tree_backend((sheet->cells[p.i][p.j]).dependents, affected_cells, sheet, num_cells);
     }
+    
+    *affected_cells = collect_traverse_avl_tree_backend(node->right, affected_cells, sheet, num_cells);
+    return *affected_cells;
 }
+
+static void assign_topo_order(AVLNode* affected_cell, Spreadsheet* sheet, Cell*** cell_map, int* index) {
+    if (affected_cell == NULL) return;
+    
+    // In-order traversal: left, current, right
+    assign_topo_order(affected_cell->left, sheet, cell_map, index);
+    
+    // Process the current affected_cell
+    Pair p = affected_cell->pair;
+    sheet->cells[p.i][p.j].topo_order = *index;
+    (*cell_map)[*index] = &sheet->cells[p.i][p.j];
+    (*index)++;
+    
+    assign_topo_order(affected_cell->right, sheet, cell_map, index);
+}
+
 
 void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
 {
     if (curr_cell->dependents == NULL)
         return;
     // Collect all affected cells
-    Set affected_cells;
-    set_init(&affected_cells);
-    collect_dependents(curr_cell, &affected_cells, sheet);
+    AVLNode *affected_cells = NULL;
+    int num_cells = 0;
+    affected_cells = collect_traverse_avl_tree_backend(curr_cell->dependents, &affected_cells, sheet, &num_cells);
 
     // Create cell mapping and adjacency matrix for topological sort
-    int num_cells = 0;
-    SetIterator count_it;
-
-    set_iterator_init(&count_it, &affected_cells);
-    while (set_iterator_has_next(&count_it))
-    {
-        num_cells++;
-        set_iterator_next(&count_it);
-    }
-    set_iterator_free(&count_it);
-
     if (num_cells == 0)
     {
-        set_free(&affected_cells);
+        avl_free(affected_cells);
         return;
     }
     // Create cell mapping
@@ -395,32 +360,21 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     if (cell_map == NULL)
     {
         fprintf(stderr, "Memory allocation failed for cell_map\n");
-        set_free(&affected_cells);
+        avl_free(affected_cells);
         return;
     }
     int index = 1;
-    SetIterator map_it;
-    set_iterator_init(&map_it, &affected_cells);
-    while (set_iterator_has_next(&map_it))
-    {
-        Pair *p = set_iterator_next(&map_it);
-        sheet->cells[p->i][p->j].topo_order = index;
-        cell_map[index++] = &sheet->cells[p->i][p->j];
-    }
-    set_iterator_free(&map_it);
+    assign_topo_order(affected_cells, sheet, &cell_map, &index);
     // Create adjacency matrix
-    Set *adj_list = (Set *)malloc((num_cells + 1) * sizeof(Set));
+    AVLNode **adj_list = (AVLNode **)malloc((num_cells + 1) * sizeof(AVLNode *));
     if (adj_list == NULL)
     {
         fprintf(stderr, "Memory allocation failed for adj_list\n");
         free(cell_map);
         cell_map = NULL;
-        set_free(&affected_cells);
+        avl_free(affected_cells);
         return;
     }
-
-    for (int i = 1; i <= num_cells; i++)
-        set_init(&adj_list[i]);
 
     // Fill adjacency list - only add edges between affected cells
     for (int i = 1; i <= num_cells; i++)
@@ -435,10 +389,10 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
             {
                 for (short j = c1; j <= c2; j++)
                 {
-                    Cell *dep = &sheet->cells[rr][j];
+                    Cell *dep = &(sheet->cells[rr][j]);
                     // Only add edge if dependency is in affected_cells.
-                    if (set_find(&affected_cells, dep->row, dep->col) != NULL)
-                    set_add(&adj_list[i], dep->row, dep->col);
+                    if (avl_find(affected_cells, dep->row, dep->col) != NULL)
+                        adj_list[i] = avl_insert(adj_list[i], dep->row, dep->col);
                 }
             }
         }
@@ -451,8 +405,8 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
             {
             Cell *dep = &sheet->cells[r][c];
             // Only add edge if dependency is in affected_cells.
-            if (set_find(&affected_cells, dep->row, dep->col) != NULL)
-                set_add(&adj_list[i], dep->row, dep->col);
+            if (avl_find(affected_cells, dep->row, dep->col) != NULL)
+                adj_list[i] = avl_insert(adj_list[i], dep->row, dep->col);
             }
 
             r = cell->dependencies.second.i;
@@ -462,19 +416,19 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
             {
             Cell *dep = &sheet->cells[r][c];
             // Only add edge if dependency is in affected_cells.
-            if (set_find(&affected_cells, dep->row, dep->col) != NULL)
-                set_add(&adj_list[i], dep->row, dep->col);
+            if (avl_find(affected_cells, dep->row, dep->col) != NULL)
+                adj_list[i] = avl_insert(adj_list[i], dep->row, dep->col);
             }
         }
     }
 
     // Perform topological sort
     Vector sorted;
-    topological_sort(adj_list, num_cells, cell_map, &sorted, sheet);
+    topological_sort(&adj_list, num_cells, cell_map, &sorted, sheet);
 
     // Update cells in topological order
     VectorIterator update_it;
-    vector_iterator_init(&update_it, &sorted);
+    // vector_iterator_init(&update_it, &sorted);
     // printf("$ TopoSorted: ");
     // while (vector_iterator_has_next(&update_it))
     // {
@@ -494,12 +448,12 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     // Cleanup
     vector_free(&sorted);
     for (int i = 1; i <= num_cells; i++)
-        set_free(&adj_list[i]);
+        avl_free(adj_list[i]);
     free(adj_list);
     free(cell_map);
     adj_list = NULL;
     cell_map = NULL;
-    set_free(&affected_cells);
+    avl_free(affected_cells);
 }
 
 
