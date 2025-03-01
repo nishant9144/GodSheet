@@ -363,6 +363,7 @@ void avl_free(AVLNode* root) {
         avl_free(root->left);
         avl_free(root->right);
         free(root);
+        root = NULL;
     }
 }
 
@@ -373,41 +374,90 @@ void avl_free(AVLNode* root) {
 
 
 
-void collect_traverse_avl_tree(AVLNode* node, Cell* current_cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet) {
-    if (node == NULL) return;
+// void collect_traverse_avl_tree(AVLNode* node, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet) {
+//     if (node == NULL) return;
 
-    // In-order traversal: left, current, right
-    collect_traverse_avl_tree(node->left, current_cell, adjList, visited, sorted, sheet);
+//     // In-order traversal: left, current, right
+//     collect_traverse_avl_tree(node->left, adjList, visited, sorted, sheet);
 
-    // Process the current node
-    Pair p = node->pair;
+//     // Process the current node
+//     Pair p = node->pair;
 
-    // Only process if not already visited
-    if (avl_find(*visited, p.i, p.j) == NULL) {
-        // Process this cell recursively
-        Cell* dep_cell = &(sheet->cells[p.i][p.j]);
-        collect_traverse_topo(dep_cell, adjList, visited, sorted, sheet);
-    }
+//     // Only process if not already visited
+//     if (avl_find(*visited, p.i, p.j) == NULL) {
+//         // Process this cell recursively
+//         Cell* dep_cell = &(sheet->cells[p.i][p.j]);
+//         collect_traverse_topo(dep_cell, adjList, visited, sorted, sheet);
+//     }
 
-    // Continue with right subtree
-    collect_traverse_avl_tree(node->right, current_cell, adjList, visited, sorted, sheet);
-}
+//     // Continue with right subtree
+//     collect_traverse_avl_tree(node->right, adjList, visited, sorted, sheet);
+// }
 
-void collect_traverse_topo(Cell* cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet) {
-    if(cell == NULL) return;
+// void collect_traverse_topo(Cell* cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet) {
+//     if(cell == NULL) return;
+//     // Mark current cell as visited
+//     *visited = avl_insert(*visited, cell->row, cell->col);
+
+//     // Use recursive traversal instead of iterators to process adjacency list
+//     if (cell->topo_order > 0)
+//     {
+//         collect_traverse_avl_tree((*adjList)[cell->topo_order], adjList, visited, sorted, sheet);
+//     }
+
+//     // Add current cell to sorted list after processing all dependencies
+//     vector_push_back(sorted, cell->row, cell->col);
+// }
+
+
+
+
+// void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted) {
+//     // Mark current cell as visited
+//     set_add(visited, cell->row, cell->col);
+    
+//     // Process all adjacent cells (dependencies)
+//     SetIterator it;
+//     set_iterator_init(&it, &adjList[cell->topo_order]);
+    
+//     while (set_iterator_has_next(&it)) {
+//         Cell* adj_cell = set_iterator_next(&it);
+//         // Only process if not already visited
+//         if (set_find(visited, adj_cell->row, adj_cell->col) == NULL) {
+//             topological_sort_util(adj_cell, adjList, visited, sorted);
+//         }
+//     }
+//     set_iterator_free(&it);
+
+//     // Add current cell to sorted list after processing all dependencies
+//     vector_push_back(sorted, cell->row, cell->col);
+// }
+
+
+
+void topologic_util(Cell* currcell, Vector* adjList, char* visited, Vector* sorted, Spreadsheet* sheet) {
     // Mark current cell as visited
-    *visited = avl_insert(*visited, cell->row, cell->col);
-
-    // Use recursive traversal instead of iterators to process adjacency list
-    collect_traverse_avl_tree((*adjList)[cell->topo_order], cell, adjList, visited, sorted, sheet);
-
+    visited[currcell->topo_order] = 1;
+    
+    // Process all adjacent cells (dependencies)
+    VectorIterator it;
+    vector_iterator_init(&it, &adjList[currcell->topo_order]);
+    while(vector_iterator_has_next(&it)) {
+        Pair* adjcell = vector_iterator_next(&it);
+        // Only process if not already visited
+        if (visited[sheet->cells[adjcell->i][adjcell->j].topo_order] == 0) {
+            topologic_util(&sheet->cells[adjcell->i][adjcell->j], adjList, visited, sorted, sheet);
+        }
+    }
     // Add current cell to sorted list after processing all dependencies
-    vector_push_back(sorted, cell->row, cell->col);
+    vector_push_back(sorted, currcell->row, currcell->col);
 }
 
-void topological_sort(AVLNode*** adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet) {
+
+void topological_sort(Vector* adjList, int numVertices, Pair** cell_map, Vector* result, Spreadsheet* sheet) {
     // Initialize visited set to track processed cells
-    AVLNode* visited = NULL;
+    char *visited = (char*)calloc(numVertices+1, sizeof(char));
+
 
     // Initialize result vector
     Vector sorted;
@@ -416,10 +466,10 @@ void topological_sort(AVLNode*** adjList, int numVertices, Cell** cell_map, Vect
     // Process all vertices
     for (int i = 1; i <= numVertices; i++) {
         // The cell that has this topo_order
-        Cell* current = cell_map[i];
+        Cell* current = &sheet->cells[(*cell_map)[i].i][(*cell_map)[i].j];
         // If it hasn't been visited, process it
-        if (current != NULL && avl_find(visited, current->row, current->col) == NULL) {
-            collect_traverse_topo(current, adjList, &visited, &sorted, sheet);
+        if (current != NULL && visited[current->topo_order] == 0) {
+            topologic_util(current, adjList, visited, &sorted, sheet);
         }
     }
 
@@ -432,9 +482,9 @@ void topological_sort(AVLNode*** adjList, int numVertices, Cell** cell_map, Vect
     }
 
     // Clean up
-    avl_free(visited);
+    free(visited);
     vector_free(&sorted);
-
+    visited = NULL;
 }
 
 void create_cell(short row, short col, Cell* cell) {

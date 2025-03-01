@@ -324,7 +324,7 @@ static AVLNode* collect_traverse_avl_tree_backend(AVLNode* node, AVLNode** affec
     return *affected_cells;
 }
 
-static void assign_topo_order(AVLNode* affected_cell, Spreadsheet* sheet, Cell*** cell_map, int* index) {
+static void assign_topo_order(AVLNode* affected_cell, Spreadsheet* sheet, Pair** cell_map, int* index) {
     if (affected_cell == NULL) return;
     
     // In-order traversal: left, current, right
@@ -333,7 +333,8 @@ static void assign_topo_order(AVLNode* affected_cell, Spreadsheet* sheet, Cell**
     // Process the current affected_cell
     Pair p = affected_cell->pair;
     sheet->cells[p.i][p.j].topo_order = *index;
-    (*cell_map)[*index] = &sheet->cells[p.i][p.j];
+    (*cell_map)[*index].i = p.i;
+    (*cell_map)[*index].i = p.j;
     (*index)++;
     
     assign_topo_order(affected_cell->right, sheet, cell_map, index);
@@ -353,33 +354,43 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     if (num_cells == 0)
     {
         avl_free(affected_cells);
+        affected_cells = NULL;
         return;
     }
     // Create cell mapping
-    Cell **cell_map = (Cell **)malloc((num_cells + 1) * sizeof(Cell *));
+    Pair *cell_map = (Pair *)malloc((num_cells + 1) * sizeof(Pair));
     if (cell_map == NULL)
     {
         fprintf(stderr, "Memory allocation failed for cell_map\n");
         avl_free(affected_cells);
+        affected_cells = NULL;
         return;
     }
     int index = 1;
     assign_topo_order(affected_cells, sheet, &cell_map, &index);
+
+
     // Create adjacency matrix
-    AVLNode **adj_list = (AVLNode **)malloc((num_cells + 1) * sizeof(AVLNode *));
+    Vector *adj_list = (Vector *)malloc((num_cells + 1) * sizeof(Vector));
     if (adj_list == NULL)
     {
         fprintf(stderr, "Memory allocation failed for adj_list\n");
         free(cell_map);
         cell_map = NULL;
         avl_free(affected_cells);
+        affected_cells = NULL;
         return;
+    }
+    for(int i = 1; i <= num_cells; i++){
+        vector_init(&adj_list[i]);
     }
 
     // Fill adjacency list - only add edges between affected cells
     for (int i = 1; i <= num_cells; i++)
     {
-        Cell *cell = cell_map[i];
+        int xx = cell_map[i].i;
+        int yy = cell_map[i].j;
+        Cell *cell = &sheet->cells[xx][yy];
         if (cell->type == 'F')
         {
             short r1 = cell->dependencies.first.i, c1 = cell->dependencies.first.j;
@@ -392,7 +403,7 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
                     Cell *dep = &(sheet->cells[rr][j]);
                     // Only add edge if dependency is in affected_cells.
                     if (avl_find(affected_cells, dep->row, dep->col) != NULL)
-                        adj_list[i] = avl_insert(adj_list[i], dep->row, dep->col);
+                        vector_push_back(&adj_list[i], dep->row, dep->col);
                 }
             }
         }
@@ -406,7 +417,7 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
             Cell *dep = &sheet->cells[r][c];
             // Only add edge if dependency is in affected_cells.
             if (avl_find(affected_cells, dep->row, dep->col) != NULL)
-                adj_list[i] = avl_insert(adj_list[i], dep->row, dep->col);
+                vector_push_back(&adj_list[i], dep->row, dep->col);
             }
 
             r = cell->dependencies.second.i;
@@ -417,14 +428,14 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
             Cell *dep = &sheet->cells[r][c];
             // Only add edge if dependency is in affected_cells.
             if (avl_find(affected_cells, dep->row, dep->col) != NULL)
-                adj_list[i] = avl_insert(adj_list[i], dep->row, dep->col);
+                vector_push_back(&adj_list[i], dep->row, dep->col);
             }
         }
     }
 
     // Perform topological sort
     Vector sorted;
-    topological_sort(&adj_list, num_cells, cell_map, &sorted, sheet);
+    topological_sort(adj_list, num_cells, &cell_map, &sorted, sheet);
 
     // Update cells in topological order
     VectorIterator update_it;
@@ -444,16 +455,19 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
         // Note: This is where you'd call your cell evaluation function
         // For now, we'll just check for division by zero
         evaluate_cell(&(sheet->cells[p->i][p->j]), sheet);
+        sheet->cells[p->i][p->j].topo_order = -1;
     }
     // Cleanup
     vector_free(&sorted);
-    for (int i = 1; i <= num_cells; i++)
-        avl_free(adj_list[i]);
+    for (int i = 1; i <= num_cells; i++){
+        vector_free(&adj_list[i]);
+    }
     free(adj_list);
     free(cell_map);
     adj_list = NULL;
     cell_map = NULL;
     avl_free(affected_cells);
+    affected_cells = NULL;
 }
 
 

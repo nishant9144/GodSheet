@@ -136,7 +136,7 @@ struct Cell {
     
     AVLNode* dependents;
     PairOfPair dependencies;
-};
+}__attribute__((packed));
 
 // Spreadsheet structure
 struct Spreadsheet{
@@ -226,9 +226,8 @@ AVLNode* avl_remove(AVLNode* root, short row, short col);
 void avl_free(AVLNode* root);
 
 // void topological_sort_util(Cell* cell, Set* adjList, Set* visited, Vector* sorted, Spreadsheet *sheet);
-void collect_traverse_avl_tree(AVLNode* node, Cell* current_cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet);
-void collect_traverse_topo(Cell* cell, AVLNode*** adjList, AVLNode** visited, Vector* sorted, Spreadsheet* sheet);
-void topological_sort(AVLNode*** adjList, int numVertices, Cell** cell_map, Vector* result, Spreadsheet* sheet);
+void topologic_util(Cell* currcell, Vector* adjList, char* visited, Vector* sorted, Spreadsheet* sheet);
+void topological_sort(Vector* adjList, int numVertices, Pair** cell_map, Vector* result, Spreadsheet* sheet);
 
 void create_cell(short row, short col, Cell* Cell);
 void free_cell(Cell* cell);
