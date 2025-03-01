@@ -456,17 +456,25 @@ void topologic_util(Cell* currcell, Vector* adjList, char* visited, Vector* sort
 
 void topological_sort(Vector* adjList, int numVertices, Pair** cell_map, Vector* result, Spreadsheet* sheet) {
     // Initialize visited set to track processed cells
-    char *visited = (char*)calloc(numVertices+1, sizeof(char));
-
+    char *visited = (char*)malloc((numVertices+1) *sizeof(char));
+    if (!visited) {
+        fprintf(stderr, "Memory allocation failed for visited array\n");
+        exit(1);
+    }
+    for (int i = 1; i <= numVertices; i++)
+    {
+        visited[i] = 0;
+    }
+    
 
     // Initialize result vector
     Vector sorted;
     vector_init(&sorted);
 
     // Process all vertices
-    for (int i = 1; i <= numVertices; i++) {
+    for (int index = 1; index <= numVertices; index++) {
         // The cell that has this topo_order
-        Cell* current = &sheet->cells[(*cell_map)[i].i][(*cell_map)[i].j];
+        Cell* current = &sheet->cells[(*cell_map)[index].i][(*cell_map)[index].j];
         // If it hasn't been visited, process it
         if (current != NULL && visited[current->topo_order] == 0) {
             topologic_util(current, adjList, visited, &sorted, sheet);

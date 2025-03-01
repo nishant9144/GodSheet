@@ -92,7 +92,7 @@ struct Stack{
     // Spreadsheet* sheet;
 };
 
-// AVL Tree Node
+// AVL Tree Node (32)
 struct AVLNode {
     Pair pair;
     struct AVLNode* left;
@@ -100,20 +100,13 @@ struct AVLNode {
     int height;
 };
 
-// // Set implementation
-// struct Set{
-//     AVLNode* root;
-//     // Spreadsheet* sheet;
-//     char type;
-// };
-
-// Pair of Pair structure
+// Pair of Pair structure(8)
 typedef struct {
     Pair first;
     Pair second;
 } PairOfPair;
 
-// Cell structure definition
+// Cell structure definition(40)
 struct Cell {
     int value;          
     short row; 

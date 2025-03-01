@@ -334,7 +334,7 @@ static void assign_topo_order(AVLNode* affected_cell, Spreadsheet* sheet, Pair**
     Pair p = affected_cell->pair;
     sheet->cells[p.i][p.j].topo_order = *index;
     (*cell_map)[*index].i = p.i;
-    (*cell_map)[*index].i = p.j;
+    (*cell_map)[*index].j = p.j;
     (*index)++;
     
     assign_topo_order(affected_cell->right, sheet, cell_map, index);
