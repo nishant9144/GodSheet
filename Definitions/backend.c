@@ -32,7 +32,7 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
             }
         }
     }
-    else if (cellcopy.type == 'A')
+    else if (cellcopy.type == 'A' || cellcopy.type == 'R')
     {
         if (r1 != -1 && c1 != -1)
         {  
@@ -363,7 +363,6 @@ void update_dependents(Cell *curr_cell, Spreadsheet *sheet)
     avl_free(affected_cells);
     affected_cells = NULL;
 }
-
 
 int evaluate_cell(Cell *cell, Spreadsheet *sheet)
 {

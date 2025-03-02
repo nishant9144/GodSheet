@@ -54,111 +54,111 @@ Pair* vector_iterator_next(VectorIterator* iterator) {
 }
 
 
-void queue_init(Queue* queue, size_t capacity) {
-    queue->capacity = capacity;
-    queue->front = queue->size = 0;
-    queue->rear = capacity - 1;
-    queue->data = (Pair*)malloc(queue->capacity * sizeof(Pair));
-    // queue->sheet = sheet;
-}
+// void queue_init(Queue* queue, size_t capacity) {
+//     queue->capacity = capacity;
+//     queue->front = queue->size = 0;
+//     queue->rear = capacity - 1;
+//     queue->data = (Pair*)malloc(queue->capacity * sizeof(Pair));
+//     // queue->sheet = sheet;
+// }
 
-bool queue_is_full(Queue* queue) {
-    return (queue->size == queue->capacity);
-}
+// bool queue_is_full(Queue* queue) {
+//     return (queue->size == queue->capacity);
+// }
 
-bool queue_is_empty(Queue* queue) {
-    return (queue->size == 0);
-}
+// bool queue_is_empty(Queue* queue) {
+//     return (queue->size == 0);
+// }
 
-void queue_enqueue(Queue* queue, short row, short col) {
-    if (queue_is_full(queue)) return;
-    queue->rear = (queue->rear + 1) % queue->capacity;
-    queue->data[queue->rear].i = row;
-    queue->data[queue->rear].j = col;
-    queue->size++;
-}
+// void queue_enqueue(Queue* queue, short row, short col) {
+//     if (queue_is_full(queue)) return;
+//     queue->rear = (queue->rear + 1) % queue->capacity;
+//     queue->data[queue->rear].i = row;
+//     queue->data[queue->rear].j = col;
+//     queue->size++;
+// }
 
-Pair* queue_dequeue(Queue* queue) {
-    if (queue_is_empty(queue)) return NULL;
-    Pair* pos = &(queue->data[queue->front]);
-    queue->front = (queue->front + 1) % queue->capacity;
-    queue->size--;
-    return pos;
-    // return &(queue->sheet->cells[pos.i][pos.j]);
-}
+// Pair* queue_dequeue(Queue* queue) {
+//     if (queue_is_empty(queue)) return NULL;
+//     Pair* pos = &(queue->data[queue->front]);
+//     queue->front = (queue->front + 1) % queue->capacity;
+//     queue->size--;
+//     return pos;
+//     // return &(queue->sheet->cells[pos.i][pos.j]);
+// }
 
-void queue_free(Queue* queue) {
-    if (queue->data) {
-        free(queue->data);
-        queue->data = NULL;
-    }
-    queue->size = 0;
-}
-
-
-void queue_iterator_init(QueueIterator* iterator, Queue* queue) {
-    iterator->queue = queue;
-    iterator->index = queue->front;
-}
-
-bool queue_iterator_has_next(QueueIterator* iterator) {
-    return iterator->index != (iterator->queue->rear + 1) % iterator->queue->capacity;
-}
-
-Pair* queue_iterator_next(QueueIterator* iterator) {
-    if (!queue_iterator_has_next(iterator)) return NULL;
-    Pair* value = &(iterator->queue->data[iterator->index]);
-    iterator->index = (iterator->index + 1) % iterator->queue->capacity;
-    return value;
-}
+// void queue_free(Queue* queue) {
+//     if (queue->data) {
+//         free(queue->data);
+//         queue->data = NULL;
+//     }
+//     queue->size = 0;
+// }
 
 
-void stack_init(Stack* stack) {
-    stack->size = 0;
-    stack->capacity = 4;
-    stack->data = (Pair*)malloc(stack->capacity * sizeof(Pair));
-    // stack->sheet = sheet;
-}
+// void queue_iterator_init(QueueIterator* iterator, Queue* queue) {
+//     iterator->queue = queue;
+//     iterator->index = queue->front;
+// }
 
-void stack_push(Stack* stack, short row, short col) {
-    if (stack->size == stack->capacity) {
-        stack->capacity *= 2;
-        stack->data = (Pair*)realloc(stack->data, stack->capacity * sizeof(Pair));
-    }
-    stack->data[stack->size].i = row;
-    stack->data[stack->size].j = col;
-    stack->size++;
-}
+// bool queue_iterator_has_next(QueueIterator* iterator) {
+//     return iterator->index != (iterator->queue->rear + 1) % iterator->queue->capacity;
+// }
 
-Pair* stack_pop(Stack* stack) {
-    if (stack->size == 0) return NULL;
-    stack->size--;
-    return &(stack->data[stack->size]);
-}
+// Pair* queue_iterator_next(QueueIterator* iterator) {
+//     if (!queue_iterator_has_next(iterator)) return NULL;
+//     Pair* value = &(iterator->queue->data[iterator->index]);
+//     iterator->index = (iterator->index + 1) % iterator->queue->capacity;
+//     return value;
+// }
 
-void stack_free(Stack* stack) {
-    if (stack->data) {
-        free(stack->data);
-        stack->data = NULL;
-    }
-    stack->size = 0;
-    stack->capacity = 0;
-}
 
-void stack_iterator_init(StackIterator* iterator, Stack* stack) {
-    iterator->stack = stack;
-    iterator->index = stack->size;
-}
+// void stack_init(Stack* stack) {
+//     stack->size = 0;
+//     stack->capacity = 4;
+//     stack->data = (Pair*)malloc(stack->capacity * sizeof(Pair));
+//     // stack->sheet = sheet;
+// }
 
-bool stack_iterator_has_next(StackIterator* iterator) {
-    return iterator->index > 0;
-}
+// void stack_push(Stack* stack, short row, short col) {
+//     if (stack->size == stack->capacity) {
+//         stack->capacity *= 2;
+//         stack->data = (Pair*)realloc(stack->data, stack->capacity * sizeof(Pair));
+//     }
+//     stack->data[stack->size].i = row;
+//     stack->data[stack->size].j = col;
+//     stack->size++;
+// }
 
-Pair* stack_iterator_next(StackIterator* iterator) {
-    if (!stack_iterator_has_next(iterator)) return NULL;
-    iterator->index--;
-    return &(iterator->stack->data[iterator->index]);
-}
+// Pair* stack_pop(Stack* stack) {
+//     if (stack->size == 0) return NULL;
+//     stack->size--;
+//     return &(stack->data[stack->size]);
+// }
+
+// void stack_free(Stack* stack) {
+//     if (stack->data) {
+//         free(stack->data);
+//         stack->data = NULL;
+//     }
+//     stack->size = 0;
+//     stack->capacity = 0;
+// }
+
+// void stack_iterator_init(StackIterator* iterator, Stack* stack) {
+//     iterator->stack = stack;
+//     iterator->index = stack->size;
+// }
+
+// bool stack_iterator_has_next(StackIterator* iterator) {
+//     return iterator->index > 0;
+// }
+
+// Pair* stack_iterator_next(StackIterator* iterator) {
+//     if (!stack_iterator_has_next(iterator)) return NULL;
+//     iterator->index--;
+//     return &(iterator->stack->data[iterator->index]);
+// }
 
 
 
@@ -438,17 +438,11 @@ void create_cell(short row, short col, Cell* cell) {
     cell->value = 0;
     cell->cell_state = 'N';
     cell->dependents = NULL;
-    // cell->dependencies = NULL;
     cell->has_error = false;
     cell->is_sleep = false;
 }
 
 void free_cell(Cell* cell) {
-    // if(cell->dependencies != NULL) {
-    //     set_free(cell->dependencies);
-    //     free(cell->dependencies);
-    //     cell->dependencies = NULL;
-    // };
     if(cell->dependents != NULL) {
         avl_free(cell->dependents);
         cell->dependents = NULL;

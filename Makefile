@@ -52,8 +52,9 @@ valgrind: $(EXEC)
 
 # Generate the report
 report:
-	@pdflatex report.tex
-	@mv report.pdf $(REPORT)
+	@pdflatex -interaction=nonstopmode report.tex
+	@pdflatex -interaction=nonstopmode report.tex  # Run twice to resolve references
+	@rm -f *.aux *.log *.out *.toc
 
 # Clean all generated files
 clean:

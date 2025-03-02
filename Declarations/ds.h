@@ -75,14 +75,14 @@ struct Vector{
 };
 
 // Queue implementation
-struct Queue{
-    size_t capacity;
-    size_t front;
-    size_t rear;
-    size_t size;
-    Pair* data;
-    // Spreadsheet* sheet;
-};
+// struct Queue{
+//     size_t capacity;
+//     size_t front;
+//     size_t rear;
+//     size_t size;
+//     Pair* data;
+//     // Spreadsheet* sheet;
+// };
 
 // Stack implementation
 struct Stack{
@@ -97,7 +97,7 @@ struct AVLNode {
     struct AVLNode* left;
     struct AVLNode* right;
     unsigned char height;
-}__attribute__((packed));
+};
 
 // Pair of Pair structure(8)
 typedef struct {
@@ -105,7 +105,25 @@ typedef struct {
     Pair second;
 } PairOfPair;
 
-// Cell structure definition(40)
+// Cell structure definition(40)void queue_init(Queue* queue, size_t capacity);
+// bool queue_is_full(Queue* queue);
+// bool queue_is_empty(Queue* queue);
+// void queue_enqueue(Queue* queue, short row, short col);
+// Pair* queue_dequeue(Queue* queue);
+// void queue_free(Queue* queue);
+
+// void queue_iterator_init(QueueIterator* iterator, Queue* queue);
+// bool queue_iterator_has_next(QueueIterator* iterator);
+// Pair* queue_iterator_next(QueueIterator* iterator);
+
+// void stack_init(Stack* stack);
+// void stack_push(Stack* stack, short row, short col);
+// Pair* stack_pop(Stack* stack);
+// void stack_free(Stack* stack);
+
+// void stack_iterator_init(StackIterator* iterator, Stack* stack);
+// bool stack_iterator_has_next(StackIterator* iterator);
+// Pair* stack_iterator_next(StackIterator* iterator);
 struct Cell {
     int value;   //(32)
     short row;   //(10.5)
@@ -178,16 +196,16 @@ typedef struct {
 
 
 // Queue iterator
-typedef struct {
-    Queue* queue;
-    size_t index;
-} QueueIterator;
+// typedef struct {
+//     Queue* queue;
+//     size_t index;
+// } QueueIterator;
 
-// Stack iterator
-typedef struct {
-    Stack* stack;
-    size_t index;
-} StackIterator;
+// // Stack iterator
+// typedef struct {
+//     Stack* stack;
+//     size_t index;
+// } StackIterator;
 
 // typedef struct {
 //     Set* set;
@@ -206,25 +224,25 @@ void vector_iterator_init(VectorIterator* iterator, Vector* vector);
 bool vector_iterator_has_next(VectorIterator* iterator);
 Pair* vector_iterator_next(VectorIterator* iterator);
 
-void queue_init(Queue* queue, size_t capacity);
-bool queue_is_full(Queue* queue);
-bool queue_is_empty(Queue* queue);
-void queue_enqueue(Queue* queue, short row, short col);
-Pair* queue_dequeue(Queue* queue);
-void queue_free(Queue* queue);
+// void queue_init(Queue* queue, size_t capacity);
+// bool queue_is_full(Queue* queue);
+// bool queue_is_empty(Queue* queue);
+// void queue_enqueue(Queue* queue, short row, short col);
+// Pair* queue_dequeue(Queue* queue);
+// void queue_free(Queue* queue);
 
-void queue_iterator_init(QueueIterator* iterator, Queue* queue);
-bool queue_iterator_has_next(QueueIterator* iterator);
-Pair* queue_iterator_next(QueueIterator* iterator);
+// void queue_iterator_init(QueueIterator* iterator, Queue* queue);
+// bool queue_iterator_has_next(QueueIterator* iterator);
+// Pair* queue_iterator_next(QueueIterator* iterator);
 
-void stack_init(Stack* stack);
-void stack_push(Stack* stack, short row, short col);
-Pair* stack_pop(Stack* stack);
-void stack_free(Stack* stack);
+// void stack_init(Stack* stack);
+// void stack_push(Stack* stack, short row, short col);
+// Pair* stack_pop(Stack* stack);
+// void stack_free(Stack* stack);
 
-void stack_iterator_init(StackIterator* iterator, Stack* stack);
-bool stack_iterator_has_next(StackIterator* iterator);
-Pair* stack_iterator_next(StackIterator* iterator);
+// void stack_iterator_init(StackIterator* iterator, Stack* stack);
+// bool stack_iterator_has_next(StackIterator* iterator);
+// Pair* stack_iterator_next(StackIterator* iterator);
 
 // void set_init(Set* set);
 // void set_add(Set* set, short row, short col);

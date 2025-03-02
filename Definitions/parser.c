@@ -566,6 +566,7 @@ void process_command(Spreadsheet *sheet, char *input)
         sheet->last_status = ERR_CIRCULAR_REFERENCE;
     }
 
-    if((cellcopy.value != target_cell->value) || (target_cell->is_sleep != cellcopy.is_sleep)) update_dependents(target_cell, sheet);
+    if((cellcopy.value != target_cell->value) || (target_cell->is_sleep != cellcopy.is_sleep) || (target_cell->has_error != cellcopy.has_error)) 
+        update_dependents(target_cell, sheet);
     return;
 }

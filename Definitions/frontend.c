@@ -229,8 +229,8 @@ void run_ui(Spreadsheet *sheet) {
         sheet->last_status = STATUS_OK;
         if (sheet->output_enabled)
             display_viewport(sheet);
+            
         continue;
-
         }
 
         // If input is a single character and that character is one of "wasd", treat it as a scroll command
@@ -245,7 +245,6 @@ void run_ui(Spreadsheet *sheet) {
             process_command(sheet, input);
         }
 
-        
          // Display updated spreadsheet after command
         display_viewport(sheet);
          

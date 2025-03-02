@@ -1,0 +1,182 @@
+\documentclass{article}
+
+% Package imports
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{float}
+
+% Define colors for code highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Configure lstlisting style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                   
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{C Lab: Spreadsheet program}
+\author{Nishant Kumar, Aayushya Sahay, Tanish Kumar}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    The report presents a spreadsheet program implemented in C and accessible through the terminal. The program supports arithmetic operations, cell references, functions like SUM, MIN, MAX, AVG, and STDEV, and handles circular dependencies through dependency tracking and topological sorting. It provides a text-based interface for cell manipulation and navigation.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+The spreadsheet application is a command-line program that emulates spreadsheet functionality in C implementation. It supports viewing and modifying cells with formulas, references, and functions. The application is designed to handle dependencies between cells, evaluate formulas based on these dependencies, and prevent circular references.
+
+\section{Design and Architecture}
+The application follows a modular architecture, separating the concerns into distinct components:
+
+\subsection{Component Structure}
+\
+\subsubsection{Definitions}
+\begin{itemize}
+    \item \textbf{Data Structures (ds.c)}: Implements the data structures for the spreadsheet, including vectors, stack, sets, and AVL trees.
+    It has code for implementing the topological sort and the sheet and cell initiation.
+    \item \textbf{Frontend (frontend.c)}: Handles the user interface, displaying the spreadsheet and processing the user input.
+    \item \textbf{Backend (backend.c)}: Handles the updating of dependencies, dependents and evaluation of cell. It has code for checking the cyclic dependency in a cell.
+    \item \textbf{Parser (parser.c)}: Parses the processed input and create the cell references and constants for passing to backend.c for evaluation and cyclicity checking.
+    \item \textbf{Main (main.c)}: Initializes the application and calls the initialisation of UI.
+\end{itemize}
+
+\subsubsection{Declarations}
+\begin{itemize}
+   \item \textbf{Data Structures (ds.h)}: Implements the struct of the cell, sheet and iterators for the vector and the set.
+    \item \textbf{Frontend (frontend.h)}: Gives definitions for the viewport and the functions of the frontend.c
+    \item \textbf{Backend (backend.h)}: Gives definitions to the functions in the backend.c
+    \item \textbf{Parser (parser.h)}: Gives definitions to the functions in the parser.h
+    \item \textbf{Header (header.h)}: Has all the imports needed for the program.
+\end{itemize}
+\subsection{Control Flow}
+The application follows this general flow:
+\begin{enumerate}
+    \item User inputs a command.
+    \item The parser interprets the command.
+    \item If the command modifies a cell:
+    \begin{itemize}
+        \item The cell's formula is parsed.
+        \item Dependencies are updated.
+        \item Circular references are checked.
+        \item The cell and dependent cells are evaluated.
+    \end{itemize}
+    \item The updated spreadsheet is displayed.
+\end{enumerate}
+
+\section{Data Structures}
+\subsection{Data Structures}
+\begin{itemize}
+    % \item \textbf{Cell}: Stores value, type, dependencies, and evaluation state.
+    % \item \textbf{Spreadsheet}: Contains the grid of cells and application state.
+    \item \textbf{Set}: Set is implemented using the AVL tree instead of HashSet for efficient implementation. Supports basic functions as well as set iterations.
+    \item \textbf{Vector/Stack}: Basic implementation using malloc and with iterators for accessing the elements.
+\end{itemize}
+
+\subsection{Standard Structures}
+\begin{itemize}
+    \item \textbf{Cell}: Has attributes like value, row, col, set of dependents, pair of pair for dependencies. Has supporting attributes like topo order, error, sleep.
+    \begin{lstlisting}[language=C]
+struct Cell {
+    int value;          
+    short row; 
+    short col; 
+    int topo_order;
+    char type; 
+    char cell_state;  
+    bool is_sleep;
+    bool has_error;
+    union {
+        struct {  
+            Operation op;
+            int constant;
+        } arithmetic;
+
+        struct {  
+            char func_name;
+        } function;
+    } op_data;
+    
+    Set* dependents;
+    PairOfPair dependencies;
+};
+\end{lstlisting}
+    \item \textbf{Sheet}: Has attributes for number of rows and cells, has pointer for the cells and time attributes.
+    \begin{lstlisting}[language=C]
+struct Spreadsheet{
+    Cell **cells;
+    int totalRows;
+    int totalCols;
+    int scroll_row;
+    int scroll_col;
+    CalcStatus last_status;
+    struct timeval last_cmd_time;
+    bool output_enabled;
+    double last_processing_time;
+};
+\end{lstlisting}
+    
+\end{itemize}
+
+\subsection{Cell Types}
+\begin{itemize}
+    \item \textbf{Constant (C)}: Simple numeric values.
+    \item \textbf{Reference (R)}: Reference to another cell.
+    \item \textbf{Arithmetic (A)}: Expression combining cells and/or constants.
+    \item \textbf{Function (F)}: Operations on a range of cells (MIN, MAX, AVG, SUM, STDEV).
+\end{itemize}
+
+\section{Implementation Details}
+
+\subsection{Formula Parsing}
+After getting the input from the user, we have extracted the cell using parse\_cell\_address.
+Then we have matched the formula with the possible formats: numeric, arithmetic, cell reference or function, storing the numeric directly and cell references in the dependency of the cell and dependents of the dependency cells.
+
+\subsection{Dependency Tracking}
+We have removed the target cell from the dependents of the old dependency and added the new dependency. Then we have checked if there is circular dependency in the new formula. If so, then we have reverted to the old dependency. 
+
+\subsection{Dependents updating}
+    We have collected the affected cells, created an adjacency list for the graph edges and topologically sorted the vertices. Then we have traversed the graph and updated the value of the dependents.
+    
+\subsection{Cell evaluation}
+    We have used the values in the dependency for updating the value of the current cell using the formula given by the user. We have used sleep here. We have updated the cell value to "ERR" if any of the dependency cells have error.
+
+\subsection{Cycle detection}
+    For cyclic detection, we have used custom recursion stack and did dfs on the graph.
+
+\section{Conclusion}
+This command-line spreadsheet application successfully demonstrates the practical application of fundamental C programming concepts to create a functional data processing tool.
+By implementing support for multiple command line arguments, the project provides users
+with a flexible and efficient way to manipulate tabular data without modifying source code.
+The resulting application not only fulfills the core requirements of the C-Lab curriculum but
+also serves as a practical tool for data manipulation tasks.
+
+\end{document}

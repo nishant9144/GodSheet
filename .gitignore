@@ -1,6 +1,7 @@
-bin/sheet
 build/backend.o
 build/dS.o
 build/parser.o
 build/main.o
 build/frontend.o
+build/
+.vscode/

@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/sheet",
+            "program": "${workspaceFolder}/target/release/spreadsheet",
             "args": ["50", "50"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
