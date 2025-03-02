@@ -15,6 +15,22 @@
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
+\begin{filecontents*}{requirement.txt}
+# C Build Tools
+gcc
+make
+
+# For report generation
+texlive-latex-base
+texlive-fonts-recommended
+texlive-fonts-extra
+texlive-latex-extra
+
+# For development (optional)
+valgrind        # Memory debugging
+gdb             # GNU Debugger
+\end{filecontents*}
+
 % Configure lstlisting style
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{backcolour},   
@@ -172,11 +188,26 @@ We have removed the target cell from the dependents of the old dependency and ad
 \subsection{Cycle detection}
     For cyclic detection, we have used custom recursion stack and did dfs on the graph.
 
+\section{Requirements}
+There are basic requirements like gcc and make for running the program and valgrind and gdb for debugging. There are also requirements for some packages for using "make report".
+
+\lstinputlisting[language=bash]{requirement.txt}
+For running the requirements file, we run this code:
+\begin{lstlisting}[language=bash]
+cat requirement.txt | grep -v "#" | xargs sudo apt-get install -y
+\end{lstlisting}
+
 \section{Conclusion}
 This command-line spreadsheet application successfully demonstrates the practical application of fundamental C programming concepts to create a functional data processing tool.
 By implementing support for multiple command line arguments, the project provides users
 with a flexible and efficient way to manipulate tabular data without modifying source code.
 The resulting application not only fulfills the core requirements of the C-Lab curriculum but
 also serves as a practical tool for data manipulation tasks.
+
+\section{Links}
+\begin{itemize}
+    \item \textbf{Github}: \url{https://github.com/nishant9144/Spreadsheet/tree/main}
+    \item \textbf{Video}: \url{}
+\end{itemize}
 
 \end{document}
