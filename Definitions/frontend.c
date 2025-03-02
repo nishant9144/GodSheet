@@ -62,7 +62,11 @@ void display_viewport(Spreadsheet *sheet) {
             col < sheet->scroll_col + VIEWPORT_COLS && col < sheet->totalCols;
             col++) {
             Cell* cell = &sheet->cells[row][col];
-            printf("%-*d", CELL_WIDTH, cell->value);
+
+            if(cell->has_error)
+                printf("%-*s", CELL_WIDTH, "ERR");
+            else
+                printf("%-*d", CELL_WIDTH, cell->value);
         }
         printf("\n");
     }   
@@ -138,8 +142,36 @@ void run_ui(Spreadsheet *sheet) {
 
     
     while(1) {
-        printf("[%.1f] (%s) > ", sheet->last_processing_time,
-               sheet->last_status == STATUS_OK ? "ok" : "error");
+        
+        char *sheet_stat;
+        switch(sheet->last_status)
+        {
+            case (STATUS_OK):
+                sheet_stat = "ok";
+                break;
+            
+            case (ERR_INVALID_CELL):
+                sheet_stat = "INVALID_CELL";
+                break;
+            
+            case (ERR_CIRCULAR_REF):
+                sheet_stat = "CIRCULAR_REF";
+                break;
+            
+            case (ERR_INVALID_RANGE):
+                sheet_stat = "INVALID_RANGE";
+                break;
+
+            case (ERR_SYNTAX):
+                sheet_stat = "INVALID_SYNTAX";
+                break;
+            
+            default:
+                sheet_stat = "ERR";
+                break;
+        }
+        printf("[%.1f] (%s) > ", sheet->last_processing_time, sheet_stat);
+
         fflush(stdout);
         
         // Get input

@@ -89,7 +89,6 @@ struct Stack{
     size_t size;
     size_t capacity;
     Pair* data;
-    // Spreadsheet* sheet;
 };
 
 // AVL Tree Node (32)
@@ -97,8 +96,8 @@ struct AVLNode {
     Pair pair;
     struct AVLNode* left;
     struct AVLNode* right;
-    int height;
-};
+    unsigned char height;
+}__attribute__((packed));
 
 // Pair of Pair structure(8)
 typedef struct {
@@ -108,28 +107,55 @@ typedef struct {
 
 // Cell structure definition(40)
 struct Cell {
-    int value;          
-    short row; 
-    short col; 
-    int topo_order;
-    char type; 
-    char cell_state;  
-    bool is_sleep;
-    bool has_error;
+    int value;   //(32)
+    short row;   //(10.5)
+    short col;   //(15.5)
+    int topo_order; //(32)
+    char type;  //(2)
+    char cell_state; //(2) 
+    bool is_sleep; //(1)
+    bool has_error; //(1)
     union {
         struct {  
-            Operation op;
-            int constant;
+            Operation op; //(3)
+            int constant; //(32)
         } arithmetic;
 
         struct {  
-            char func_name;
+            char func_name; //(4)
         } function;
     } op_data;
     
-    AVLNode* dependents;
-    PairOfPair dependencies;
+    AVLNode* dependents;  //(64)
+    PairOfPair dependencies; //(52)
 }__attribute__((packed));
+
+
+// Converting it to (32)
+// value, topo_order, node* remains intact - (16 bytes)
+// is-1(1) + row(10)+col(15)+state(2)+type(2)+is_sleep(1)+has_error(1) = 32 bits = (4 bytes)
+// Operation code ko bahar nikal ke dependencies ke sath bitmask kar dete hain
+// 52+3 = 55 -> 64 (8 bytes)
+// andar ke op_data ka size 32 = (4 bytes)
+// jab -1 mark karna hoga to fir saare bits 1 kardenge row ke so that we can identify ki -1 hai ya nahi
+
+typedef struct Cell1{
+    int value;      //(4)
+    int topo_order; //(4)
+    AVLNode* dependents; //(8)
+    union {
+        struct {  
+            int constant; //(4)
+        } arithmetic;
+
+        struct {  
+            char func_name; //(1)
+        } function;
+    } op_data;
+    u_int32_t nrctsle; //(4)
+    uint64_t nrcnrco;  //(8)
+}__attribute__((packed)) Cell1;
+
 
 // Spreadsheet structure
 struct Spreadsheet{

@@ -107,6 +107,11 @@ static int is_valid_formula(const char *formula)
 // Parse a range (e.g., "A1:B2") and store cells in the range array
 static int parse_range(Spreadsheet *sheet, const char *range_str, bool *need_new_dep, PairOfPair *new_pairs)
 {
+    if (range_str == NULL)
+    {
+        sheet->last_status = ERR_SYNTAX;
+        return -1;
+    }
     char *colon = strchr(range_str, ':');
     // Split the range into start and end
     int len = strlen(range_str);
@@ -250,8 +255,8 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
         case OP_DIV:
             if (value2 == 0)
             {
-                sheet->last_status = ERR_DIV_ZERO;
-                return -1;
+                target_cell->has_error = true;
+                return 0;
             }
             evaluated = value1 / value2;
             break;
@@ -265,7 +270,6 @@ static int parse_arithmetic(Spreadsheet *sheet, Cell *target_cell, const char *f
         return 0;
     }
     *need_new_dep = true;
-    // new_deps->type = 'C';
     return 0;
 }
 
@@ -275,10 +279,12 @@ static bool is_number(const char *str) {
     // Allow leading sign
     if (*str == '+' || *str == '-')
         str++;
-    // String should not be empty after the sign
+    
     if (*str == '\0')
         return false;
-    while (*str) {
+    
+    while (*str) 
+    {
         if (!isdigit((unsigned char)*str))
             return false;
         str++;
@@ -292,6 +298,7 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     // Extract function name
     char func_name[10] = {0};
     const char *p = formula;
+
     int i = 0;
     while (*p && *p != '(' && i < 9)
     {
@@ -299,11 +306,13 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     }
     // Find closing parenthesis
     const char *close_paren = strchr(p, ')');
+
     // Extract range/value
     int range_len = close_paren - p - 1;
     char *range_str = malloc(range_len + 1);
     strncpy(range_str, p + 1, range_len);
     range_str[range_len] = '\0';
+
     int stat = 0;
 
     if (strcmp(func_name, "SLEEP") == 0)
@@ -328,7 +337,8 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
             target_cell->value= atoi(ptr);
             *need_new_dep = false;
         }
-        else{
+        else
+        {
             sheet->last_status = ERR_SYNTAX;
             stat = -1;
         }
@@ -345,10 +355,11 @@ static int parse_function(Spreadsheet *sheet, Cell *target_cell, const char *for
     else if (strcmp(func_name, "SUM") == 0) target_cell->op_data.function.func_name = 'D';
     else if (strcmp(func_name, "STDEV") == 0) target_cell->op_data.function.func_name = 'E';
 
-    // DO NOT REMOVE IT
-
     if (!strchr(range_str, ':') || parse_range(sheet, range_str, need_new_dep, new_pairs) != 0)
+    {
+        sheet->last_status = ERR_SYNTAX;
         stat = -1;
+    }
 
     free(range_str);
     range_str = NULL;
@@ -360,15 +371,14 @@ int check_constant_or_cell_address(const char *str, int *constant_value, int *ro
     // First, try to parse a constant.
     char *endptr;
     long num = strtol(str, &endptr, 10);
+
     if (*endptr == '\0')
     {
-        // Entire string was consumed => valid constant.
         *constant_value = (int)num;
         return 0;
     }
 
     // Otherwise, check if the string is a valid cell address.
-    // Expected format: one or more letters followed by one or more digits.
     int i = 0;
     while (str[i] && isalpha((unsigned char)str[i])) i++;
     if (i == 0) return -1;
@@ -388,16 +398,17 @@ int check_constant_or_cell_address(const char *str, int *constant_value, int *ro
     if (row_num <= 0) return -1;
     *row = row_num - 1;
 
-    if(*row >= sheet->totalRows || *col >= sheet->totalCols || *row < 0 || *col < 0){
+    if(*row >= sheet->totalRows || *col >= sheet->totalCols || *row < 0 || *col < 0)
         return -1;
-    }
 
     return 1;
 }
 
-static bool match_formula(const char *formula) {
+static bool match_formula(const char *formula) 
+{
     regex_t regex;
     const char *pattern = "^([-+]?[0-9]+|[A-Z]+[0-9]+)([+*/-])([-+]?[0-9]+|[A-Z]+[0-9]+)$";
+
     if (regcomp(&regex, pattern, REG_EXTENDED) != 0) {
         fprintf(stderr, "Could not compile regex\n");
         exit(1);
@@ -469,10 +480,13 @@ static void deep_copy_cell(Cell *dest, const Cell *src) {
     dest->dependencies = src->dependencies;
 
     // Deep copy op_data based on the type
-    if (src->type == 'A') {
+    if (src->type == 'A') 
+    {
         dest->op_data.arithmetic.op = src->op_data.arithmetic.op;
         dest->op_data.arithmetic.constant = src->op_data.arithmetic.constant;
-    } else if (src->type == 'F') {
+    } 
+    else if (src->type == 'F') 
+    {
         dest->op_data.function.func_name = src->op_data.function.func_name;
     } 
 }
@@ -487,11 +501,14 @@ void process_command(Spreadsheet *sheet, char *input)
 
     while (*input == ' ')
         input++;
+
     char *start = input;
     while (start < input + strlen(input) && *start != '\0')
         start++;
+
     char *end = start - 1;
     char *eq_pos = strchr(input, '=');
+
     if (!eq_pos)
     {
         sheet->last_status = ERR_SYNTAX;
@@ -507,7 +524,8 @@ void process_command(Spreadsheet *sheet, char *input)
     if (parse_cell_address(sheet, &cellRefPtr, &row, &col) != 0)
         return;
 
-    if (row >= sheet->totalRows || col >= sheet->totalCols){
+    if (row >= sheet->totalRows || col >= sheet->totalCols)
+    {
         sheet->last_status = ERR_INVALID_CELL;
         return;
     }
@@ -528,50 +546,26 @@ void process_command(Spreadsheet *sheet, char *input)
     Cell cellcopy;
     deep_copy_cell(&cellcopy, target_cell);
     target_cell->is_sleep = false;
+    target_cell->has_error = false;
 
     bool need_new_dep;
     PairOfPair new_pairs;
 
-
-
-    // FILE* fp = fopen("log.txt", "a");
-    // fprintf(fp, "---------------------------------------------\n");
-    // fprintf(fp, "Command: %s\n", input);
-
-    // struct timeval start_time, end_time;
-    // gettimeofday(&start_time, NULL);
-
-
     // Attempt to parse and validate the new formula
     if (parse_formula(sheet, target_cell, formula, &need_new_dep, &new_pairs) != 0){
-        // gettimeofday(&end_time, NULL);
-        // double tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-        // fprintf(fp, "Time taken in parsing: [%.1f]\n", tempprocessingtime);
-        // fclose(fp);
         return;
     }
 
-    // gettimeofday(&end_time, NULL);
-    // double tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-    // fprintf(fp, "Time taken in parsing: [%.1f]\n", tempprocessingtime);
-    // gettimeofday(&start_time, NULL);
     if (update_dependencies(target_cell, need_new_dep, &new_pairs, sheet, cellcopy) == 1 && 
         evaluate_cell(target_cell, sheet) == 0)
-    { // 0 -> cycle, 1 -> no cycle
+    {   // 0 -> cycle, 1 -> no cycle
         sheet->last_status = STATUS_OK;
     }
     else{
         deep_copy_cell(target_cell, &cellcopy);
         sheet->last_status = ERR_CIRCULAR_REFERENCE;
     }
-    // gettimeofday(&end_time, NULL);
-    // tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-    // fprintf(fp, "Time taken in updating dependencies: [%.1f]\n", tempprocessingtime);
-    // gettimeofday(&start_time, NULL);
+
     if((cellcopy.value != target_cell->value) || (target_cell->is_sleep != cellcopy.is_sleep)) update_dependents(target_cell, sheet);
-    // gettimeofday(&end_time, NULL);
-    // tempprocessingtime = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
-    // fprintf(fp, "Time taken in updating dependents: [%.1f]\n", tempprocessingtime);
-    // fclose(fp);
     return;
 }
