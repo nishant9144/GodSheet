@@ -197,6 +197,115 @@ For running the requirements file, we run this code:
 cat requirement.txt | grep -v "#" | xargs sudo apt-get install -y
 \end{lstlisting}
 
+\section{Testing and Edge Cases}
+The application was thoroughly tested using a comprehensive test suite that covered various aspects of functionality and potential edge cases.
+
+\subsection{Test Categories}
+\begin{itemize}
+    \item \textbf{Basic Cell Operations}
+    \begin{itemize}
+        \item Simple value assignments
+        \item Negative numbers
+        \item Zero values
+        \item Integer bounds testing
+    \end{itemize}
+
+    \item \textbf{Arithmetic Operations}
+    \begin{itemize}
+        \item Basic operations (+, -, *, /)
+        \item Order of operations
+        \item Division by zero handling
+    \end{itemize}
+
+    \item \textbf{Function Testing}
+    \begin{itemize}
+        \item SUM with various range sizes
+        \item AVG with different value distributions
+        \item MAX/MIN with edge values
+        \item STDEV with statistical edge cases
+    \end{itemize}
+
+    \item \textbf{Range Operations}
+    \begin{itemize}
+        \item Single cell ranges
+        \item Wide ranges (A1:Z1)
+        \item Tall ranges (A1:A100)
+        \item Maximum range limits (A1:ZZZ999)
+    \end{itemize}
+
+    \item \textbf{Error Handling}
+    \begin{itemize}
+        \item Invalid cell references
+        \item Circular dependencies
+        \item Syntax errors
+        \item Range validation
+    \end{itemize}
+
+    \item \textbf{Special Features}
+    \begin{itemize}
+        \item SLEEP command functionality
+        \item Viewport scrolling
+        \item Output enabling/disabling
+        \item Command timing measurement
+    \end{itemize}
+\end{itemize}
+
+\subsection{Edge Cases Handled}
+\begin{enumerate}
+    \item \textbf{Boundary Conditions}
+    \begin{itemize}
+        \item Maximum row (999) and column (ZZZ) limits
+        \item Empty cell references
+        \item Maximum formula length
+        \item Integer overflow in calculations
+    \end{itemize}
+
+    \item \textbf{Circular References}
+    \begin{itemize}
+        \item Direct self-reference (A1=A1)
+        \item Indirect circular reference (A1=B1, B1=A1)
+        \item Complex circular chains
+        \item Circular references in functions
+    \end{itemize}
+
+    \item \textbf{Function Edge Cases}
+    \begin{itemize}
+        \item STDEV with identical values
+        \item AVG of large ranges
+        \item SUM with potential overflow
+        \item Functions referencing error cells
+    \end{itemize}
+
+    \item \textbf{Range Edge Cases}
+    \begin{itemize}
+        \item Invalid range orders (B1:A1)
+        \item Single-cell ranges
+        \item Ranges exceeding sheet bounds
+        \item Ranges with error cells
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Testing Benefits}
+The comprehensive testing approach provided several benefits:
+\begin{itemize}
+    \item Early detection of edge case issues
+    \item Validation of error handling mechanisms
+    \item Verification of calculation accuracy
+    \item Confirmation of memory management
+    \item Assurance of user input handling
+\end{itemize}
+
+\subsection{Test-Driven Improvements}
+Testing helped improve several aspects of the implementation:
+\begin{itemize}
+    \item Parsing bugs removed
+    \item Corrected/enhanced the division by zero function
+    \item Improves time complexity 
+    \item Improved memory management
+    \item More consistent user interface
+\end{itemize}
+
+
 \section{Conclusion}
 This command-line spreadsheet application successfully demonstrates the practical application of fundamental C programming concepts to create a functional data processing tool.
 By implementing support for multiple command line arguments, the project provides users
