@@ -8,11 +8,12 @@ LDFLAGS = -lm
 SRC_DIR = Definitions
 DECL_DIR = Declarations
 BUILD_DIR = build
-BIN_DIR = bin
+BIN_ = target
+BIN_DIR = $(BIN_)/release
 TEST_DIR = tests
 
 # Targets
-EXEC = $(BIN_DIR)/sheet
+EXEC = $(BIN_DIR)/spreadsheet
 TEST_EXEC = $(BIN_DIR)/test_suite
 REPORT = report.pdf
 
@@ -56,5 +57,5 @@ report:
 
 # Clean all generated files
 clean:
-	@rm -rf $(BUILD_DIR) $(BIN_DIR)
+	@rm -rf $(BUILD_DIR) $(BIN_DIR) $(BIN_) $(TEST_EXEC)
 	@rm -f *.aux *.log *.out *.toc $(REPORT)
