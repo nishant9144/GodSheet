@@ -18,9 +18,18 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
     // Remove current cell from the dependents set of old dependencies
     curr_cell->dependencies = *new_pairs;
 
-    short r1 = cellcopy.dependencies.first.i, c1 = cellcopy.dependencies.first.j;
-    short r2 = cellcopy.dependencies.second.i, c2 = cellcopy.dependencies.second.j;
+    short r1,c1,r2,c2;
 
+    if (need_new_deps)
+    {
+        // Check for circular dependencies
+        if (check_circular_dependencies(curr_cell, sheet))
+        return 0;
+    }
+    
+    // Add current cell to the dependents set of new dependencies
+    r1 = cellcopy.dependencies.first.i, c1 = cellcopy.dependencies.first.j;
+    r2 = cellcopy.dependencies.second.i, c2 = cellcopy.dependencies.second.j;
     if (cellcopy.type == 'F')
     {
         for (short i = r1; i <= r2; i++)
@@ -44,105 +53,35 @@ int update_dependencies(Cell *curr_cell, bool need_new_deps, PairOfPair *new_pai
             Cell *old_dep = &sheet->cells[r2][c2];
             old_dep->dependents = avl_remove(old_dep->dependents, cellcopy.row, cellcopy.col);
         }
-
     }
 
-    // Add current cell to the dependents set of new dependencies
-    if (need_new_deps)
+    r1 = new_pairs->first.i, c1 = new_pairs->first.j;
+    r2 = new_pairs->second.i, c2 = new_pairs->second.j;
+    if (curr_cell->type == 'F')
     {
-        r1 = new_pairs->first.i, c1 = new_pairs->first.j;
-        r2 = new_pairs->second.i, c2 = new_pairs->second.j;
-
-        if (curr_cell->type == 'F')
+        for (short i = r1; i <= r2; i++)
         {
-            for (short i = r1; i <= r2; i++)
+            for (short j = c1; j <= c2; j++)
             {
-                for (short j = c1; j <= c2; j++)
-                {
-                    Cell *new_dep = &sheet->cells[i][j];
-                    new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);
-                }
-            }
-        }
-        else if(curr_cell->type == 'A' || curr_cell->type == 'R')
-        {
-            if (r1 != -1 && c1 != -1)
-            {  
-                Cell *new_dep = &sheet->cells[r1][c1];
+                Cell *new_dep = &sheet->cells[i][j];
                 new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);
             }
-            if (r2 != -1 && c2 != -1)
-            {
-                Cell *new_dep = &sheet->cells[r2][c2];
-                new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);
-            }
-        }
-    
-        // Check for circular dependencies
-        if (check_circular_dependencies(curr_cell, sheet))
-        {
-            // Remove current cell from the dependents set of new dependencies
-            r1 = curr_cell->dependencies.first.i, c1 = curr_cell->dependencies.first.j;
-            r2 = curr_cell->dependencies.second.i, c2 = curr_cell->dependencies.second.j;
-
-            if (curr_cell->type == 'F')
-            {
-                for (short i = r1; i <= r2; i++)
-                {
-                    for (short j = c1; j <= c2; j++)
-                    {
-                        Cell *new_dep = &sheet->cells[i][j];
-                        if (new_dep->dependents != NULL)
-                            new_dep->dependents = avl_remove(new_dep->dependents, curr_cell->row, curr_cell->col);
-                    }
-                }
-            }
-            else if (curr_cell->type == 'A' || curr_cell->type == 'R')
-            {
-                if (r1 != -1 && c1 != -1)
-                {  
-                    Cell *new_deps = &sheet->cells[r1][c1];
-                    new_deps->dependents = avl_remove(new_deps->dependents, curr_cell->row, curr_cell->col);
-                }
-                if (r2 != -1 && c2 != -1)
-                {
-                    Cell *new_deps = &sheet->cells[r2][c2];
-                    new_deps->dependents = avl_remove(new_deps->dependents, curr_cell->row, curr_cell->col);
-                }
-            }
-
-            // Add to dependents of the old dependencies
-            r1 = cellcopy.dependencies.first.i, c1 = cellcopy.dependencies.first.j;
-            r2 = cellcopy.dependencies.second.i, c2 = cellcopy.dependencies.second.j;
-
-            if (cellcopy.type == 'F')
-            {
-                for (short i = r1; i <= r2; i++)
-                {
-                    for (short j = c1; j <= c2; j++)
-                    {
-                        Cell *old_dep = &sheet->cells[i][j];
-                        old_dep->dependents = avl_insert(old_dep->dependents, curr_cell->row, curr_cell->col);
-                    }
-                }
-            }
-            else if (cellcopy.type == 'A' || cellcopy.type == 'R')
-            {
-                if (r1 != -1 && c1 != -1)
-                {  
-                    Cell *old_deps = &sheet->cells[r1][c1];
-                    old_deps->dependents = avl_insert(old_deps->dependents, curr_cell->row, curr_cell->col);
-                }
-                if (r2 != -1 && c2 != -1)
-                {
-                    Cell *old_deps = &sheet->cells[r2][c2];
-                    if (old_deps->dependents == NULL)
-                    old_deps->dependents = avl_insert(old_deps->dependents, curr_cell->row, curr_cell->col);
-                }
-            }
-            return 0;
         }
     }
+    else if(curr_cell->type == 'A' || curr_cell->type == 'R')
+    {
+        if (r1 != -1 && c1 != -1)
+        {  
+            Cell *new_dep = &sheet->cells[r1][c1];
+            new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);
+        }
+        if (r2 != -1 && c2 != -1)
+        {
+            Cell *new_dep = &sheet->cells[r2][c2];
+            new_dep->dependents = avl_insert(new_dep->dependents, curr_cell->row, curr_cell->col);
+        }
+    }
+
     return 1;
 }
 
@@ -420,7 +359,7 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
         cell->has_error=false;
         break;
 
-    case 'F':
+    case 'F':{
         int sum = 0, count = 0;
         int min_val = INT_MAX, max_val = INT_MIN;
         int sum_sq = 0;
@@ -472,9 +411,9 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
             break;
         }
         cell->has_error = false;
-        break;
+        break; }
 
-    case 'R':
+    case 'R':{
         short r = cell->dependencies.first.i, c = cell->dependencies.first.j;
         Cell *ref_cell = &sheet->cells[r][c];
         if(ref_cell->has_error){
@@ -484,7 +423,7 @@ int evaluate_cell(Cell *cell, Spreadsheet *sheet)
         cell->value = ref_cell->value;
         if (cell->is_sleep && cell->value > 0) sleep(cell->value);
         cell->has_error=false;
-        break;
+        break;}
     }
     return 0;
 }

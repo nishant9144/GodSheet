@@ -25,11 +25,10 @@ int main(int argc, char *argv[])
     Spreadsheet *sheet = create_spreadsheet(rows, cols);
     gettimeofday(&sheet->last_cmd_time, NULL);  // Initialize last_cmd_time properly
 
-    configure_terminal();
-
+    // Run the UI without terminal configuration
     run_ui(sheet);
 
-    restore_terminal();
+    // Clean up and exit
     free_spreadsheet(sheet);
     return 0;
 }

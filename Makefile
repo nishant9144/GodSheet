@@ -19,11 +19,11 @@ REPORT = report.pdf
 
 # Source files
 MAIN_SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/frontend.c $(SRC_DIR)/backend.c $(SRC_DIR)/dS.c $(SRC_DIR)/parser.c
-TEST_SRCS = $(wildcard $(TEST_DIR)/*.c)
+TEST_SRCS = test_sheet.c
 
 # Objects
 MAIN_OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(MAIN_SRCS))
-TEST_OBJS = $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SRCS))
+TEST_OBJS = $(BUILD_DIR)/test_sheet.o
 
 .PHONY: all test report clean directories valgrind
 
@@ -39,6 +39,11 @@ $(EXEC): $(MAIN_OBJS)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(DECL_DIR)/ds.h $(DECL_DIR)/parser.h
 	@$(CC) $(CFLAGS) -c $< -o $@ -g
 
+# Special rule for test_sheet.o
+$(BUILD_DIR)/test_sheet.o: test_sheet.c $(DECL_DIR)/ds.h $(DECL_DIR)/parser.h
+
+	@$(CC) $(CFLAGS) -c $< -o $@ -g
+
 # Run tests
 test: directories $(TEST_EXEC)
 	@$(TEST_EXEC)
@@ -52,8 +57,8 @@ valgrind: $(EXEC)
 
 # Generate the report
 report:
-	@pdflatex -interaction=nonstopmode report.tex
-	@pdflatex -interaction=nonstopmode report.tex  # Run twice to resolve references
+	@pdflatex --interaction=nonstopmode report.tex
+	@pdflatex --interaction=nonstopmode report.tex
 	@rm -f *.aux *.log *.out *.toc
 
 # Clean all generated files
