@@ -1,1 +1,13 @@
-sudo apt-get install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+# C Build Tools
+gcc
+make
+
+# For report generation
+texlive-latex-base
+texlive-fonts-recommended
+texlive-fonts-extra
+texlive-latex-extra
+
+# For development (optional)
+valgrind        # Memory debugging
+gdb             # GNU Debugger
