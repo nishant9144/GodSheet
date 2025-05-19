@@ -1,4 +1,4 @@
-# Spreadsheet
+# GodShit! Oh sorry, GodSheet!
 
 This repository contains the COP290 C Lab project.
 
